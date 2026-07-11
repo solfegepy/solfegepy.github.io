@@ -1,0 +1,260 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getTool, getToolDescription, type ToolId } from "../../lib/tools";
+import { CodecApp } from "./CodecApp";
+
+interface Props {
+  toolId: ToolId;
+}
+const { toolId } = Astro.props;
+const tool = getTool(toolId);
+const description = getToolDescription(tool);
+const canonical = `https://codec64.com${tool.route}`;
+const title = `${tool.title} | Codec Bench`;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: toolId === "base64" ? "Codec Bench Base64 Encoder and Decoder" : `Codec Bench ${tool.label}`,
+  url: canonical,
+  description,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
+const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec Bench" {structuredData}>
+  <noscript>Enable JavaScript to use conversions.</noscript>
+  <CodecApp toolId={tool.id} client:load />
+  {
+    toolId === "base64" && (
+      <article data-testid="base64-guidance" class={ARTICLE_CLASSES}>
+        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+          <section data-testid="base64-how-to">
+            <>
+              <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
+              <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
+                <>
+                  <li>Enter plain text to encode, or Base64 data to decode.</li>
+                  <li>Choose Plain text, Base64 encoded, or Base64url encoded.</li>
+                  <li>Select channel formats, then convert and copy result.</li>
+                </>
+              </ol>
+            </>
+          </section>
+          <section data-testid="base64-about">
+            <>
+              <h2 class="font-display text-ink text-2xl font-bold">What is Base64?</h2>
+              <p class="text-muted mt-4 max-w-prose leading-7">
+                Base64 represents binary data as readable ASCII text. It helps move data through text-based systems, but
+                it is encoding—not encryption—and does not protect secrets.
+              </p>
+            </>
+          </section>
+        </div>
+        <section data-testid="base64-faq" class="border-line mt-10 border-t pt-10">
+          <>
+            <h2 class="font-display text-ink text-2xl font-bold">Base64 FAQ</h2>
+            <div class="mt-5 grid gap-6 md:grid-cols-2">
+              <>
+                <div>
+                  <>
+                    <h3 class="text-ink font-semibold">How do I encode text to Base64?</h3>
+                    <p class="text-muted mt-2 leading-7">
+                      Enter Unicode text, choose plain text on top, and select Convert.
+                    </p>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <h3 class="text-ink font-semibold">How do I decode Base64?</h3>
+                    <p class="text-muted mt-2 leading-7">
+                      Paste valid Base64, choose Base64 encoded on top, and select Convert.
+                    </p>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <h3 class="text-ink font-semibold">What makes URL-safe Base64 different?</h3>
+                    <p class="text-muted mt-2 leading-7">
+                      URL-safe Base64 uses <code>-</code> and <code>_</code> instead of <code>+</code> and{" "}
+                      <code>/</code>, and commonly omits padding.
+                    </p>
+                  </>
+                </div>
+              </>
+            </div>
+          </>
+        </section>
+      </article>
+    )
+  }
+  {
+    toolId === "url" && (
+      <article data-testid="url-guidance" class={ARTICLE_CLASSES}>
+        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+          <section data-testid="url-how-to">
+            <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
+            <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
+              <li>Enter plain text or percent-encoded data.</li>
+              <li>Choose Plain text and one explicit URL encoding mode.</li>
+              <li>Select Convert, then copy result.</li>
+            </ol>
+          </section>
+          <section data-testid="url-mode-guide">
+            <h2 class="font-display text-ink text-2xl font-bold">Choose URL encoding mode</h2>
+            <p class="text-muted mt-4 max-w-prose leading-7">
+              Use RFC 3986 component for one value, Full URI for complete URI syntax, or Form URL encoded for one form
+              value. Selection matters because <code>+</code> means space only in form decoding.
+            </p>
+          </section>
+        </div>
+        <section data-testid="url-mode-comparison-section" class="border-line mt-10 border-t pt-10">
+          <h2 class="font-display text-ink text-2xl font-bold">URL encoding comparison</h2>
+          <div class="border-line mt-5 overflow-x-auto rounded-lg border">
+            <table data-testid="url-mode-comparison" class="w-full text-left text-sm">
+              <caption class="sr-only">URL encoding mode behavior</caption>
+              <thead class="bg-field text-ink">
+                <tr>
+                  <th class="px-4 py-3 font-semibold" scope="col">
+                    Mode
+                  </th>
+                  <th class="px-4 py-3 font-semibold" scope="col">
+                    Space
+                  </th>
+                  <th class="px-4 py-3 font-semibold" scope="col">
+                    Use
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="text-muted divide-line divide-y">
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    RFC 3986 component
+                  </th>
+                  <td class="px-4 py-3">
+                    <code>%20</code>
+                  </td>
+                  <td class="px-4 py-3">One component value; reserved delimiters encoded.</td>
+                </tr>
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    Full URI
+                  </th>
+                  <td class="px-4 py-3">
+                    <code>%20</code>
+                  </td>
+                  <td class="px-4 py-3">Complete URI; syntax delimiters preserved.</td>
+                </tr>
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    Form URL encoded
+                  </th>
+                  <td class="px-4 py-3">
+                    <code>+</code>
+                  </td>
+                  <td class="px-4 py-3">
+                    One form value; literal plus becomes <code>%2B</code>.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted mt-5 max-w-prose leading-7">
+            Form example: <code class="break-all">a+b / c~d</code> → <code class="break-all">a%2Bb+%2F+c%7Ed</code>. For
+            structured <code class="break-all">name=value&amp;name=value</code> data, use Query Params.
+          </p>
+        </section>
+      </article>
+    )
+  }
+  {
+    toolId === "jwt" && (
+      <article data-testid="jwt-static-guidance" class={ARTICLE_CLASSES}>
+        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+          <section data-testid="jwt-how-to">
+            <h2 class="font-display text-ink text-2xl font-bold">How to decode</h2>
+            <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
+              <li>Paste compact JWT containing header, payload, and signature segments.</li>
+              <li>Select Decode to inspect formatted JSON and encoded signature.</li>
+              <li>Copy only output needed.</li>
+            </ol>
+          </section>
+          <section data-testid="jwt-verification">
+            <h2 class="font-display text-ink text-2xl font-bold">Decoding vs verification</h2>
+            <p class="text-muted mt-4 max-w-prose leading-7">
+              Decoding reveals token contents. It does not verify signature, issuer, claims, or authenticity.
+            </p>
+          </section>
+        </div>
+      </article>
+    )
+  }
+  {
+    toolId === "timestamp" && (
+      <article class={ARTICLE_CLASSES} data-testid="timestamp-guidance">
+        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+          <section data-testid="timestamp-how-to">
+            <h2 class="font-display text-ink text-2xl font-bold">How to convert timestamps</h2>
+            <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
+              <li>Choose Z time, Unix seconds, or Unix milliseconds as source.</li>
+              <li>Enter value and choose distinct target format.</li>
+              <li>Select Convert, then copy result.</li>
+            </ol>
+          </section>
+          <section data-testid="timestamp-range">
+            <h2 class="font-display text-ink text-2xl font-bold">Supported Z time range</h2>
+            <p class="text-muted mt-4 max-w-prose leading-7">
+              Z time accepts strict UTC ISO 8601 from 1970 through 9999.
+            </p>
+          </section>
+        </div>
+        <section data-testid="timestamp-formats" class="border-line mt-10 min-w-0 border-t pt-10">
+          <h2 class="font-display text-ink text-2xl font-bold">Timestamp format semantics</h2>
+          <div class="border-line mt-5 max-w-full overflow-x-auto rounded-lg border">
+            <table data-testid="timestamp-format-table" class="w-full table-fixed text-left text-sm">
+              <caption class="sr-only">Supported timestamp formats</caption>
+              <thead class="bg-field text-ink">
+                <tr>
+                  <th class="px-4 py-3 font-semibold" scope="col">
+                    Format
+                  </th>
+                  <th class="px-4 py-3 font-semibold" scope="col">
+                    Output
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="text-muted divide-line divide-y">
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    Z time
+                  </th>
+                  <td class="px-4 py-3">
+                    <code class="break-all">YYYY-MM-DDTHH:mm:ss.sssZ</code>
+                  </td>
+                </tr>
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    Unix seconds
+                  </th>
+                  <td class="px-4 py-3">Whole seconds since UTC epoch</td>
+                </tr>
+                <tr>
+                  <th class="text-ink px-4 py-3 font-semibold" scope="row">
+                    Unix milliseconds
+                  </th>
+                  <td class="px-4 py-3">Whole milliseconds since UTC epoch</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted mt-5 max-w-prose leading-7">
+            Decimal timestamp input is accepted. Precision below one millisecond is truncated; Unix output is always an
+            integer.
+          </p>
+        </section>
+      </article>
+    )
+  }
+</Layout>

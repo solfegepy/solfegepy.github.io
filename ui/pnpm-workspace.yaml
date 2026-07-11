@@ -1,0 +1,16 @@
+packages:
+  - "."
+
+storeDir: ./.pnpm-store
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - chokidar@4.0.3
+  - semver@6.3.1
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAge: 10080
+minimumReleaseAgeIgnoreMissingTime: true
+minimumReleaseAgeStrict: false

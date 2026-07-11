@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const title = "Page Not Found | Codec Bench";
+const description = "The requested Codec Bench page could not be found.";
+---
+
+<Layout {title} {description} siteName="Codec Bench" robots="noindex">
+  <script is:inline>
+    document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  </script>
+  <main data-testid="not-found-page" class="flex min-h-dvh items-center justify-center p-4 md:p-8">
+    <section
+      data-testid="not-found-section"
+      class="border-line bg-panel w-full max-w-xl rounded-xl border p-6 shadow-sm md:p-10"
+    >
+      <a
+        data-testid="not-found-brand-link"
+        href="/"
+        aria-label="Codec Bench home"
+        class="font-display text-ink focus-visible:outline-primary inline-flex text-lg font-bold tracking-tight focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        ><span>Codec</span><span class="text-accent">/</span><span>Bench</span></a
+      >
+      <p class="text-accent mt-12 font-mono text-xs font-semibold tracking-widest uppercase">Error / 404</p>
+      <h1 class="font-display text-ink mt-3 text-4xl leading-tight font-bold tracking-tight text-balance md:text-5xl">
+        404 / Page not found
+      </h1>
+      <p class="text-muted mt-4 max-w-prose leading-7">This page could not be found.</p>
+      <a
+        data-testid="not-found-home"
+        href="/"
+        class="bg-primary text-paper hover:bg-primary-strong focus-visible:outline-primary mt-8 inline-flex min-h-11 items-center justify-center rounded-lg px-5 py-2.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+        >Back to Codec Bench</a
+      >
+    </section>
+  </main>
+</Layout>

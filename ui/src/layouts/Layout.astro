@@ -1,0 +1,33 @@
+---
+import "../styles/globals.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  siteName: string;
+  structuredData?: object;
+  robots?: string;
+}
+const { title, description, canonical, siteName, structuredData, robots } = Astro.props;
+const serializedStructuredData = structuredData ? JSON.stringify(structuredData).replaceAll("<", "\\u003c") : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:site_name" content={siteName} />
+    {serializedStructuredData && <script type="application/ld+json" is:inline set:html={serializedStructuredData} />}
+    <title>{title}</title>
+  </head>
+  <body><slot /></body>
+</html>

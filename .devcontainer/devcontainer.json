@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.base.schema.json",
+  // "name": "saicli",
+  "dockerComposeFile": [
+    "compose.yml",
+    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.gui.yml",
+    // "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.audio.yml",
+  ],
+  "service": "dev_container",
+  "updateRemoteUserUID": false,  // remote user already has same host UID/GID
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}"
+  },
+
+  // localWorkspaceFolder is set with --workspace-folder (default to .)
+  "workspaceFolder": "/workspaces",  // container cwd after create
+  // "onCreateCommand": "${containerWorkspaceFolder}/.devcontainer/_on_create.sh",
+  // "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/_post_start.sh",
+  "postAttachCommand": "${containerWorkspaceFolder}/.devcontainer/_entrypoint.sh",
+}
