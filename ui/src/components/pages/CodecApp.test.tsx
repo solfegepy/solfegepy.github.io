@@ -2,9 +2,16 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { WebMcpTool } from "../../lib/webmcp";
 import { CodecApp } from "./CodecApp";
 
+function installModelContext(registerTool = vi.fn()): typeof registerTool {
+  Object.defineProperty(document, "modelContext", { configurable: true, value: { registerTool } });
+  return registerTool;
+}
+
 beforeEach(() => {
+  Reflect.deleteProperty(document, "modelContext");
   sessionStorage.clear();
   localStorage.clear();
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ matches: false })) });
@@ -14,9 +21,116 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  Reflect.deleteProperty(document, "modelContext");
+  vi.restoreAllMocks();
+});
 
 describe("CodecApp", () => {
+  it("registers isolated Base64 WebMCP execution without changing workspace state", async () => {
+    const registerTool = installModelContext();
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
+    const view = render(<CodecApp toolId="base64" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("decode_base64");
+    const input = screen.getByTestId("base64-input");
+    const output = screen.getByTestId("base64-output");
+    const before = {
+      input: (input as HTMLTextAreaElement).value,
+      output: (output as HTMLTextAreaElement).value,
+      top: (screen.getByTestId("base64-top-format") as HTMLSelectElement).value,
+      bottom: (screen.getByTestId("base64-bottom-format") as HTMLSelectElement).value,
+      storage: { ...localStorage, ...sessionStorage },
+    };
+
+    await expect(tool.execute({ value: "aGVsbG8=", variant: "standard" })).resolves.toEqual({
+      ok: true,
+      value: "hello",
+      variant: "standard",
+    });
+    expect(input).toHaveValue(before.input);
+    expect(output).toHaveValue(before.output);
+    expect(screen.getByTestId("base64-top-format")).toHaveValue(before.top);
+    expect(screen.getByTestId("base64-bottom-format")).toHaveValue(before.bottom);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect({ ...localStorage, ...sessionStorage }).toEqual(before.storage);
+    expect(writeText).not.toHaveBeenCalled();
+
+    await user.type(input, "x");
+    view.rerender(<CodecApp toolId="base64" />);
+    expect(registerTool).toHaveBeenCalledOnce();
+    expect(options.signal.aborted).toBe(false);
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it("registers isolated JWT WebMCP execution without changing visible output", async () => {
+    const registerTool = installModelContext();
+    const view = render(<CodecApp toolId="jwt" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("decode_jwt");
+    const token = screen.getByTestId("jwt-input");
+    const header = screen.getByTestId("jwt-header-output");
+    const payload = screen.getByTestId("jwt-payload-output");
+    const signature = screen.getByTestId("jwt-signature-output");
+    const before = [token, header, payload, signature].map((field) => (field as HTMLTextAreaElement).value);
+
+    await expect(tool.execute({ value: "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZ2VudCJ9." })).resolves.toEqual({
+      ok: true,
+      header: { alg: "none" },
+      payload: { sub: "agent" },
+      signature: "",
+      signatureVerified: false,
+    });
+    expect([token, header, payload, signature].map((field) => (field as HTMLTextAreaElement).value)).toEqual(before);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    expect(localStorage).toHaveLength(0);
+    expect(sessionStorage).toHaveLength(0);
+
+    view.rerender(<CodecApp toolId="jwt" />);
+    expect(registerTool).toHaveBeenCalledOnce();
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it.each(["url", "query", "python", "timestamp"] as const)("registers no decoding tool for %s", (toolId) => {
+    const registerTool = installModelContext();
+
+    render(<CodecApp toolId={toolId} />);
+
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it("keeps human Base64 controls usable without WebMCP", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "human");
+    await user.click(screen.getByRole("button", { name: "Convert" }));
+    expect(screen.getByTestId("base64-output")).toHaveValue("aHVtYW4=");
+  });
+
+  it("keeps human JWT controls usable when registration rejects", async () => {
+    installModelContext(vi.fn().mockRejectedValue(new Error("denied")));
+    const user = userEvent.setup();
+    render(<CodecApp toolId="jwt" />);
+    await Promise.resolve();
+
+    const input = screen.getByTestId("jwt-input");
+    await user.clear(input);
+    await user.type(input, "bad");
+    await user.click(screen.getByRole("button", { name: "Decode" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("JWT must contain three segments.");
+  });
+
   it("persists explicit theme and resets to system", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);

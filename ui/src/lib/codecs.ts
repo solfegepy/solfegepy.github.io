@@ -10,6 +10,7 @@ const fail = (error: string): ConversionResult => ({ ok: false, error });
 const pass = (value: string): ConversionResult => ({ ok: true, value });
 
 const JWT_MAX_LENGTH = 100_000;
+const BASE64_MAX_LENGTH = 1_000_000;
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 function isValidJwtSegment(segment: string, allowEmpty = false): boolean {
@@ -328,6 +329,9 @@ export function encodeBase64(input: string, variant: Base64Variant): ConversionR
 }
 
 export function decodeBase64(input: string, variant: Base64Variant): ConversionResult {
+  if (input.length > BASE64_MAX_LENGTH) {
+    return fail("Base64 is too large. Maximum size is 1000000 characters.");
+  }
   const compact = input.replace(/\s/g, "");
   const alphabet = variant === "url-safe" ? "[A-Za-z0-9_-]" : "[A-Za-z0-9+/]";
   const unpadded = compact.replace(/=+$/, "");

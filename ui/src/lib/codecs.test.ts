@@ -167,6 +167,20 @@ describe("timestamp conversion", () => {
 });
 
 describe("Base64 codec", () => {
+  it("accepts valid raw input at the maximum length", () => {
+    const result = decodeBase64("A".repeat(1_000_000), "standard");
+
+    expect(result.ok).toBe(true);
+    expect(result.ok && result.value).toHaveLength(750_000);
+  });
+
+  it("rejects oversized raw input before whitespace normalization", () => {
+    expect(decodeBase64(`${"A".repeat(1_000_000)} `, "standard")).toEqual({
+      ok: false,
+      error: "Base64 is too large. Maximum size is 1000000 characters.",
+    });
+  });
+
   it.each([
     ["hello", "aGVsbG8="],
     ["café 🎵", "Y2Fmw6kg8J+OtQ=="],

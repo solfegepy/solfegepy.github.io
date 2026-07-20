@@ -1,8 +1,9 @@
 import { CopyIcon } from "lucide-react";
-import { useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 
 import { decodeJwt } from "../../lib/codecs";
 import type { DecodedJwt } from "../../lib/types";
+import { JWT_DECODE_TOOL, registerWebMcpTool } from "../../lib/webmcp";
 import { ActionButton } from "../ui/ActionButton";
 import { InlineStatus } from "../ui/InlineStatus";
 import { TextareaField } from "../ui/TextareaField";
@@ -71,6 +72,8 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
 }
 
 export function JwtTool() {
+  useEffect(() => registerWebMcpTool(JWT_DECODE_TOOL), []);
+
   const [input, setInput] = useState(SYNTHETIC_JWT);
   const [output, setOutput] = useState<JwtOutput>(createSyntheticOutput);
   const [lastAttemptInput, setLastAttemptInput] = useState(SYNTHETIC_JWT);

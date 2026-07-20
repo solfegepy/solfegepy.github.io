@@ -2,6 +2,104 @@ import { expect, test } from "@playwright/test";
 
 import { CodecPage } from "../pages/CodecPage";
 
+test("WebMCP decoding tools are route-local and return exact contracts", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.installWebMcpMock();
+
+  await codec.open();
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_base64"]);
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: "aGVsbG8=", variant: "standard" })).toEqual({
+    ok: true,
+    value: "hello",
+    variant: "standard",
+  });
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: "w7_Dvw", variant: "url-safe" })).toEqual({
+    ok: true,
+    value: "ÿÿ",
+    variant: "url-safe",
+  });
+
+  await codec.open("/jwt");
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZ2VudCJ9." })).toEqual({
+    ok: true,
+    header: { alg: "none" },
+    payload: { sub: "agent" },
+    signature: "",
+    signatureVerified: false,
+  });
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: "bad" })).toEqual({
+    ok: false,
+    error: "JWT must contain three segments.",
+  });
+
+  for (const route of ["/url", "/query", "/python-json", "/timestamp"]) {
+    await codec.open(route);
+    expect(await codec.webMcpToolNames(), route).toEqual([]);
+  }
+});
+
+test("WebMCP invocation leaves browser and UI state private and unchanged", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const codec = new CodecPage(page);
+  const traffic = codec.trackRequests();
+  await codec.installWebMcpMock();
+  await codec.open();
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_base64"]);
+  await codec.writeClipboard("clipboard-sentinel");
+
+  const base64Before = await codec.base64WorkspaceState();
+  const browserBefore = await codec.browserState();
+  const encodedMarker = "V0VCTUNQX1BSSVZBVEVfTUFSS0VS";
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: encodedMarker, variant: "standard" })).toEqual({
+    ok: true,
+    value: "WEBMCP_PRIVATE_MARKER",
+    variant: "standard",
+  });
+  expect(await codec.base64WorkspaceState()).toEqual(base64Before);
+  expect(await codec.browserState()).toEqual(browserBefore);
+  expect(await codec.clipboardText()).toBe("clipboard-sentinel");
+
+  await codec.open("/jwt");
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
+  const jwtMarker = "JWT_WEBMCP_PRIVATE_MARKER";
+  const payload = Buffer.from(JSON.stringify({ private: jwtMarker })).toString("base64url");
+  const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.c2ln`;
+  const jwtBefore = await codec.jwtWorkspaceValues();
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: token })).toMatchObject({
+    ok: true,
+    payload: { private: jwtMarker },
+    signatureVerified: false,
+  });
+  expect(await codec.jwtWorkspaceValues()).toEqual(jwtBefore);
+  await expect(codec.status()).toHaveCount(0);
+  expect(await codec.clipboardText()).toBe("clipboard-sentinel");
+  expect(await codec.storageSize()).toBe(0);
+  expect((await codec.browserState()).url).not.toContain(jwtMarker);
+  expect(
+    traffic.every(({ url, body }) =>
+      [encodedMarker, "WEBMCP_PRIVATE_MARKER", jwtMarker, token].every(
+        (secret) => !url.includes(secret) && !body.includes(secret),
+      ),
+    ),
+  ).toBe(true);
+});
+
+test("unsupported and rejected WebMCP registration preserve human flows", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.open();
+  await codec.fill("base64-input", "human");
+  await codec.act("Convert");
+  await expect(codec.output("base64-output")).toHaveValue("aHVtYW4=");
+
+  await codec.installWebMcpMock(true);
+  await codec.open("/jwt");
+  expect(await codec.webMcpToolNames()).toEqual([]);
+  await codec.enterJwt("bad");
+  await codec.decodeJwt();
+  await expect(codec.alert()).toHaveText("JWT must contain three segments.");
+});
+
 test("publishes route metadata and navigates with browser history", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();

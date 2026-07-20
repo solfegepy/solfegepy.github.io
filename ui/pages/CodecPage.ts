@@ -22,6 +22,99 @@ type ChannelFormat =
 export class CodecPage {
   constructor(private readonly page: Page) {}
 
+  trackRequests(): { url: string; body: string }[] {
+    const traffic: { url: string; body: string }[] = [];
+    this.page.on("request", (request) => traffic.push({ url: request.url(), body: request.postData() ?? "" }));
+    return traffic;
+  }
+  async writeClipboard(value: string): Promise<void> {
+    await this.page.evaluate((text) => navigator.clipboard.writeText(text), value);
+  }
+  async browserState(): Promise<{
+    url: string;
+    historyLength: number;
+    historyState: unknown;
+    local: string;
+    session: string;
+  }> {
+    return this.page.evaluate(() => ({
+      url: location.href,
+      historyLength: history.length,
+      historyState: history.state as unknown,
+      local: JSON.stringify(localStorage),
+      session: JSON.stringify(sessionStorage),
+    }));
+  }
+  async base64WorkspaceState(): Promise<{
+    input: string;
+    output: string;
+    top: string;
+    bottom: string;
+    status: string;
+  }> {
+    return this.page.evaluate(() => ({
+      input: (document.querySelector('[data-testid="base64-input"]') as HTMLTextAreaElement).value,
+      output: (document.querySelector('[data-testid="base64-output"]') as HTMLTextAreaElement).value,
+      top: (document.querySelector('[data-testid="base64-top-format"]') as HTMLSelectElement).value,
+      bottom: (document.querySelector('[data-testid="base64-bottom-format"]') as HTMLSelectElement).value,
+      status: document.querySelector('[role="status"], [role="alert"]')?.textContent ?? "",
+    }));
+  }
+  async jwtWorkspaceValues(): Promise<string[]> {
+    return this.page.evaluate(() =>
+      ["jwt-input", "jwt-header-output", "jwt-payload-output", "jwt-signature-output"].map(
+        (testId) => (document.querySelector(`[data-testid="${testId}"]`) as HTMLTextAreaElement).value,
+      ),
+    );
+  }
+  async storageSize(): Promise<number> {
+    return this.page.evaluate(() => localStorage.length + sessionStorage.length);
+  }
+  async installWebMcpMock(rejectRegistration = false): Promise<void> {
+    await this.page.addInitScript((reject) => {
+      interface CapturedTool {
+        name: string;
+        execute(input: unknown): unknown;
+      }
+      interface ToolWindow extends Window {
+        __webMcpTools?: Map<string, CapturedTool>;
+      }
+
+      const tools = new Map<string, CapturedTool>();
+      (window as ToolWindow).__webMcpTools = tools;
+      Object.defineProperty(Document.prototype, "modelContext", {
+        configurable: true,
+        get: () => ({
+          registerTool(tool: CapturedTool, options: { signal: AbortSignal }) {
+            if (reject) return Promise.reject(new Error("registration denied"));
+            tools.set(tool.name, tool);
+            options.signal.addEventListener("abort", () => tools.delete(tool.name), { once: true });
+            return Promise.resolve();
+          },
+        }),
+      });
+    }, rejectRegistration);
+  }
+  async webMcpToolNames(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const tools = (window as Window & { __webMcpTools?: Map<string, unknown> }).__webMcpTools;
+      return [...(tools?.keys() ?? [])].sort();
+    });
+  }
+  async invokeWebMcpTool(name: string, input: unknown): Promise<unknown> {
+    return this.page.evaluate(
+      async ({ toolName, toolInput }) => {
+        interface CapturedTool {
+          execute(value: unknown): unknown;
+        }
+        const tools = (window as Window & { __webMcpTools?: Map<string, CapturedTool> }).__webMcpTools;
+        const tool = tools?.get(toolName);
+        if (!tool) throw new Error(`Missing WebMCP tool: ${toolName}`);
+        return tool.execute(toolInput);
+      },
+      { toolName: name, toolInput: input },
+    );
+  }
   async open(path = "/"): Promise<void> {
     await this.page.goto(path);
   }
