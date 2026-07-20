@@ -8,8 +8,6 @@ services:
     hostname: saicli__ai_codec64
     ports:
       - "${UI_EXT_PORT}:${UI_INT_PORT}"
-    entrypoint: []
-    command: sleep infinity
     init: true  # wrapper because 'sleep' does not handle SIGTERM
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
       - ..:/workspaces
