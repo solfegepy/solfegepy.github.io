@@ -9,14 +9,14 @@ export function InlineStatus({ error, status }: InlineStatusProps) {
       <p
         data-testid="inline-status"
         role="alert"
-        className="border-accent/40 bg-accent/10 text-accent-strong rounded-lg border px-3 py-2 text-sm font-medium"
+        className="border-danger bg-field text-danger rounded-lg border px-3 py-2 text-sm font-medium"
       >
         {error}
       </p>
     );
   if (status)
     return (
-      <p data-testid="inline-status" role="status" className="text-primary px-1 text-sm font-medium">
+      <p data-testid="inline-status" role="status" className="text-success px-1 text-sm font-medium">
         {status}
       </p>
     );

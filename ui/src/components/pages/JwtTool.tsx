@@ -39,7 +39,10 @@ const EMPTY_OUTPUT: JwtOutput = { header: "", payload: "", signature: "" };
 function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
   const id = label.toLowerCase();
   return (
-    <section data-testid={`jwt-${id}-group`} className="grid min-w-0 gap-2">
+    <section
+      data-testid={`jwt-${id}-group`}
+      className="border-line bg-panel grid min-w-0 gap-2 rounded-xl border p-4 shadow-sm"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-ink font-display text-xl font-bold">{label}</h2>
         <button
@@ -49,7 +52,7 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
           title={`Copy ${label}`}
           onClick={onCopy}
           disabled={!value}
-          className="text-muted hover:text-primary focus-visible:outline-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-3 font-mono text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper inline-flex min-h-11 items-center gap-2 rounded-lg px-3 font-mono text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         >
           <CopyIcon aria-hidden="true" size={17} />
           Copy
@@ -108,7 +111,11 @@ export function JwtTool() {
   };
 
   return (
-    <section data-testid="jwt-tool" aria-label="JWT decoder" className="min-w-0 space-y-5">
+    <section
+      data-testid="jwt-tool"
+      aria-label="JWT decoder"
+      className="border-line bg-panel min-w-0 space-y-5 rounded-xl border p-3 shadow-sm md:p-5"
+    >
       <TextareaField
         ariaLabel="JWT token"
         value={input}

@@ -6,6 +6,7 @@ import { CodecApp } from "./CodecApp";
 
 beforeEach(() => {
   sessionStorage.clear();
+  localStorage.clear();
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ matches: false })) });
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
@@ -16,6 +17,24 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("CodecApp", () => {
+  it("persists explicit theme and resets to system", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const dark = screen.getAllByRole("button", { name: "Use dark theme" })[0]!;
+    expect(dark).toHaveAttribute("title", "Use dark theme");
+    expect(dark).toHaveAttribute("data-testid", "theme-control");
+    await user.click(dark);
+    expect(localStorage.getItem("codec-bench-theme")).toBe("dark");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+
+    const reset = screen.getAllByRole("button", { name: "Use system theme" })[0]!;
+    expect(reset).toHaveAttribute("title", "Use system theme");
+    expect(reset).toHaveAttribute("data-testid", "theme-system-reset");
+    await user.click(reset);
+    expect(localStorage.getItem("codec-bench-theme")).toBeNull();
+    expect(document.documentElement.dataset.theme).toBe("light");
+  });
   it("renders grouped routed navigation and active tool", () => {
     render(<CodecApp toolId="base64" />);
     expect(screen.getAllByTestId("tool-navigation-group")).toHaveLength(2);
@@ -73,10 +92,22 @@ describe("CodecApp", () => {
     expect(screen.getByRole("button", { name: "Convert" })).toHaveClass(
       "border-primary",
       "bg-primary",
-      "disabled:opacity-40",
+      "disabled:bg-paper",
     );
     expect(screen.queryByRole("button", { name: "Encode" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Decode" })).not.toBeInTheDocument();
+  });
+
+  it("groups source, actions, and target as accessible workbench regions", () => {
+    render(<CodecApp toolId="base64" />);
+    const channels = screen.getByTestId("codec-workspace-channels");
+    expect(channels).toHaveClass("workspace-grid");
+    expect(screen.getByRole("group", { name: "Source" })).toHaveTextContent("Source");
+    expect(screen.getByRole("group", { name: "Target" })).toHaveTextContent("Target");
+    expect(screen.getByTestId("codec-workspace-actions")).toHaveAccessibleName("Conversion actions");
+    for (const control of screen.getAllByRole("button")) {
+      expect(control.className).toMatch(/(?:min-h-11|size-11|icon-button)/);
+    }
   });
 
   it.each([
@@ -660,13 +691,13 @@ describe("CodecApp", () => {
     expect(screen.getByRole("button", { name: "Copy output" })).toBeDisabled();
   });
 
-  it("toggles theme without localStorage", async () => {
+  it("toggles theme with explicit localStorage override", async () => {
     const user = userEvent.setup();
     const local = vi.spyOn(Storage.prototype, "setItem");
     render(<CodecApp toolId="base64" />);
     await user.click(screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
     expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(local.mock.calls.every(([key]) => !String(key).includes("theme"))).toBe(true);
+    expect(local).toHaveBeenCalledWith("codec-bench-theme", "dark");
     local.mockRestore();
   });
 
@@ -683,6 +714,16 @@ describe("CodecApp", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Clipboard unavailable. Select output and copy manually.");
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(sessionStorage.getItem("codec-bench:base64:v1")).toBeNull();
+  });
+
+  it("uses semantic status tones and contrast-safe disabled controls", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    const convert = screen.getByRole("button", { name: "Convert" });
+    expect(convert).toHaveClass("disabled:bg-paper", "disabled:text-muted");
+    expect(convert).not.toHaveClass("disabled:opacity-40");
+    await user.click(screen.getByRole("button", { name: "Copy output" }));
+    expect(screen.getByRole("status")).toHaveClass("text-success");
   });
 
   it("loads JWT navigation, header, warning, and decoded synthetic fixture", () => {

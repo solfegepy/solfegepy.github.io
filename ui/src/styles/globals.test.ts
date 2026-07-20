@@ -15,6 +15,8 @@ const SEMANTIC_COLORS = [
   "primary-strong",
   "accent",
   "accent-strong",
+  "success",
+  "danger",
 ] as const;
 const APPROVED_COLORS =
   /^var\(--color-(?:slate-(?:50|[1-9]00|950)|blue-(?:50|[1-9]00|950)|orange-(?:50|[1-9]00|950)|white|transparent)\)$/;
@@ -47,12 +49,18 @@ describe("Tailwind theme contract", () => {
 
   it("maps theme colors only to approved Tailwind colors", () => {
     const declarations = [
-      ...css.matchAll(/^\s+--(paper|panel|field|ink|muted|line|primary(?:-strong)?|accent(?:-strong)?): (.+);$/gm),
+      ...css.matchAll(
+        /^\s+--(paper|panel|field|ink|muted|line|primary(?:-strong)?|accent(?:-strong)?|success|danger): (.+);$/gm,
+      ),
     ];
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
     for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLORS);
     expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl|oklch)a?\(/i);
+  });
+
+  it("uses solid canvas without gradients or glass effects", () => {
+    expect(css).not.toMatch(/gradient|backdrop-filter/i);
   });
 });
 

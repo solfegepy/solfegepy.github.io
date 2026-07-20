@@ -1,5 +1,6 @@
 ---
 import "../styles/globals.css";
+import { THEME_BOOTSTRAP_SCRIPT } from "../lib/theme";
 
 interface Props {
   title: string;
@@ -28,6 +29,7 @@ const serializedStructuredData = structuredData ? JSON.stringify(structuredData)
     <meta property="og:site_name" content={siteName} />
     {serializedStructuredData && <script type="application/ld+json" is:inline set:html={serializedStructuredData} />}
     <title>{title}</title>
+    <script is:inline set:html={THEME_BOOTSTRAP_SCRIPT} />
   </head>
   <body><slot /></body>
 </html>

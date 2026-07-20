@@ -166,10 +166,22 @@ export function CodecWorkspace({
   };
 
   return (
-    <section data-testid={`${name}-workspace`} className="space-y-5" aria-label={`${name} converter`}>
-      <div data-testid="codec-workspace-channels" className="grid items-center gap-3">
-        <div data-testid={`${name}-top-channel`} className="grid min-w-0 gap-3">
-          <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
+    <section
+      data-testid={`${name}-workspace`}
+      className="border-line bg-panel min-w-0 space-y-4 rounded-xl border p-3 shadow-sm md:p-5"
+      aria-label={`${name} converter`}
+    >
+      <div data-testid="codec-workspace-channels" className="workspace-grid">
+        <div
+          data-testid={`${name}-top-channel`}
+          className="border-line bg-field grid min-w-0 gap-3 rounded-lg border p-3"
+          role="group"
+          aria-label="Source"
+        >
+          <div className="grid gap-2">
+            <h2 className="text-ink font-mono text-xs font-semibold tracking-widest uppercase">Source</h2>
+            <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
+          </div>
           <TextareaField
             ariaLabel="Input"
             value={input}
@@ -178,14 +190,19 @@ export function CodecWorkspace({
             testId={`${name}-input`}
           />
         </div>
-        <div data-testid="codec-workspace-actions" className="flex flex-wrap gap-2">
+        <div
+          data-testid="codec-workspace-actions"
+          className="workspace-actions flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Conversion actions"
+        >
           <button
             data-testid="codec-workspace-swap"
             type="button"
             aria-label="Swap"
             title="Swap input and output"
             onClick={swap}
-            className="icon-button bg-primary rotate-90 rounded-full"
+            className="icon-button bg-primary rotate-90 rounded-full md:rotate-0"
           >
             <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
           </button>
@@ -194,14 +211,22 @@ export function CodecWorkspace({
           </ActionButton>
           <ActionButton onClick={clear}>Clear</ActionButton>
         </div>
-        <div data-testid={`${name}-bottom-channel`} className="grid min-w-0 gap-3">
-          <FormatSelect
-            channel="Bottom"
-            formats={formats}
-            name={name}
-            value={bottomFormat}
-            onChange={changeBottomFormat}
-          />
+        <div
+          data-testid={`${name}-bottom-channel`}
+          className="border-line bg-field grid min-w-0 gap-3 rounded-lg border p-3"
+          role="group"
+          aria-label="Target"
+        >
+          <div className="grid gap-2">
+            <h2 className="text-ink font-mono text-xs font-semibold tracking-widest uppercase">Target</h2>
+            <FormatSelect
+              channel="Bottom"
+              formats={formats}
+              name={name}
+              value={bottomFormat}
+              onChange={changeBottomFormat}
+            />
+          </div>
           <div className="relative min-w-0">
             <TextareaField
               ariaLabel="Output"
@@ -218,7 +243,7 @@ export function CodecWorkspace({
               title="Copy output"
               onClick={copy}
               disabled={!output}
-              className="text-muted hover:text-primary focus-visible:outline-primary absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
             >
               <CopyIcon aria-hidden="true" size={18} strokeWidth={1.8} />
             </button>

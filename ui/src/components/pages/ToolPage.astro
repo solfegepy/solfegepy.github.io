@@ -21,7 +21,8 @@ const structuredData = {
   operatingSystem: "Any",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
-const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
+const ARTICLE_CLASSES =
+  "border-line bg-panel mx-4 mb-12 min-w-0 rounded-xl border p-5 shadow-sm md:mr-8 md:ml-72 md:p-8";
 ---
 
 <Layout {title} {description} {canonical} siteName="Codec Bench" {structuredData}>
@@ -30,7 +31,7 @@ const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
   {
     toolId === "base64" && (
       <article data-testid="base64-guidance" class={ARTICLE_CLASSES}>
-        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+        <div class="grid gap-8 md:grid-cols-2">
           <section data-testid="base64-how-to">
             <>
               <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
@@ -93,7 +94,7 @@ const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
   {
     toolId === "url" && (
       <article data-testid="url-guidance" class={ARTICLE_CLASSES}>
-        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+        <div class="grid gap-8 md:grid-cols-2">
           <section data-testid="url-how-to">
             <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
@@ -172,7 +173,7 @@ const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
   {
     toolId === "jwt" && (
       <article data-testid="jwt-static-guidance" class={ARTICLE_CLASSES}>
-        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+        <div class="grid gap-8 md:grid-cols-2">
           <section data-testid="jwt-how-to">
             <h2 class="font-display text-ink text-2xl font-bold">How to decode</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
@@ -194,7 +195,7 @@ const ARTICLE_CLASSES = "border-line px-4 pb-12 md:ml-64 md:px-8";
   {
     toolId === "timestamp" && (
       <article class={ARTICLE_CLASSES} data-testid="timestamp-guidance">
-        <div class="border-line grid gap-8 border-t pt-10 md:grid-cols-2">
+        <div class="grid gap-8 md:grid-cols-2">
           <section data-testid="timestamp-how-to">
             <h2 class="font-display text-ink text-2xl font-bold">How to convert timestamps</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">

@@ -26,7 +26,7 @@ export function TextareaField({
       <textarea
         data-testid={testId}
         aria-label={ariaLabel}
-        className={`border-line bg-field text-ink placeholder:text-muted/70 focus:border-primary focus:ring-primary/15 disabled:bg-paper disabled:text-muted min-h-64 w-full resize-y rounded-xl border p-4 font-mono text-sm leading-6 shadow-inner transition outline-none focus:ring-3 disabled:cursor-not-allowed disabled:resize-none disabled:shadow-none md:min-h-80 ${className}`}
+        className={`border-line bg-field text-ink placeholder:text-muted/70 focus:border-primary focus:ring-primary/15 disabled:bg-paper disabled:text-muted min-h-56 w-full min-w-0 resize-y overflow-auto rounded-lg border p-4 font-mono text-sm leading-6 transition outline-none focus:ring-3 disabled:cursor-not-allowed disabled:resize-none md:min-h-72 ${className}`}
         value={value}
         onChange={onChange}
         placeholder={placeholder}

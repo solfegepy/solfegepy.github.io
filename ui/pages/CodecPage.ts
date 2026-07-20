@@ -105,6 +105,23 @@ export class CodecPage {
   themeControl(): Locator {
     return this.page.getByTestId("desktop-sidebar").getByTestId("theme-control");
   }
+  systemThemeReset(container: "desktop" | "drawer" = "desktop"): Locator {
+    const shell =
+      container === "desktop" ? this.page.getByTestId("desktop-sidebar") : this.page.getByTestId("mobile-drawer");
+    return shell.getByTestId("theme-system-reset");
+  }
+  async chooseOppositeTheme(): Promise<void> {
+    await this.themeControl().click();
+  }
+  async useSystemTheme(container: "desktop" | "drawer" = "desktop"): Promise<void> {
+    await this.systemThemeReset(container).click();
+  }
+  channel(toolId: ToolId, channel: Channel): Locator {
+    return this.page.getByTestId(`${toolId}-${channel}-channel`);
+  }
+  workspaceActions(): Locator {
+    return this.page.getByTestId("codec-workspace-actions");
+  }
   metadata(name: string): Locator {
     return this.page.locator(`meta[property="${name}"], meta[name="${name}"]`);
   }

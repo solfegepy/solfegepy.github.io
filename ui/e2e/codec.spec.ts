@@ -58,6 +58,90 @@ test("404 fallback follows system light and dark themes", async ({ page }) => {
   expect(lightBackground).not.toBe(darkBackground);
 });
 
+test("explicit theme persists across reload and route navigation, then resets to live system", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light" });
+  await codec.open();
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("dark");
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await codec.chooseTool("URL");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await codec.useSystemTheme();
+  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBeNull();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+});
+
+test("blocked theme storage keeps controls usable", async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const method of ["getItem", "setItem", "removeItem"] as const) {
+      Storage.prototype[method] = () => {
+        throw new Error("blocked");
+      };
+    }
+  });
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light" });
+  await codec.open();
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await expect(codec.themeControl()).toBeEnabled();
+});
+
+test("every route fits 320px at 200 percent text", async ({ page }) => {
+  const codec = new CodecPage(page);
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/missing"]) {
+    await codec.open(route);
+    await page.addStyleTag({ content: "html { font-size: 200%; }" });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);
+  }
+});
+
+test("light and dark workbench states keep readable contrast and visible reduced-motion focus", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await codec.open();
+
+  const contrast = async (testId: string): Promise<number> =>
+    page.getByTestId(testId).evaluate((node) => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      context.canvas.width = 1;
+      context.canvas.height = 1;
+      const values = [getComputedStyle(node).color, getComputedStyle(node).backgroundColor].map((color) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+      });
+      const luminance = (rgb: number[]) => {
+        const channels = rgb.map((value) => {
+          const normalized = value / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+      };
+      const [foreground, background] = values.map(luminance);
+      return (Math.max(foreground!, background!) + 0.05) / (Math.min(foreground!, background!) + 0.05);
+    });
+
+  for (const theme of ["light", "dark"] as const) {
+    if ((await codec.root().getAttribute("data-theme")) !== theme) await codec.chooseOppositeTheme();
+    expect(await contrast("base64-output")).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast("tool-link-base64")).toBeGreaterThanOrEqual(4.5);
+  }
+  await codec.systemThemeReset().focus();
+  await page.keyboard.press("Tab");
+  await expect(codec.themeControl()).toBeFocused();
+  expect(await codec.themeControl().evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
+  expect(
+    await codec.themeControl().evaluate((node) => Number.parseFloat(getComputedStyle(node).transitionDuration)),
+  ).toBeLessThanOrEqual(0.00001);
+});
+
 test("desktop shell is full width with fixed-size sticky sidebar", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
@@ -67,6 +151,13 @@ test("desktop shell is full width with fixed-size sticky sidebar", async ({ page
   expect(await page.getByTestId("codec-app").evaluate((node) => node.getBoundingClientRect().width)).toBe(
     await page.evaluate(() => innerWidth),
   );
+  const source = await codec.channel("base64", "top").boundingBox();
+  const target = await codec.channel("base64", "bottom").boundingBox();
+  const actions = await codec.workspaceActions().boundingBox();
+  expect(source && target && actions).toBeTruthy();
+  expect(source!.y).toBe(target!.y);
+  expect(actions!.x).toBeGreaterThan(source!.x + source!.width);
+  expect(actions!.x + actions!.width).toBeLessThanOrEqual(target!.x);
 });
 
 test("mobile drawer traps focus, closes, and fits large text at 320px", async ({ page }) => {
