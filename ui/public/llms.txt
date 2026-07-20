@@ -1,0 +1,14 @@
+# Codec Bench
+
+> Browser-only encoding and conversion tools. User input remains in the browser and is never transmitted.
+
+Codec Bench provides free web utilities at https://codec64.com.
+
+## Tools
+
+- [Base64 Decode and Encode](https://codec64.com/): Convert plain text, Base64, and unpadded Base64url.
+- [URL Encode and Decode](https://codec64.com/url): Encode or decode RFC 3986 components, full URIs, and form URL-encoded values.
+- [Query Parameter Parser and Builder](https://codec64.com/query): Convert URL query parameters to JSON or build a query string from JSON.
+- [JWT Decoder](https://codec64.com/jwt): Decode JWT headers and payloads without signature verification.
+- [Python Literal to JSON Converter](https://codec64.com/python-json): Convert Python dictionaries from PDB or print output into JSON.
+- [Z Time and Unix Timestamp Converter](https://codec64.com/timestamp): Convert UTC Z time, Unix seconds, and Unix milliseconds.
