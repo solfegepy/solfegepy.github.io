@@ -8,7 +8,7 @@ export const CONVERSION_EXAMPLES = {
     reverse: "https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Dhello%20world~",
   },
   query: {
-    forward: "?name=Ada&active=true",
+    forward: "name=Ada&active=true",
     reverse: '{\n  "name": "Ada",\n  "active": "true"\n}',
   },
   python: {

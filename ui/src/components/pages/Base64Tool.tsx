@@ -1,5 +1,8 @@
+import { useEffect } from "react";
+
 import { CONVERSION_EXAMPLES } from "../../constants";
 import { decodeBase64, encodeBase64, type Base64Variant } from "../../lib/codecs";
+import { BASE64_DECODE_TOOL, registerWebMcpTool } from "../../lib/webmcp";
 import { CodecWorkspace, type ChannelFormat } from "../shared/CodecWorkspace";
 
 const FORMATS = [
@@ -11,6 +14,8 @@ const FORMATS = [
 const variant = (format: ChannelFormat): Base64Variant => (format === "base64url" ? "url-safe" : "standard");
 
 export function Base64Tool() {
+  useEffect(() => registerWebMcpTool(BASE64_DECODE_TOOL), []);
+
   return (
     <CodecWorkspace
       name="base64"

@@ -1,0 +1,15 @@
+services:
+  devcontainer:
+    build:
+      context: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/docker
+    container_name: saicli--ai-codec64  # for now allow only 1 per project
+    hostname: saicli--ai-codec64
+    network_mode: bridge  # Remove when adding a 2nd service (requiring DNS by service name)
+    ports:
+      - "${UI_EXT_PORT}:${UI_INT_PORT}"
+    #   - "${API_EXT_PORT}:${API_INT_PORT}"
+    environment:
+      - ENV=development
+    volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
+      - ..:/workspaces/project  # modify .. if dockerComposeFile[0] changes
+      - /media/IDATA_LINUX/GIT/LOCAL/ai_cli/skills/dist:/home/admin/.agents/skills:ro

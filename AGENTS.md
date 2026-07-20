@@ -24,6 +24,10 @@ Use strict TypeScript; avoid `any`. Prettier enforces two-space indentation, sem
 
 Keep implementation minimal. Reuse platform features and installed dependencies before adding abstractions or packages. Add `data-testid` to components, buttons, and tables used by browser tests.
 
+## UI Design
+
+[DESIGN.md](DESIGN.md) is source of truth for visual and interaction work.
+
 ## Testing Guidelines
 
 Use Vitest with Testing Library for unit and component behavior. Use Playwright page objects for browser flows; tests express intent and own assertions. Follow red-green-refactor. During debugging, stop at first failure with `pnpm test -- --bail=1` or Playwright `--max-failures=1`. Add regression tests beside every bug fix.
@@ -35,3 +39,9 @@ Never run GIT or deploy. The user will review changes before deploying.
 ## Security & Deployment
 
 Conversions must remain browser-only; never transmit user input. `codec64.com` deploys as static content through GitHub Pages, which controls response headers and CDN caching. Preserve `public/CNAME`, `.nojekyll`, and security exceptions documented in `zap.conf`.
+
+## Cookie Consent & Analytics
+
+[vanilla-cookieconsent](https://cookieconsent.orestbida.com/) v3 gates every tracker. `ui/src/lib/analytics.ts` is the only file importing it: it shows the banner, loads Google Analytics only after the visitor accepts the analytics category, and signals the advertising category through Google consent mode. `Layout.astro` loads it with a dynamic `import()`. The library stores the decision in its `cc_cookie` cookie and re-asks after 182 days. **Cookie settings** in the sidebar footer and on `/privacy` reopen the settings dialog.
+
+Adding a tracker, cookie, or category means updating the policy in `ui/src/components/pages/PrivacyContent.tsx` (cookie table and vendor section) and bumping `revision` in `runCookieConsent()` so every visitor is asked again.

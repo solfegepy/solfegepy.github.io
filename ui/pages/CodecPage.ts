@@ -22,8 +22,146 @@ type ChannelFormat =
 export class CodecPage {
   constructor(private readonly page: Page) {}
 
+  trackRequests(): { url: string; body: string }[] {
+    const traffic: { url: string; body: string }[] = [];
+    this.page.on("request", (request) => traffic.push({ url: request.url(), body: request.postData() ?? "" }));
+    return traffic;
+  }
+  trackRequestDetails(): { url: string; body: string; headers: Record<string, string> }[] {
+    const traffic: { url: string; body: string; headers: Record<string, string> }[] = [];
+    this.page.on("request", (request) =>
+      traffic.push({ url: request.url(), body: request.postData() ?? "", headers: request.headers() }),
+    );
+    return traffic;
+  }
+  trackBrowserErrors(): string[] {
+    const errors: string[] = [];
+    this.page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    this.page.on("pageerror", (error) => errors.push(error.message));
+    return errors;
+  }
+  async writeClipboard(value: string): Promise<void> {
+    await this.page.evaluate((text) => navigator.clipboard.writeText(text), value);
+  }
+  async browserState(): Promise<{
+    url: string;
+    historyLength: number;
+    historyState: unknown;
+    local: string;
+    session: string;
+  }> {
+    return this.page.evaluate(() => ({
+      url: location.href,
+      historyLength: history.length,
+      historyState: history.state as unknown,
+      local: JSON.stringify(localStorage),
+      session: JSON.stringify(sessionStorage),
+    }));
+  }
+  async base64WorkspaceState(): Promise<{
+    input: string;
+    output: string;
+    top: string;
+    bottom: string;
+    status: string;
+  }> {
+    return this.page.evaluate(() => ({
+      input: (document.querySelector('[data-testid="base64-input"]') as HTMLTextAreaElement).value,
+      output: (document.querySelector('[data-testid="base64-output"]') as HTMLTextAreaElement).value,
+      top: (document.querySelector('[data-testid="base64-top-format"]') as HTMLSelectElement).value,
+      bottom: (document.querySelector('[data-testid="base64-bottom-format"]') as HTMLSelectElement).value,
+      status: document.querySelector('[role="status"], [role="alert"]')?.textContent ?? "",
+    }));
+  }
+  async jwtWorkspaceValues(): Promise<string[]> {
+    return this.page.evaluate(() =>
+      ["jwt-input", "jwt-header-output", "jwt-payload-output", "jwt-signature-output"].map(
+        (testId) => (document.querySelector(`[data-testid="${testId}"]`) as HTMLTextAreaElement).value,
+      ),
+    );
+  }
+  async storageSize(): Promise<number> {
+    return this.page.evaluate(() => localStorage.length + sessionStorage.length);
+  }
+  async installWebMcpMock(rejectRegistration = false): Promise<void> {
+    await this.page.addInitScript((reject) => {
+      interface CapturedTool {
+        name: string;
+        execute(input: unknown): unknown;
+      }
+      interface ToolWindow extends Window {
+        __webMcpTools?: Map<string, CapturedTool>;
+      }
+
+      const tools = new Map<string, CapturedTool>();
+      (window as ToolWindow).__webMcpTools = tools;
+      Object.defineProperty(Document.prototype, "modelContext", {
+        configurable: true,
+        get: () => ({
+          registerTool(tool: CapturedTool, options: { signal: AbortSignal }) {
+            if (reject) return Promise.reject(new Error("registration denied"));
+            tools.set(tool.name, tool);
+            options.signal.addEventListener("abort", () => tools.delete(tool.name), { once: true });
+            return Promise.resolve();
+          },
+        }),
+      });
+    }, rejectRegistration);
+  }
+  async webMcpToolNames(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const tools = (window as Window & { __webMcpTools?: Map<string, unknown> }).__webMcpTools;
+      return [...(tools?.keys() ?? [])].sort();
+    });
+  }
+  async invokeWebMcpTool(name: string, input: unknown): Promise<unknown> {
+    return this.page.evaluate(
+      async ({ toolName, toolInput }) => {
+        interface CapturedTool {
+          execute(value: unknown): unknown;
+        }
+        const tools = (window as Window & { __webMcpTools?: Map<string, CapturedTool> }).__webMcpTools;
+        const tool = tools?.get(toolName);
+        if (!tool) throw new Error(`Missing WebMCP tool: ${toolName}`);
+        return tool.execute(toolInput);
+      },
+      { toolName: name, toolInput: input },
+    );
+  }
   async open(path = "/"): Promise<void> {
     await this.page.goto(path);
+    await this.page.waitForFunction(
+      () =>
+        document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated") === "true" ||
+        document.querySelector('[data-testid="not-found-page"]') !== null,
+    );
+  }
+  async loadedWebFonts(): Promise<string[]> {
+    return this.page.evaluate(async () => {
+      await document.fonts.ready;
+      const loaded = new Set<string>();
+      document.fonts.forEach((font) => {
+        if (font.status === "loaded") loaded.add(font.family.replaceAll('"', ""));
+      });
+      return [...loaded].sort();
+    });
+  }
+  async waitForWebFonts(): Promise<{ sans: boolean; mono: boolean }> {
+    const { sans, mono } = await this.page.evaluate(async () => {
+      const style = getComputedStyle(document.documentElement);
+      // Astro may rename self-hosted families, so read the name it emitted instead of hardcoding it.
+      const family = (name: string) => style.getPropertyValue(name).replace(/,.*$/s, "").trim().replaceAll(/["']/g, "");
+      const families = { sans: family("--font-sans"), mono: family("--font-mono") };
+      await Promise.all(Object.values(families).map((name) => document.fonts.load(`400 1rem "${name}"`)));
+      return families;
+    });
+    const loaded = await this.loadedWebFonts();
+    return { sans: loaded.includes(sans), mono: loaded.includes(mono) };
+  }
+  app(): Locator {
+    return this.page.getByTestId("codec-app");
   }
   async chooseTool(name: ToolName): Promise<void> {
     const ids = {
@@ -35,6 +173,98 @@ export class CodecPage {
       Timestamp: "timestamp",
     } as const satisfies Record<ToolName, ToolId>;
     await this.page.getByTestId(`tool-link-${ids[name]}`).first().click();
+  }
+  async openFaq(): Promise<void> {
+    await this.open("/faq");
+  }
+  async chooseFaq(): Promise<void> {
+    const drawer = this.page.getByTestId("mobile-drawer");
+    const link =
+      (await drawer.count()) > 0 ? drawer.getByTestId("faq-link") : this.page.getByTestId("faq-link").first();
+    await link.click();
+  }
+  faqNavigation(): Locator {
+    return this.page.getByTestId("faq-link").first();
+  }
+  activeFaq(): Locator {
+    return this.page.locator('[data-testid="faq-link"][aria-current="page"]').first();
+  }
+  faqCategories(): Locator {
+    return this.page.getByTestId("faq-content").getByRole("heading", { level: 2 });
+  }
+  faqQuestions(): Locator {
+    return this.page.getByTestId("faq-content").getByRole("heading", { level: 3 });
+  }
+  async faqToolTargetSizes(): Promise<{ width: number; height: number }[]> {
+    return this.page.getByTestId("faq-tool-link").evaluateAll((links) =>
+      links.map((link) => {
+        const { width, height } = link.getBoundingClientRect();
+        return { width, height };
+      }),
+    );
+  }
+  faqItems(): Locator {
+    return this.page.getByTestId("faq-item");
+  }
+  faqQuestion(question: string): Locator {
+    return this.page.getByTestId("faq-summary").filter({ hasText: question });
+  }
+  async toggleFaqQuestion(question: string): Promise<void> {
+    await this.faqQuestion(question).click();
+  }
+  async toggleFaqQuestionWithKeyboard(question: string): Promise<void> {
+    const summary = this.faqQuestion(question);
+    await summary.focus();
+    await summary.press("Enter");
+  }
+  async followFaqCategoryTool(name: string): Promise<void> {
+    await this.page.getByTestId("faq-tool-link").filter({ hasText: name }).click();
+  }
+  faqMain(): Locator {
+    return this.page.getByTestId("app-main");
+  }
+  async faqCategoryQuestionCounts(): Promise<number[]> {
+    return this.page
+      .getByTestId("faq-category")
+      .evaluateAll((categories) =>
+        categories.map((category) => category.querySelectorAll('[data-testid="faq-item"]').length),
+      );
+  }
+  async hasHorizontalOverflow(): Promise<boolean> {
+    return this.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  }
+  async editorLayout(toolId: ToolId): Promise<{
+    pageOverflow: boolean;
+    inputContained: boolean;
+    metadataVisible: boolean;
+    metadata: string;
+  }> {
+    return this.page.evaluate((id) => {
+      const channel = document.querySelector(`[data-testid="${id}-top-channel"]`)!;
+      const input = document.querySelector(`[data-testid="${id}-input"]`)!;
+      const metadata = document.querySelector(`[data-testid="${id}-source-metadata"]`)!;
+      const channelBounds = channel.getBoundingClientRect();
+      const inputBounds = input.getBoundingClientRect();
+      const metadataBounds = metadata.getBoundingClientRect();
+      return {
+        pageOverflow: document.documentElement.scrollWidth > innerWidth,
+        inputContained: inputBounds.left >= channelBounds.left && inputBounds.right <= channelBounds.right,
+        metadataVisible: metadataBounds.width > 0 && metadataBounds.height > 0,
+        metadata: metadata.textContent ?? "",
+      };
+    }, toolId);
+  }
+  async useLargeText(): Promise<void> {
+    await this.page.addStyleTag({ content: "html { font-size: 200%; }" });
+  }
+  async setMobileViewport(): Promise<void> {
+    await this.page.setViewportSize({ width: 320, height: 812 });
+  }
+  async setViewport(width: number, height: number): Promise<void> {
+    await this.page.setViewportSize({ width, height });
+  }
+  async useTheme(theme: "light" | "dark"): Promise<void> {
+    await this.page.addInitScript((value) => localStorage.setItem("codec-bench-theme", value), theme);
   }
   async openDrawer(): Promise<void> {
     await this.page.getByTestId("menu-button").click();
@@ -55,7 +285,10 @@ export class CodecPage {
     await this.format(toolId, "bottom").selectOption(format);
   }
   async swap(): Promise<void> {
-    await this.page.getByTestId("codec-workspace-swap").click();
+    await this.swapControl().click();
+  }
+  swapControl(): Locator {
+    return this.page.getByTestId("codec-workspace-swap");
   }
   format(toolId: ToolId, channel: Channel): Locator {
     return this.page.getByTestId(`${toolId}-${channel}-format`);
@@ -105,6 +338,15 @@ export class CodecPage {
   themeControl(): Locator {
     return this.page.getByTestId("desktop-sidebar").getByTestId("theme-control");
   }
+  async chooseOppositeTheme(): Promise<void> {
+    await this.themeControl().click();
+  }
+  channel(toolId: ToolId, channel: Channel): Locator {
+    return this.page.getByTestId(`${toolId}-${channel}-channel`);
+  }
+  workspaceActions(): Locator {
+    return this.page.getByTestId("codec-workspace-actions");
+  }
   metadata(name: string): Locator {
     return this.page.locator(`meta[property="${name}"], meta[name="${name}"]`);
   }
@@ -126,8 +368,20 @@ export class CodecPage {
   drawer(): Locator {
     return this.page.getByTestId("mobile-drawer");
   }
+  async mobileBrandTargetSize(): Promise<{ width: number; height: number }> {
+    return this.page.getByTestId("mobile-home-link").evaluate((link) => {
+      const { width, height } = link.getBoundingClientRect();
+      return { width, height };
+    });
+  }
   notFoundPage(): Locator {
     return this.page.getByTestId("not-found-page");
+  }
+  async notFoundBrandTargetSize(): Promise<{ width: number; height: number }> {
+    return this.page.getByTestId("not-found-brand-link").evaluate((link) => {
+      const { width, height } = link.getBoundingClientRect();
+      return { width, height };
+    });
   }
   notFoundHome(): Locator {
     return this.page.getByTestId("not-found-home");

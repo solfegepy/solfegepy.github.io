@@ -167,6 +167,20 @@ describe("timestamp conversion", () => {
 });
 
 describe("Base64 codec", () => {
+  it("accepts valid raw input at the maximum length", () => {
+    const result = decodeBase64("A".repeat(1_000_000), "standard");
+
+    expect(result.ok).toBe(true);
+    expect(result.ok && result.value).toHaveLength(750_000);
+  });
+
+  it("rejects oversized raw input before whitespace normalization", () => {
+    expect(decodeBase64(`${"A".repeat(1_000_000)} `, "standard")).toEqual({
+      ok: false,
+      error: "Base64 is too large. Maximum size is 1000000 characters.",
+    });
+  });
+
   it.each([
     ["hello", "aGVsbG8="],
     ["café 🎵", "Y2Fmw6kg8J+OtQ=="],
@@ -318,6 +332,19 @@ describe("query serialization", () => {
     ['{"empty":[]}', ""],
   ])("serializes %s", (input, value) => {
     expect(serializeQuery(input)).toEqual({ ok: true, value });
+  });
+
+  it.each([
+    ['{"a":"4"}', "https://www.hoseasons.co.uk/search?adult=2&nights=7", "https://www.hoseasons.co.uk/search?a=4"],
+    ["{}", "https://x.test/p?a=1", "https://x.test/p"],
+    ['{"b":"2"}', "/search?a=1#top", "/search?b=2"],
+    ['{"b":"2"}', "https://x.test/p#frag", "https://x.test/p?b=2"],
+    ['{"b":"2"}', "https://x.test/p", "https://x.test/p?b=2"],
+    ['{"b":"2"}', "?a=1", "b=2"],
+    ['{"b":"2"}', "a=1", "b=2"],
+    ["{}", "", ""],
+  ])("serializes %s against target %s", (input, target, value) => {
+    expect(serializeQuery(input, target)).toEqual({ ok: true, value });
   });
 
   it.each(["nope", "[]", "null", '{"x":1}', '{"x":true}', '{"x":null}', '{"x":{}}', '{"x":[["a"]]}'])(

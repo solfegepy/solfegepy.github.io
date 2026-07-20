@@ -1,11 +1,22 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { WebMcpTool } from "../../lib/webmcp";
 import { CodecApp } from "./CodecApp";
 
+vi.mock("../../lib/analytics", () => ({ showCookieSettings: vi.fn() }));
+
+function installModelContext(registerTool = vi.fn()): typeof registerTool {
+  Object.defineProperty(document, "modelContext", { configurable: true, value: { registerTool } });
+  return registerTool;
+}
+
 beforeEach(() => {
+  vi.clearAllMocks();
+  Reflect.deleteProperty(document, "modelContext");
   sessionStorage.clear();
+  localStorage.clear();
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ matches: false })) });
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
@@ -13,9 +24,291 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  Reflect.deleteProperty(document, "modelContext");
+  vi.restoreAllMocks();
+});
+
+const FAQ_SECTIONS = [
+  {
+    heading: "Base64",
+    route: "/",
+    link: "Open Base64 encoder and decoder",
+    questions: [
+      "How do I encode text to Base64?",
+      "How do I decode Base64 to text?",
+      "Is Base64 encryption?",
+      "What is the difference between Base64 and Base64url?",
+      "Why does Base64 end with =?",
+    ],
+  },
+  {
+    heading: "URL encoding",
+    route: "/url",
+    link: "Open URL encoder and decoder",
+    questions: [
+      "What is URL encoding or percent-encoding?",
+      "How do I URL-encode a string?",
+      "Should a URL space be %20 or +?",
+      "What is the difference between encodeURI and encodeURIComponent?",
+      "Why does URL decoding fail?",
+    ],
+  },
+  {
+    heading: "Query parameters",
+    route: "/query",
+    link: "Open query parameter parser and builder",
+    questions: [
+      "How do I parse URL query parameters into JSON?",
+      "How do I convert JSON into a URL query string?",
+      "How are duplicate query parameters converted to JSON?",
+      "Does a query string need a leading question mark?",
+      "How are spaces and plus signs handled in query parameters?",
+    ],
+  },
+  {
+    heading: "JWT",
+    route: "/jwt",
+    link: "Open JWT decoder",
+    questions: [
+      "Can I decode a JWT without a secret key?",
+      "Does decoding a JWT verify its signature?",
+      "What are the three parts of a JWT?",
+      "Can an expired JWT still be decoded?",
+      "Is a JWT encrypted?",
+    ],
+  },
+  {
+    heading: "Python and JSON",
+    route: "/python-json",
+    link: "Open Python literal to JSON converter",
+    questions: [
+      "How do I convert a Python dictionary to JSON?",
+      "Why is a Python dictionary not valid JSON?",
+      "How do Python True, False, and None convert to JSON?",
+      "Can nested Python dictionaries and lists convert to JSON?",
+      "Does the Python-to-JSON converter execute Python code?",
+    ],
+  },
+  {
+    heading: "Unix timestamps and Z time",
+    route: "/timestamp",
+    link: "Open Unix timestamp and Z time converter",
+    questions: [
+      "How do I convert a Unix timestamp to a UTC date?",
+      "Is a Unix timestamp in seconds or milliseconds?",
+      "What is the Unix epoch?",
+      "What does Z mean in a date and time?",
+      "Why is my Unix timestamp invalid?",
+    ],
+  },
+] as const;
+
+const APPROVED_ANSWER_TEXT = [
+  "Enter UTF-8 text in the Base64 tool, choose Plain text as the source and Base64 encoded as the target, then select Convert. For example, Hello becomes SGVsbG8=.",
+  "Paste Base64, choose Base64 encoded as the source and Plain text as the target, then select Convert. The decoded bytes must be valid UTF-8 text; binary files are outside this tool's scope.",
+  "No. Base64 changes bytes into a text-safe representation and adds no confidentiality. Anyone with a Base64 decoder can recover the original data, so never treat encoding as secret protection.",
+  "Standard Base64 uses + and / and commonly uses = padding. Base64url uses - and _ so values fit URLs and file names more safely, and it commonly omits padding.",
+  "One or two = characters pad the final Base64 group when input length does not divide evenly into three-byte blocks. Padding carries no secret data; whether it may be omitted depends on the format using Base64.",
+  "Percent-encoding represents characters as % followed by hexadecimal byte values, such as a space written as %20. It lets text travel safely in URL components while preserving URL syntax.",
+  "Use RFC 3986 component mode for one path, query, or fragment value. Use Full URI only for a complete URI whose structural characters, such as :, /, ?, and #, must remain intact.",
+  "Use %20 in ordinary URL percent-encoding. + represents a space in form URL encoding; a literal plus in that format must be %2B.",
+  "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec Bench's Full URI and RFC 3986 component modes provide those respective behaviors.",
+  "Common causes include incomplete % escapes, non-hex escape characters, invalid UTF-8, or choosing form decoding for a value that uses a different convention. Confirm whether input is a full URI, component, or form value.",
+  "Paste a full URL, a query beginning with ?, or the query text alone. Choose Query string as the source and JSON as the target, then select Convert.",
+  "Use a JSON object whose values are strings or arrays of strings, choose JSON as the source, and convert. The result keeps a base URL or path already in the target pane, and ? appears only between that base and the params.",
+  'Repeated names become arrays in encounter order. For example, tag=one&tag=two becomes { "tag": ["one", "two"] }.',
+  "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built output never starts or ends with ?; it appears only between a kept base and the params.",
+  "Query parsing follows form-style URL rules: + decodes to a space and %2B decodes to a literal plus. Building a query writes spaces as + and literal plus signs as %2B.",
+  "Yes, when it is a signed three-part JWT with readable Base64url header and payload. A key is required to verify its signature, not to inspect those encoded fields.",
+  "No. Codec Bench displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
+  "A compact signed JWT contains a JOSE header, claims payload, and signature separated by periods. The first two parts are Base64url-encoded JSON objects.",
+  "Yes. Expiry does not prevent Base64url decoding, and this decoder does not evaluate the exp claim. A decoded expired token remains expired and must not be accepted.",
+  "A typical three-part signed JWT is encoded and readable, not encrypted. Encrypted JWE tokens use a different structure and are not supported by this decoder.",
+  "Paste a supported Python literal, choose Python literal as the source and JSON as the target, then select Convert. String keys, nested dictionaries, lists, tuples, finite numbers, booleans, and None are supported.",
+  "Python and JSON use similar containers but different literal syntax. JSON requires double-quoted object keys and strings, and uses true, false, and null instead of Python's True, False, and None.",
+  "They become JSON true, false, and null. Converting back restores True, False, and None.",
+  "Yes. Supported dictionaries, lists, and tuples can nest; tuples become JSON arrays. Sets, bytes, object constructors, and executable expressions are not supported.",
+  "No. It parses a limited literal grammar in the browser and does not call Python or eval. Function calls, imports, comprehensions, and other executable expressions are rejected.",
+  "Choose Unix seconds or Unix milliseconds as the source and Z time as the target, enter the value, then select Convert. Output uses UTC ISO 8601, such as 2026-07-21T12:00:00.000Z.",
+  "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec Bench requires explicit format selection instead of guessing.",
+  "The Unix epoch is 1970-01-01T00:00:00Z. Unix timestamps count elapsed seconds or, in some systems, milliseconds from that UTC instant while ignoring leap seconds.",
+  "A trailing Z identifies zero-offset UTC, sometimes called Zulu time. Codec Bench accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.",
+  "Check seconds vs milliseconds, remove signs or non-numeric text, and use a non-negative value within years 1970–9999. Decimal input is accepted, but precision below one millisecond is truncated and Unix output is an integer.",
+] as const;
 
 describe("CodecApp", () => {
+  it("renders the complete static FAQ contract without a converter or WebMCP registration", async () => {
+    const registerTool = installModelContext();
+    const user = userEvent.setup();
+    render(<CodecApp page="faq" />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Encoding and Conversion FAQ" })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual(
+      FAQ_SECTIONS.map(({ heading }) => heading),
+    );
+    const questions = screen.getAllByRole("heading", { level: 3 });
+    expect(questions.map((heading) => heading.textContent)).toEqual(FAQ_SECTIONS.flatMap(({ questions }) => questions));
+    expect(new Set(questions.map((heading) => heading.textContent)).size).toBe(30);
+    expect(screen.getAllByTestId("faq-item")).toHaveLength(30);
+    expect(screen.getAllByTestId("faq-summary")).toHaveLength(30);
+    expect(screen.getAllByTestId("faq-accordion")).toHaveLength(6);
+    expect(screen.getAllByTestId("faq-category-icon")).toHaveLength(6);
+    for (const icon of screen.getAllByTestId("faq-category-icon")) {
+      expect(icon.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    for (const accordion of screen.getAllByTestId("faq-accordion")) {
+      const items = within(accordion).getAllByTestId("faq-item");
+      expect(items).toHaveLength(5);
+      expect(new Set(items.map((item) => item.getAttribute("name"))).size).toBe(1);
+      expect(items[0]).toHaveAttribute("name");
+    }
+    for (const summary of screen.getAllByTestId("faq-summary"))
+      expect(summary.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    for (const answer of APPROVED_ANSWER_TEXT) expect(screen.getByTestId("faq-content")).toHaveTextContent(answer);
+    for (const { route, link } of FAQ_SECTIONS)
+      expect(screen.getByRole("link", { name: link })).toHaveAttribute("href", route);
+    for (const item of screen.getAllByTestId("faq-item")) expect(item).not.toHaveAttribute("open");
+    await user.click(screen.getAllByTestId("faq-summary")[0]!);
+    expect(screen.getAllByTestId("faq-item")[0]).toHaveAttribute("open");
+    expect(registerTool).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["base64", "Base64 Decode and Encode", "base64-workspace"],
+    ["url", "URL Encode and Decode", "url-workspace"],
+    ["query", "Query Parameter Editor", "query-workspace"],
+    ["jwt", "JWT Decoder", "jwt-tool"],
+    ["python", "Python Literal to JSON Converter", "python-workspace"],
+    ["timestamp", "Z Time and Unix Timestamp Converter", "timestamp-workspace"],
+  ] as const)("retains the %s tool identity", (toolId, heading, workspace) => {
+    render(<CodecApp toolId={toolId} />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(heading);
+    expect(screen.getByTestId(workspace)).toBeInTheDocument();
+  });
+
+  it("registers isolated Base64 WebMCP execution without changing workspace state", async () => {
+    const registerTool = installModelContext();
+    const user = userEvent.setup();
+    const writeText = vi.spyOn(navigator.clipboard, "writeText");
+    const view = render(<CodecApp toolId="base64" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("decode_base64");
+    const input = screen.getByTestId("base64-input");
+    const output = screen.getByTestId("base64-output");
+    const before = {
+      input: (input as HTMLTextAreaElement).value,
+      output: (output as HTMLTextAreaElement).value,
+      top: (screen.getByTestId("base64-top-format") as HTMLSelectElement).value,
+      bottom: (screen.getByTestId("base64-bottom-format") as HTMLSelectElement).value,
+      storage: { ...localStorage, ...sessionStorage },
+    };
+
+    await expect(tool.execute({ value: "aGVsbG8=", variant: "standard" })).resolves.toEqual({
+      ok: true,
+      value: "hello",
+      variant: "standard",
+    });
+    expect(input).toHaveValue(before.input);
+    expect(output).toHaveValue(before.output);
+    expect(screen.getByTestId("base64-top-format")).toHaveValue(before.top);
+    expect(screen.getByTestId("base64-bottom-format")).toHaveValue(before.bottom);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect({ ...localStorage, ...sessionStorage }).toEqual(before.storage);
+    expect(writeText).not.toHaveBeenCalled();
+
+    await user.type(input, "x");
+    view.rerender(<CodecApp toolId="base64" />);
+    expect(registerTool).toHaveBeenCalledOnce();
+    expect(options.signal.aborted).toBe(false);
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it("registers isolated JWT WebMCP execution without changing visible output", async () => {
+    const registerTool = installModelContext();
+    const view = render(<CodecApp toolId="jwt" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("decode_jwt");
+    const token = screen.getByTestId("jwt-input");
+    const header = screen.getByTestId("jwt-header-output");
+    const payload = screen.getByTestId("jwt-payload-output");
+    const signature = screen.getByTestId("jwt-signature-output");
+    const before = [token, header, payload, signature].map((field) => (field as HTMLTextAreaElement).value);
+
+    await expect(tool.execute({ value: "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZ2VudCJ9." })).resolves.toEqual({
+      ok: true,
+      header: { alg: "none" },
+      payload: { sub: "agent" },
+      signature: "",
+      signatureVerified: false,
+    });
+    expect([token, header, payload, signature].map((field) => (field as HTMLTextAreaElement).value)).toEqual(before);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    expect(localStorage).toHaveLength(0);
+    expect(sessionStorage).toHaveLength(0);
+
+    view.rerender(<CodecApp toolId="jwt" />);
+    expect(registerTool).toHaveBeenCalledOnce();
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it.each(["url", "query", "python", "timestamp"] as const)("registers no decoding tool for %s", (toolId) => {
+    const registerTool = installModelContext();
+
+    render(<CodecApp toolId={toolId} />);
+
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  it("keeps human Base64 controls usable without WebMCP", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "human");
+    await user.click(screen.getByRole("button", { name: "Convert" }));
+    expect(screen.getByTestId("base64-output")).toHaveValue("aHVtYW4=");
+  });
+
+  it("keeps human JWT controls usable when registration rejects", async () => {
+    installModelContext(vi.fn().mockRejectedValue(new Error("denied")));
+    const user = userEvent.setup();
+    render(<CodecApp toolId="jwt" />);
+    await Promise.resolve();
+
+    const input = screen.getByTestId("jwt-input");
+    await user.clear(input);
+    await user.type(input, "bad");
+    await user.click(screen.getByRole("button", { name: "Decode" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("JWT must contain three segments.");
+  });
+
+  it("defaults to dark and toggles a persisted light/dark theme", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const light = await waitFor(() => screen.getAllByRole("button", { name: "Use light theme" })[0]!);
+    expect(light).toHaveAttribute("data-testid", "theme-control");
+    expect(screen.queryByRole("button", { name: /system/i })).toBeNull();
+    await user.click(light);
+    expect(localStorage.getItem("codec-bench-theme")).toBe("light");
+    expect(document.documentElement.dataset.theme).toBe("light");
+
+    await user.click(screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
+    expect(localStorage.getItem("codec-bench-theme")).toBe("dark");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
   it("renders grouped routed navigation and active tool", () => {
     render(<CodecApp toolId="base64" />);
     expect(screen.getAllByTestId("tool-navigation-group")).toHaveLength(2);
@@ -29,21 +322,145 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("sidebar-footer")).not.toHaveTextContent(/local only|no uploads/i);
   });
 
+  it("shows inactive Help/FAQ navigation on every tool identity", () => {
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
+      const view = render(<CodecApp toolId={toolId} />);
+      const faqLink = screen.getByTestId("faq-link");
+      expect(faqLink).toHaveAttribute("href", "/faq");
+      expect(faqLink).not.toHaveAttribute("aria-current");
+      expect(faqLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByTestId(`tool-link-${toolId}`)).toHaveAttribute("aria-current", "page");
+      view.unmount();
+    }
+  });
+
+  it.each([
+    ["base64", "/", "Base64", "Base64 Decode and Encode"],
+    ["url", "/url", "URL", "URL Encode and Decode"],
+    ["query", "/query", "Query Params", "Query Parameter Editor"],
+    ["jwt", "/jwt", "JWT", "JWT Decoder"],
+    ["python", "/python-json", "Python → JSON", "Python Literal to JSON Converter"],
+    ["timestamp", "/timestamp", "Timestamp", "Z Time and Unix Timestamp Converter"],
+  ] as const)("preserves %s route identity and accented navigation", (toolId, route, label, heading) => {
+    render(<CodecApp toolId={toolId} />);
+    const active = screen.getByTestId(`tool-link-${toolId}`);
+    expect(active).toHaveAttribute("href", route);
+    expect(active).toHaveAccessibleName(label);
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(active).toHaveAttribute("data-accent", toolId);
+    expect(active.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+  });
+
+  it("marks only Help/FAQ current on FAQ identity", () => {
+    render(<CodecApp page="faq" />);
+    expect(screen.getByTestId("faq-link")).toHaveAttribute("aria-current", "page");
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"])
+      expect(screen.getByTestId(`tool-link-${toolId}`)).not.toHaveAttribute("aria-current");
+  });
+
+  it("gives tool and FAQ headings visible decorative accent identities", () => {
+    const view = render(<CodecApp toolId="base64" />);
+    const toolHeader = screen.getByTestId("tool-header");
+    expect(toolHeader).toHaveAttribute("data-accent", "base64");
+    expect(toolHeader.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+
+    view.rerender(<CodecApp page="faq" />);
+    const faqHeader = screen.getByTestId("faq-header");
+    expect(faqHeader).toHaveAttribute("data-accent", "faq");
+    expect(faqHeader.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("keeps action labels and names while rendering decorative icons", () => {
+    render(<CodecApp toolId="base64" />);
+
+    for (const name of ["Convert", "Clear", "Copy output", "Swap source and target"]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(screen.getByRole("button", { name: "Convert" })).toHaveTextContent("Convert");
+    expect(screen.getByRole("button", { name: "Clear" })).toHaveTextContent("Clear");
+    expect(screen.getByRole("button", { name: "Copy output" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Swap source and target" })).toBeEnabled();
+  });
+
+  it("adds decorative icons without changing feedback semantics", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    await user.click(screen.getByRole("button", { name: "Copy output" }));
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Copied");
+    expect(status.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "***");
+    await user.selectOptions(screen.getByTestId("base64-top-format"), "base64");
+    await user.click(screen.getByRole("button", { name: "Convert" }));
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Enter valid Base64.");
+    expect(alert.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("exposes active navigation through current state, border, surface, and weight", () => {
+    render(<CodecApp toolId="url" />);
+    const active = screen.getByTestId("tool-link-url");
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(active).toHaveClass("border-primary/20", "bg-primary-soft", "font-semibold");
+  });
+
+  it("renders Help/FAQ in the mobile drawer and closes through the shared callback", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await user.click(screen.getByTestId("menu-button"));
+    const drawer = screen.getByTestId("mobile-drawer");
+    const faqLink = within(drawer).getByTestId("faq-link");
+    expect(faqLink).toHaveAttribute("href", "/faq");
+    await user.click(faqLink);
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+  });
+
+  it("keeps desktop and mobile navigation destinations identical", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="query" />);
+    await user.click(screen.getByTestId("menu-button"));
+
+    const desktop = screen.getAllByTestId("tool-navigation")[0]!;
+    const mobile = within(screen.getByTestId("mobile-drawer")).getByTestId("tool-navigation");
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
+      expect(within(mobile).getByTestId(`tool-link-${toolId}`)).toHaveAttribute(
+        "href",
+        within(desktop).getByTestId(`tool-link-${toolId}`).getAttribute("href"),
+      );
+    }
+  });
+
   it("opens accessible drawer, traps focus, and restores menu focus", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);
     const menu = screen.getByTestId("menu-button");
     expect(screen.getByTestId("skip-link")).toHaveAttribute("href", "#main-content");
     expect(screen.getByTestId("desktop-home-link")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("desktop-home-link")).not.toHaveAttribute("aria-label");
+    expect(screen.getByTestId("desktop-home-link")).toHaveAccessibleName("Codec/Bench");
     expect(screen.getByTestId("mobile-home-link")).toHaveAttribute("href", "/");
     expect(menu).toHaveAttribute("title", "Open tools menu");
     await user.click(menu);
     expect(screen.getByTestId("mobile-drawer")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-drawer-layer")).toHaveAttribute("aria-modal", "true");
+    expect(screen.getByTestId("mobile-drawer-layer").tagName).toBe("DIALOG");
+    expect(document.documentElement).toHaveStyle({ overflow: "hidden" });
     expect(screen.getByTestId("drawer-backdrop")).toHaveAttribute("title", "Close tools menu");
     expect(screen.getByTestId("drawer-close")).toHaveAttribute("title", "Close tools menu");
     expect(screen.getByTestId("mobile-footer")).not.toHaveTextContent(/local only|no uploads/i);
     expect(screen.getByTestId("drawer-close")).toHaveFocus();
     await user.keyboard("{Escape}");
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+    expect(document.documentElement).not.toHaveStyle({ overflow: "hidden" });
+    expect(menu).toHaveFocus();
+    await user.click(menu);
+    await user.click(screen.getByTestId("drawer-backdrop"));
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
     expect(menu).toHaveFocus();
   });
@@ -52,8 +469,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="base64" />);
     expect(screen.getByTestId("base64-top-format")).toHaveValue("plain");
     expect(screen.getByTestId("base64-bottom-format")).toHaveValue("base64");
-    expect(screen.getByTestId("base64-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("base64-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("base64-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("base64-bottom-format")).toHaveAccessibleName("Target format");
     expect(screen.getAllByRole("option", { name: "Plain text" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "Base64 encoded" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "Base64url encoded" })).toHaveLength(2);
@@ -63,8 +480,8 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-input")).toBeEnabled();
     expect(screen.getByTestId("base64-output")).toBeDisabled();
-    expect(screen.getByTestId("base64-input")).toHaveAccessibleName("Input");
-    expect(screen.getByTestId("base64-output")).toHaveAccessibleName("Output");
+    expect(screen.getByTestId("base64-input")).toHaveAccessibleName("Source input");
+    expect(screen.getByTestId("base64-output")).toHaveAccessibleName("Target output");
     expect(screen.queryByText("Top channel")).not.toBeInTheDocument();
     expect(screen.queryByText("Bottom channel")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Convert" })).toHaveLength(1);
@@ -73,10 +490,43 @@ describe("CodecApp", () => {
     expect(screen.getByRole("button", { name: "Convert" })).toHaveClass(
       "border-primary",
       "bg-primary",
-      "disabled:opacity-40",
+      "disabled:bg-paper",
     );
     expect(screen.queryByRole("button", { name: "Encode" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Decode" })).not.toBeInTheDocument();
+  });
+
+  it("groups source, actions, and target as accessible workbench regions", () => {
+    render(<CodecApp toolId="base64" />);
+    const channels = screen.getByTestId("codec-workspace-channels");
+    expect(channels).toHaveClass("workspace-grid");
+    expect(screen.getByRole("group", { name: "Source" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Target" })).toBeInTheDocument();
+    expect(screen.getByTestId("codec-workspace-actions")).toHaveAccessibleName("Conversion actions");
+    for (const control of screen.getAllByRole("button")) {
+      expect(control.className).toMatch(/(?:min-h-11|size-11|icon-button)/);
+    }
+  });
+
+  it("makes browser-only privacy and editor metadata visible at the point of work", () => {
+    render(<CodecApp toolId="base64" />);
+
+    expect(screen.getByTestId("tool-privacy")).toHaveTextContent("Your data stays in this browser.");
+    expect(screen.getByTestId("base64-source-metadata")).toHaveTextContent("1 line13 bytesUTF-8");
+    expect(screen.getByTestId("base64-target-metadata")).toHaveTextContent("1 line20 bytesUTF-8");
+    expect(screen.getByTestId("workspace-shortcuts")).toHaveTextContent("CtrlEnterConvert");
+  });
+
+  it("converts from the workspace with Ctrl+Enter", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "keyboard");
+    await user.keyboard("{Control>}{Enter}{/Control}");
+
+    expect(screen.getByTestId("base64-output")).toHaveValue("a2V5Ym9hcmQ=");
   });
 
   it.each([
@@ -147,9 +597,10 @@ describe("CodecApp", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Copied");
     await user.clear(input);
     await user.type(input, "2026-01-31T12:34:56+00:00");
+    const previousOutput = (screen.getByTestId("timestamp-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter a valid UTC Z time from 1970 through 9999.");
-    expect(screen.getByTestId("timestamp-output")).toHaveValue("");
+    expect(screen.getByTestId("timestamp-output")).toHaveValue(previousOutput);
 
     await user.clear(input);
     await user.type(input, "1969-12-31T23:59:59.999Z");
@@ -313,7 +764,7 @@ describe("CodecApp", () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);
     const swapButton = screen.getByTestId("codec-workspace-swap");
-    expect(swapButton).toHaveClass("bg-primary");
+    expect(swapButton).not.toHaveClass("bg-primary");
     await user.click(swapButton);
     expect(screen.getByTestId("base64-input")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-output")).toHaveValue("Hello, world!");
@@ -336,9 +787,9 @@ describe("CodecApp", () => {
     const swapButton = screen.getByTestId("codec-workspace-swap");
     const copyButton = screen.getByRole("button", { name: "Copy output" });
     expect(channels.children[1]).toBe(actions);
-    expect([...actions.children]).toEqual([
-      swapButton,
+    expect([...actions.querySelectorAll("button")]).toEqual([
       screen.getByRole("button", { name: "Convert" }),
+      swapButton,
       screen.getByRole("button", { name: "Clear" }),
     ]);
     expect(copyButton).toHaveAttribute("data-testid", "codec-workspace-copy");
@@ -348,16 +799,17 @@ describe("CodecApp", () => {
     expect(copyButton).not.toHaveClass("icon-button", "bg-panel");
     expect(screen.getByTestId("base64-bottom-channel")).toContainElement(copyButton);
     expect(copyButton.querySelector(".lucide-copy")).toBeInTheDocument();
-    expect(swapButton).toHaveAccessibleName("Swap");
+    expect(swapButton).toHaveAccessibleName("Swap source and target");
     await user.click(swapButton);
     expect(screen.getByTestId("base64-top-format")).toHaveValue("base64");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByTestId("base64-output")).toHaveValue("café 🎵");
     await user.clear(input);
     await user.type(input, "***");
+    const previousOutput = (screen.getByTestId("base64-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid Base64.");
-    expect(screen.getByTestId("base64-output")).toHaveValue("");
+    expect(screen.getByTestId("base64-output")).toHaveValue(previousOutput);
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(input).toHaveValue("");
     expect(screen.getByTestId("base64-output")).toHaveValue("");
@@ -424,7 +876,7 @@ describe("CodecApp", () => {
       JSON.stringify({ version: 1, state: { input: "?saved=yes", output: "saved", mode: "parse" } }),
     );
     const query = render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     query.unmount();
 
@@ -441,8 +893,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="url" />);
     expect(screen.getByTestId("url-top-format")).toHaveValue("decoded");
     expect(screen.getByTestId("url-bottom-format")).toHaveValue("rfc3986");
-    expect(screen.getByTestId("url-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("url-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("url-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("url-bottom-format")).toHaveAccessibleName("Target format");
     for (const option of ["Plain text", "RFC 3986 component", "Full URI", "Form URL encoded"]) {
       expect(screen.getAllByRole("option", { name: option })).toHaveLength(2);
     }
@@ -516,11 +968,11 @@ describe("CodecApp", () => {
     await user.type(screen.getByTestId("url-input"), "%ZZ");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid percent-encoded text.");
-    expect(screen.getByTestId("url-output")).toHaveValue("");
+    expect(screen.getByTestId("url-output")).toHaveValue("a b+c");
     expect(screen.getByTestId("url-input")).toHaveValue("%ZZ");
     expect(screen.getByTestId("url-top-format")).toHaveValue("form");
     expect(screen.getByTestId("url-bottom-format")).toHaveValue("decoded");
-    expect(screen.getByRole("button", { name: "Copy output" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Copy output" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(screen.getByTestId("url-input")).toHaveValue("");
     expect(screen.getByTestId("url-output")).toHaveValue("");
@@ -529,13 +981,9 @@ describe("CodecApp", () => {
 
   it("loads Query defaults with complementary formats and no example controls", () => {
     render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("query-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("query-bottom-format")).toHaveAccessibleName("Bottom channel format");
-    expect(screen.getAllByRole("option", { name: "Query string" })).toHaveLength(2);
-    expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
+    expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("JSON");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-input")).toBeEnabled();
     expect(screen.getByTestId("query-output")).toBeDisabled();
@@ -547,12 +995,8 @@ describe("CodecApp", () => {
 
   it("loads Python defaults with complementary formats and no example controls", () => {
     render(<CodecApp toolId="python" />);
-    expect(screen.getByTestId("python-top-format")).toHaveValue("python");
-    expect(screen.getByTestId("python-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("python-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("python-bottom-format")).toHaveAccessibleName("Bottom channel format");
-    expect(screen.getAllByRole("option", { name: "Python literal" })).toHaveLength(2);
-    expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
+    expect(screen.getByTestId("python-top-format")).toHaveTextContent("Python literal");
+    expect(screen.getByTestId("python-bottom-format")).toHaveTextContent("JSON");
     expect(screen.getByTestId("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
     expect(screen.getByTestId("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
     expect(screen.getByTestId("python-input")).toBeEnabled();
@@ -562,32 +1006,14 @@ describe("CodecApp", () => {
     expect(screen.queryByRole("button", { name: /Try .* example/ })).not.toBeInTheDocument();
   });
 
-  it("changes either Query format without changing values or converting", async () => {
-    const user = userEvent.setup();
-    render(<CodecApp toolId="query" />);
-    const input = screen.getByTestId("query-input");
-    const output = screen.getByTestId("query-output");
-    await user.click(screen.getByRole("button", { name: "Copy output" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Copied");
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("query");
-    expect(input).toHaveValue("?name=Ada&active=true");
-    expect(output).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByTestId("query-bottom-format"), "json");
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
-    expect(input).toHaveValue("?name=Ada&active=true");
-    expect(output).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  });
-
   it("swaps Query values and formats without converting", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="query" />);
     await user.click(screen.getByTestId("codec-workspace-swap"));
     expect(screen.getByTestId("query-input")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.getByTestId("query-output")).toHaveValue("?name=Ada&active=true");
-    expect(screen.getByTestId("query-top-format")).toHaveValue("json");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("query");
+    expect(screen.getByTestId("query-output")).toHaveValue("name=Ada&active=true");
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("JSON");
+    expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("Query string");
   });
 
   it("converts Query in either direction and reports errors", async () => {
@@ -598,7 +1024,7 @@ describe("CodecApp", () => {
     await user.type(input, "?a=1&a=2");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "a": [\n    "1",\n    "2"\n  ]\n}');
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.clear(input);
     await user.click(input);
     await user.paste('{"message":"hello world"}');
@@ -607,9 +1033,10 @@ describe("CodecApp", () => {
     await user.clear(input);
     await user.click(input);
     await user.paste("[]");
+    const previousOutput = (screen.getByTestId("query-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("JSON must be an object.");
-    expect(screen.getByTestId("query-output")).toHaveValue("");
+    expect(screen.getByTestId("query-output")).toHaveValue(previousOutput);
   });
 
   it("converts Python in either direction and reports invalid JSON", async () => {
@@ -621,7 +1048,7 @@ describe("CodecApp", () => {
     await user.paste("{'active': True}");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByTestId("python-output")).toHaveValue('{\n  "active": true\n}');
-    await user.selectOptions(screen.getByTestId("python-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.clear(input);
     await user.click(input);
     await user.paste('{"items":[true,null]}');
@@ -629,22 +1056,23 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("python-output")).toHaveValue("{'items': [True, None]}");
     await user.clear(input);
     await user.type(input, "nope");
+    const previousOutput = (screen.getByTestId("python-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid JSON.");
-    expect(screen.getByTestId("python-output")).toHaveValue("");
+    expect(screen.getByTestId("python-output")).toHaveValue(previousOutput);
   });
 
   it("resets cleared DATA state after remount", async () => {
     const user = userEvent.setup();
     const first = render(<CodecApp toolId="query" />);
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(sessionStorage.length).toBe(0);
     first.unmount();
     render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
   });
 
   it("keeps DATA copy safe when clipboard is unavailable", async () => {
@@ -660,16 +1088,6 @@ describe("CodecApp", () => {
     expect(screen.getByRole("button", { name: "Copy output" })).toBeDisabled();
   });
 
-  it("toggles theme without localStorage", async () => {
-    const user = userEvent.setup();
-    const local = vi.spyOn(Storage.prototype, "setItem");
-    render(<CodecApp toolId="base64" />);
-    await user.click(screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
-    expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(local.mock.calls.every(([key]) => !String(key).includes("theme"))).toBe(true);
-    local.mockRestore();
-  });
-
   it("keeps output actions safe for empty state and clipboard denial", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockRejectedValue(new Error("denied"));
@@ -683,6 +1101,16 @@ describe("CodecApp", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Clipboard unavailable. Select output and copy manually.");
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(sessionStorage.getItem("codec-bench:base64:v1")).toBeNull();
+  });
+
+  it("uses semantic status tones and contrast-safe disabled controls", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    const convert = screen.getByRole("button", { name: "Convert" });
+    expect(convert).toHaveClass("disabled:bg-paper", "disabled:text-muted");
+    expect(convert).not.toHaveClass("disabled:opacity-40");
+    await user.click(screen.getByRole("button", { name: "Copy output" }));
+    expect(screen.getByRole("status")).toHaveClass("text-success");
   });
 
   it("loads JWT navigation, header, warning, and decoded synthetic fixture", () => {
@@ -702,6 +1130,17 @@ describe("CodecApp", () => {
     expect(screen.queryByText("Token is valid")).not.toBeInTheDocument();
     expect(screen.queryByText("Signature verified")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Decode" })).toBeDisabled();
+  });
+
+  it("keeps JWT action labels and names with decorative icons", () => {
+    render(<CodecApp toolId="jwt" />);
+
+    for (const name of ["Decode", "Clear", "Copy Header", "Copy Payload", "Copy Signature"]) {
+      const action = screen.getByRole("button", { name });
+      expect(action.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(screen.getByRole("button", { name: "Decode" })).toHaveTextContent("Decode");
+    expect(screen.getByRole("button", { name: "Clear" })).toHaveTextContent("Clear");
   });
 
   it("decodes edits, settles attempts, clears stale output, status, and all state", async () => {
@@ -779,5 +1218,18 @@ describe("CodecApp", () => {
     }
     expect(screen.getByTestId("jwt-actions")).toBeInTheDocument();
     expect(screen.getByTestId("jwt-guidance")).toBeInTheDocument();
+  });
+});
+
+describe("cookie settings", () => {
+  it.each(["base64", "privacy"] as const)("opens the cookie settings dialog from the footer on %s", async (page) => {
+    const { showCookieSettings } = await import("../../lib/analytics");
+    const user = userEvent.setup();
+    render(page === "privacy" ? <CodecApp page="privacy" /> : <CodecApp toolId={page} />);
+
+    expect(screen.getByTestId("privacy-link")).toHaveAttribute("href", "/privacy");
+    await user.click(screen.getByTestId("cookie-settings-button"));
+
+    await waitFor(() => expect(showCookieSettings).toHaveBeenCalledOnce());
   });
 });

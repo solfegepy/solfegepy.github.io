@@ -1,5 +1,5 @@
-import { ArrowRightLeftIcon, CopyIcon } from "lucide-react";
-import { type ChangeEvent, useState } from "react";
+import { ArrowRightLeftIcon, CopyIcon, EraserIcon, PlayIcon } from "lucide-react";
+import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 
 import type { ConversionResult } from "../../lib/types";
 import { ActionButton } from "../ui/ActionButton";
@@ -11,7 +11,7 @@ interface CodecWorkspaceProps {
   inputPlaceholder: string;
   formats: FormatOptions;
   forward: (input: string) => ConversionResult;
-  reverse: (input: string) => ConversionResult;
+  reverse: (input: string, target: string) => ConversionResult;
   convertFormats?: (input: string, source: ChannelFormat, target: ChannelFormat) => ConversionResult;
   allowAnyPair?: boolean;
   examples: {
@@ -51,16 +51,30 @@ interface FormatSelectProps {
 }
 
 const SELECT_CLASSES =
-  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-lg border px-3 py-2 font-mono text-sm font-semibold outline-none transition focus:ring-3";
+  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-sm font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
+const CHANNEL_HEADER_CLASSES = "border-line flex items-center justify-end border-b p-3";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
 
 function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectProps) {
+  // With fewer than 3 formats, the swap button already covers switching between them.
+  if (formats.length < 3) {
+    const label = formats.find((format) => format.value === value)?.label ?? value;
+    return (
+      <span
+        data-testid={`${name}-${channel.toLowerCase()}-format`}
+        className="text-ink font-mono text-sm font-semibold"
+      >
+        {label}
+      </span>
+    );
+  }
+
   return (
     <select
       data-testid={`${name}-${channel.toLowerCase()}-format`}
-      aria-label={`${channel} channel format`}
+      aria-label={channel === "Top" ? "Source format" : "Target format"}
       className={SELECT_CLASSES}
       value={value}
       onChange={(event) => {
@@ -73,6 +87,27 @@ function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectP
         </option>
       ))}
     </select>
+  );
+}
+
+interface EditorMetadataProps {
+  name: string;
+  channel: "source" | "target";
+  value: string;
+}
+
+function EditorMetadata({ name, channel, value }: EditorMetadataProps) {
+  const lines = value.length === 0 ? 0 : value.split("\n").length;
+  const bytes = new TextEncoder().encode(value).byteLength;
+  return (
+    <footer
+      data-testid={`${name}-${channel}-metadata`}
+      className="border-line text-muted flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 border-t px-4 py-2 font-mono text-xs"
+    >
+      <span>{`${lines} ${lines === 1 ? "line" : "lines"}`}</span>
+      <span>{`${bytes} ${bytes === 1 ? "byte" : "bytes"}`}</span>
+      <span>UTF-8</span>
+    </footer>
   );
 }
 
@@ -92,11 +127,10 @@ export function CodecWorkspace({
   const [bottomFormat, setBottomFormat] = useState<ChannelFormat>(formats[1].value);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [needsConversion, setNeedsConversion] = useState(false);
+  const needsConversion = input.length > 0;
 
   const changeInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
-    setNeedsConversion(true);
   };
 
   // ponytail: main-thread conversion targets ≤1 MB; use Web Workers if larger inputs become necessary.
@@ -105,11 +139,10 @@ export function CodecWorkspace({
       ? convertFormats(input, topFormat, bottomFormat)
       : topFormat === formats[0].value
         ? forward(input)
-        : reverse(input);
+        : reverse(input, output);
     setError(result.ok ? "" : result.error);
-    setOutput(result.ok ? result.value : "");
+    if (result.ok) setOutput(result.value);
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const copy = async () => {
@@ -128,7 +161,6 @@ export function CodecWorkspace({
     setOutput("");
     setError("");
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const swap = () => {
@@ -138,7 +170,6 @@ export function CodecWorkspace({
     setBottomFormat(topFormat);
     setError("");
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const changeTopFormat = (format: ChannelFormat) => {
@@ -150,7 +181,6 @@ export function CodecWorkspace({
     else if (bottomFormat === formats[0].value) setBottomFormat(formats[1].value);
     setError("");
     setStatus("");
-    setNeedsConversion(true);
   };
 
   const changeBottomFormat = (format: ChannelFormat) => {
@@ -162,54 +192,91 @@ export function CodecWorkspace({
     else if (topFormat === formats[0].value) setTopFormat(formats[1].value);
     setError("");
     setStatus("");
-    setNeedsConversion(true);
+  };
+
+  const handleShortcut = (event: KeyboardEvent<HTMLElement>) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && needsConversion) {
+      event.preventDefault();
+      convert();
+    }
   };
 
   return (
-    <section data-testid={`${name}-workspace`} className="space-y-5" aria-label={`${name} converter`}>
-      <div data-testid="codec-workspace-channels" className="grid items-center gap-3">
-        <div data-testid={`${name}-top-channel`} className="grid min-w-0 gap-3">
-          <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
+    <section
+      data-testid={`${name}-workspace`}
+      className="workspace-container min-w-0 space-y-3"
+      aria-label={`${name} converter`}
+      onKeyDown={handleShortcut}
+    >
+      <div data-testid="codec-workspace-channels" className="workspace-grid">
+        <div
+          data-testid={`${name}-top-channel`}
+          className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface grid min-w-0 overflow-hidden border transition-colors focus-within:ring-3"
+          role="group"
+          aria-label="Source"
+        >
+          <div className={CHANNEL_HEADER_CLASSES}>
+            <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
+          </div>
           <TextareaField
-            ariaLabel="Input"
+            ariaLabel="Source input"
             value={input}
             onChange={changeInput}
             placeholder={inputPlaceholder}
             testId={`${name}-input`}
+            variant="editor"
           />
+          <EditorMetadata name={name} channel="source" value={input} />
         </div>
-        <div data-testid="codec-workspace-actions" className="flex flex-wrap gap-2">
+        <div
+          data-testid="codec-workspace-actions"
+          className="workspace-actions flex flex-wrap items-center justify-center gap-2"
+          role="group"
+          aria-label="Conversion actions"
+        >
+          <ActionButton title="Convert" tone="primary" onClick={convert} disabled={!needsConversion}>
+            <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
+            Convert
+          </ActionButton>
           <button
             data-testid="codec-workspace-swap"
             type="button"
-            aria-label="Swap"
-            title="Swap input and output"
+            aria-label="Swap source and target"
+            title="Swap source and target"
             onClick={swap}
-            className="icon-button bg-primary rotate-90 rounded-full"
+            className="icon-button"
           >
             <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
           </button>
-          <ActionButton tone="primary" onClick={convert} disabled={!needsConversion}>
-            Convert
+          <ActionButton title="Clear" onClick={clear}>
+            <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
+            Clear
           </ActionButton>
-          <ActionButton onClick={clear}>Clear</ActionButton>
         </div>
-        <div data-testid={`${name}-bottom-channel`} className="grid min-w-0 gap-3">
-          <FormatSelect
-            channel="Bottom"
-            formats={formats}
-            name={name}
-            value={bottomFormat}
-            onChange={changeBottomFormat}
-          />
+        <div
+          data-testid={`${name}-bottom-channel`}
+          className="border-line bg-panel-target rounded-surface grid min-w-0 overflow-hidden border transition-colors"
+          role="group"
+          aria-label="Target"
+        >
+          <div className={CHANNEL_HEADER_CLASSES}>
+            <FormatSelect
+              channel="Bottom"
+              formats={formats}
+              name={name}
+              value={bottomFormat}
+              onChange={changeBottomFormat}
+            />
+          </div>
           <div className="relative min-w-0">
             <TextareaField
-              ariaLabel="Output"
+              ariaLabel="Target output"
               value={output}
               placeholder="Conversion appears here"
               disabled
               testId={`${name}-output`}
-              className="pr-16"
+              className="disabled:bg-panel-target pr-16"
+              variant="editor"
             />
             <button
               data-testid="codec-workspace-copy"
@@ -218,14 +285,27 @@ export function CodecWorkspace({
               title="Copy output"
               onClick={copy}
               disabled={!output}
-              className="text-muted hover:text-primary focus-visible:outline-primary absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
             >
               <CopyIcon aria-hidden="true" size={18} strokeWidth={1.8} />
             </button>
           </div>
+          <EditorMetadata name={name} channel="target" value={output} />
         </div>
       </div>
       <InlineStatus error={error} status={status} />
+      <aside
+        data-testid="workspace-shortcuts"
+        aria-label="Keyboard shortcuts"
+        className="border-line bg-panel text-muted rounded-control flex min-h-11 flex-wrap items-center gap-x-6 gap-y-2 border px-4 py-2 text-sm"
+      >
+        <strong className="text-ink">Shortcuts</strong>
+        <span className="inline-flex items-center gap-2">
+          <kbd>Ctrl</kbd>
+          <kbd>Enter</kbd>
+          <span>Convert</span>
+        </span>
+      </aside>
     </section>
   );
 }

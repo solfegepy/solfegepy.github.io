@@ -1,0 +1,12 @@
+---
+import { CodecApp } from "../components/pages/CodecApp";
+import Layout from "../layouts/Layout.astro";
+
+const title = "About Codec Bench";
+const description = "Who makes Codec Bench, the browser-only encoding and conversion tools, and how to get in touch.";
+const canonical = "https://codec64.com/about";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec Bench">
+  <CodecApp page="about" client:load />
+</Layout>

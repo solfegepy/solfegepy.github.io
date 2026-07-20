@@ -1,13 +1,296 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 import { CodecPage } from "../pages/CodecPage";
+
+test("visual contract: Base64 desktop dark", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(1440, 900);
+  await codec.useTheme("dark");
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+
+  await expect(page).toHaveScreenshot("base64-desktop-dark.png", { animations: "disabled", fullPage: true });
+});
+
+test("visual contract: Base64 mobile light", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(375, 812);
+  await codec.useTheme("light");
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+
+  await expect(page).toHaveScreenshot("base64-mobile-light.png", { animations: "disabled", fullPage: true });
+});
+
+test("visual contract: JWT desktop light", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(1440, 900);
+  await codec.useTheme("light");
+  await codec.open("/jwt");
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+
+  await expect(page).toHaveScreenshot("jwt-desktop-light.png", { animations: "disabled", fullPage: true });
+});
+
+test("visual contract: FAQ mobile dark", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(375, 812);
+  await codec.useTheme("dark");
+  await codec.openFaq();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+  await codec.toggleFaqQuestion("How do I encode text to Base64?");
+
+  await expect(page).toHaveScreenshot("faq-mobile-dark.png", { animations: "disabled", fullPage: true });
+});
+
+test("web fonts preserve long editor containment and metadata", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+
+  await codec.fill("base64-input", "x".repeat(2_048));
+  expect(await codec.editorLayout("base64")).toEqual({
+    pageOverflow: false,
+    inputContained: true,
+    metadataVisible: true,
+    metadata: "1 line2048 bytesUTF-8",
+  });
+});
+
+test("font traffic uses approved origins and excludes converter input", async ({ page }) => {
+  const codec = new CodecPage(page);
+  const traffic = codec.trackRequestDetails();
+  const marker = "FONT_PRIVACY_MARKER_61f";
+  const payload = Buffer.from(JSON.stringify({ private: marker })).toString("base64url");
+  const token = `eyJhbGciOiJub25lIn0.${payload}.`;
+
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+  await codec.fill("base64-input", marker);
+  await codec.act("Convert");
+  await codec.open("/jwt");
+  await codec.enterJwt(token);
+  await codec.decodeJwt();
+
+  const allowedOrigins = new Set(["http://127.0.0.1:3001"]);
+  expect(traffic.every(({ url }) => allowedOrigins.has(new URL(url).origin))).toBe(true);
+  expect(JSON.stringify(traffic)).not.toContain(marker);
+  expect(JSON.stringify(traffic)).not.toContain(token);
+});
+
+test("responsive layout matrix preserves order, target size, and page containment", async ({ page }) => {
+  const codec = new CodecPage(page);
+  for (const [width, height] of [
+    [375, 812],
+    [768, 1024],
+    [1024, 900],
+    [1440, 900],
+  ] as const) {
+    await codec.setViewport(width, height);
+    await codec.open();
+    expect(await codec.hasHorizontalOverflow(), `${width}x${height}`).toBe(false);
+    expect(
+      await page
+        .getByTestId("codec-workspace-channels")
+        .evaluate((channels) => [...channels.children].map((child) => child.getAttribute("data-testid"))),
+    ).toEqual(["base64-top-channel", "codec-workspace-actions", "base64-bottom-channel"]);
+    for (const size of await page
+      .getByTestId("codec-app")
+      .getByRole("button")
+      .evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const { width: targetWidth, height: targetHeight } = button.getBoundingClientRect();
+          return { width: targetWidth, height: targetHeight };
+        }),
+      )) {
+      expect(size.width).toBeGreaterThanOrEqual(44);
+      expect(size.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test("WebMCP decoding tools are route-local and return exact contracts", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.installWebMcpMock();
+
+  await codec.open();
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_base64"]);
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: "aGVsbG8=", variant: "standard" })).toEqual({
+    ok: true,
+    value: "hello",
+    variant: "standard",
+  });
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: "w7_Dvw", variant: "url-safe" })).toEqual({
+    ok: true,
+    value: "ÿÿ",
+    variant: "url-safe",
+  });
+
+  await codec.open("/jwt");
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZ2VudCJ9." })).toEqual({
+    ok: true,
+    header: { alg: "none" },
+    payload: { sub: "agent" },
+    signature: "",
+    signatureVerified: false,
+  });
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: "bad" })).toEqual({
+    ok: false,
+    error: "JWT must contain three segments.",
+  });
+
+  for (const route of ["/url", "/query", "/python-json", "/timestamp"]) {
+    await codec.open(route);
+    expect(await codec.webMcpToolNames(), route).toEqual([]);
+  }
+});
+
+test("WebMCP invocation leaves browser and UI state private and unchanged", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const codec = new CodecPage(page);
+  const traffic = codec.trackRequests();
+  await codec.installWebMcpMock();
+  await codec.open();
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_base64"]);
+  await codec.writeClipboard("clipboard-sentinel");
+
+  const base64Before = await codec.base64WorkspaceState();
+  const browserBefore = await codec.browserState();
+  const encodedMarker = "V0VCTUNQX1BSSVZBVEVfTUFSS0VS";
+  expect(await codec.invokeWebMcpTool("decode_base64", { value: encodedMarker, variant: "standard" })).toEqual({
+    ok: true,
+    value: "WEBMCP_PRIVATE_MARKER",
+    variant: "standard",
+  });
+  expect(await codec.base64WorkspaceState()).toEqual(base64Before);
+  expect(await codec.browserState()).toEqual(browserBefore);
+  expect(await codec.clipboardText()).toBe("clipboard-sentinel");
+
+  await codec.open("/jwt");
+  await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
+  const jwtMarker = "JWT_WEBMCP_PRIVATE_MARKER";
+  const payload = Buffer.from(JSON.stringify({ private: jwtMarker })).toString("base64url");
+  const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.c2ln`;
+  const jwtBefore = await codec.jwtWorkspaceValues();
+  expect(await codec.invokeWebMcpTool("decode_jwt", { value: token })).toMatchObject({
+    ok: true,
+    payload: { private: jwtMarker },
+    signatureVerified: false,
+  });
+  expect(await codec.jwtWorkspaceValues()).toEqual(jwtBefore);
+  await expect(codec.status()).toHaveCount(0);
+  expect(await codec.clipboardText()).toBe("clipboard-sentinel");
+  expect(await codec.storageSize()).toBe(0);
+  expect((await codec.browserState()).url).not.toContain(jwtMarker);
+  expect(
+    traffic.every(({ url, body }) =>
+      [encodedMarker, "WEBMCP_PRIVATE_MARKER", jwtMarker, token].every(
+        (secret) => !url.includes(secret) && !body.includes(secret),
+      ),
+    ),
+  ).toBe(true);
+});
+
+test("unsupported and rejected WebMCP registration preserve human flows", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.open();
+  await codec.fill("base64-input", "human");
+  await codec.act("Convert");
+  await expect(codec.output("base64-output")).toHaveValue("aHVtYW4=");
+
+  await codec.installWebMcpMock(true);
+  await codec.open("/jwt");
+  expect(await codec.webMcpToolNames()).toEqual([]);
+  await codec.enterJwt("bad");
+  await codec.decodeJwt();
+  await expect(codec.alert()).toHaveText("JWT must contain three segments.");
+});
+
+test("FAQ navigation, static disclosures, route isolation, and converter links", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.installWebMcpMock();
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]) {
+    await codec.open(route);
+    await expect(codec.faqNavigation(), route).toHaveAttribute("href", "/faq");
+  }
+
+  await codec.chooseFaq();
+  await expect(page).toHaveURL(/\/faq$/);
+  await expect(codec.activeFaq()).toHaveText("FAQ");
+  await expect(codec.activeTool()).toHaveCount(0);
+  await expect(codec.primaryHeading()).toHaveText("Encoding and Conversion FAQ");
+  await expect(codec.faqCategories()).toHaveText([
+    "Base64",
+    "URL encoding",
+    "Query parameters",
+    "JWT",
+    "Python and JSON",
+    "Unix timestamps and Z time",
+  ]);
+  await expect(codec.faqQuestions()).toHaveCount(30);
+  expect(await codec.faqCategoryQuestionCounts()).toEqual([5, 5, 5, 5, 5, 5]);
+  await expect(codec.faqItems().first()).not.toHaveAttribute("open");
+  await codec.toggleFaqQuestion("How do I encode text to Base64?");
+  await expect(codec.faqItems().first()).toHaveAttribute("open");
+  expect(await codec.webMcpToolNames()).toEqual([]);
+  await expect(codec.faqMain().locator("form, textarea")).toHaveCount(0);
+  await expect(codec.faqMain().getByRole("button", { name: /convert|decode/i })).toHaveCount(0);
+
+  const traffic = codec.trackRequests();
+  await codec.toggleFaqQuestion("Is Base64 encryption?");
+  await expect(codec.faqItems().first()).not.toHaveAttribute("open");
+  await expect(codec.faqItems().nth(2)).toHaveAttribute("open");
+  expect(traffic).toEqual([]);
+  await codec.followFaqCategoryTool("Open Base64 encoder and decoder");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
+});
+
+test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.open();
+  await codec.openDrawer();
+  await codec.chooseFaq();
+  await expect(page).toHaveURL(/\/faq$/);
+  await expect(codec.drawer()).toBeHidden();
+  await codec.useLargeText();
+  expect(await codec.hasHorizontalOverflow()).toBe(false);
+
+  const summary = codec.faqQuestion("Why is my Unix timestamp invalid?");
+  await codec.toggleFaqQuestionWithKeyboard("Why is my Unix timestamp invalid?");
+  await expect(summary).toBeFocused();
+  await expect(summary.locator("..")).toHaveAttribute("open");
+  expect(await summary.evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
+
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+});
+
+test("FAQ and brand links expose 44px touch targets", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.openFaq();
+
+  for (const size of await codec.faqToolTargetSizes()) {
+    expect(size.width).toBeGreaterThanOrEqual(44);
+    expect(size.height).toBeGreaterThanOrEqual(44);
+  }
+  expect((await codec.mobileBrandTargetSize()).height).toBeGreaterThanOrEqual(44);
+
+  await codec.open("/missing");
+  const notFoundBrand = await codec.notFoundBrandTargetSize();
+  expect(notFoundBrand.width).toBeGreaterThanOrEqual(44);
+  expect(notFoundBrand.height).toBeGreaterThanOrEqual(44);
+});
 
 test("publishes route metadata and navigates with browser history", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
   await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/");
-  await expect(codec.staticSection("Base64 FAQ")).toBeVisible();
+  await expect(codec.staticSection("Base64 FAQ")).toHaveCount(0);
   await codec.chooseTool("URL");
   await expect(page).toHaveURL(/\/url$/);
   await expect(codec.activeTool()).toHaveText("URL");
@@ -44,18 +327,161 @@ test("404 fallback fits 320px with large text", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("404 fallback follows system light and dark themes", async ({ page }) => {
+test("404 fallback uses stored theme and defaults to dark", async ({ page }) => {
   const codec = new CodecPage(page);
-  await page.emulateMedia({ colorScheme: "dark" });
+  await page.emulateMedia({ colorScheme: "light" });
   await codec.open("/missing");
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
-  await page.emulateMedia({ colorScheme: "light" });
+  await page.evaluate(() => localStorage.setItem("codec-bench-theme", "light"));
   await page.reload();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   expect(lightBackground).not.toBe(darkBackground);
+});
+
+test("every route hydrates default dark without browser errors", async ({ page }) => {
+  const codec = new CodecPage(page);
+  const errors = codec.trackBrowserErrors();
+  await page.emulateMedia({ colorScheme: "light" });
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq"]) {
+    await codec.open(route);
+    await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
+    await expect(codec.app()).not.toHaveAttribute("inert");
+    await expect(codec.app()).toHaveAttribute("aria-busy", "false");
+    await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+    await expect(codec.themeControl()).toHaveAccessibleName("Use light theme");
+    expect(errors, route).toEqual([]);
+  }
+});
+
+test("explicit theme persists across reload and route navigation", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light" });
+  await codec.open();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("light");
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await codec.chooseTool("URL");
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+});
+
+test("blocked theme storage keeps controls usable", async ({ page }) => {
+  await page.addInitScript(() => {
+    for (const method of ["getItem", "setItem", "removeItem"] as const) {
+      Storage.prototype[method] = () => {
+        throw new Error("blocked");
+      };
+    }
+  });
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light" });
+  await codec.open();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+});
+
+test("every route fits 320px at 200 percent text", async ({ page }) => {
+  const codec = new CodecPage(page);
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq", "/missing"]) {
+    await codec.open(route);
+    await page.addStyleTag({ content: "html { font-size: 200%; }" });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);
+  }
+});
+
+test("light and dark workbench states keep readable contrast and visible reduced-motion focus", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await codec.open();
+
+  const contrast = async (
+    locator: Locator,
+    foregroundProperty: "color" | "borderColor" | "outlineColor" = "color",
+  ): Promise<number> =>
+    locator.evaluate((node, property) => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      context.canvas.width = 1;
+      context.canvas.height = 1;
+      const style = getComputedStyle(node);
+      let backgroundNode: Element | null = node;
+      let effectiveBackground = "transparent";
+      while (backgroundNode) {
+        effectiveBackground = getComputedStyle(backgroundNode).backgroundColor;
+        if (effectiveBackground !== "rgba(0, 0, 0, 0)" && effectiveBackground !== "transparent") break;
+        backgroundNode = backgroundNode.parentElement;
+      }
+      const values = [style[property], effectiveBackground].map((color) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+      });
+      const luminance = (rgb: number[]) => {
+        const channels = rgb.map((value) => {
+          const normalized = value / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+      };
+      const [foreground, background] = values.map(luminance);
+      return (Math.max(foreground!, background!) + 0.05) / (Math.min(foreground!, background!) + 0.05);
+    }, foregroundProperty);
+
+  for (const theme of ["light", "dark"] as const) {
+    if ((await codec.root().getAttribute("data-theme")) !== theme) await codec.chooseOppositeTheme();
+    expect(await contrast(page.locator("body")), `${theme} ink on canvas`).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(page.getByTestId("tool-description")), `${theme} muted on canvas`).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(await contrast(codec.sidebar(), "borderColor"), `${theme} canvas/panel boundary`).toBeGreaterThanOrEqual(3);
+    expect(
+      await contrast(codec.channel("base64", "top"), "borderColor"),
+      `${theme} panel/field boundary`,
+    ).toBeGreaterThanOrEqual(3);
+    expect(await contrast(codec.output("base64-output"))).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(page.getByTestId("tool-link-base64").first())).toBeGreaterThanOrEqual(4.5);
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
+      const tile = page.getByTestId(`tool-link-${toolId}`).first().locator("span");
+      expect(await contrast(tile), `${theme} ${toolId} accent text`).toBeGreaterThanOrEqual(4.5);
+      expect(await contrast(tile, "borderColor"), `${theme} ${toolId} accent border`).toBeGreaterThanOrEqual(3);
+    }
+
+    await codec.openFaq();
+    const faqTile = page.getByTestId("faq-link").first().locator("span");
+    expect(await contrast(faqTile), `${theme} faq accent text`).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(faqTile, "borderColor"), `${theme} faq accent border`).toBeGreaterThanOrEqual(3);
+    await codec.open();
+
+    expect(await contrast(codec.convert()), `${theme} disabled`).toBeGreaterThanOrEqual(4.5);
+    await codec.fill("base64-input", `active-${theme}`);
+    expect(await contrast(codec.convert()), `${theme} primary`).toBeGreaterThanOrEqual(4.5);
+    await page.getByRole("button", { name: "Copy output" }).click();
+    expect(await contrast(codec.status()), `${theme} success`).toBeGreaterThanOrEqual(4.5);
+    await codec.chooseTopFormat("base64", "base64");
+    await codec.fill("base64-input", "***");
+    await codec.act("Convert");
+    expect(await contrast(codec.alert()), `${theme} danger`).toBeGreaterThanOrEqual(4.5);
+    await codec.open("/jwt");
+    expect(await contrast(page.getByTestId("jwt-guidance")), `${theme} warning`).toBeGreaterThanOrEqual(4.5);
+    await codec.open();
+    await codec.themeControl().focus();
+    expect(await contrast(codec.themeControl(), "outlineColor"), `${theme} focus`).toBeGreaterThanOrEqual(3);
+  }
+  await codec.themeControl().focus();
+  expect(await codec.themeControl().evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
+  expect(
+    await codec.themeControl().evaluate((node) => Number.parseFloat(getComputedStyle(node).transitionDuration)),
+  ).toBeLessThanOrEqual(0.00001);
 });
 
 test("desktop shell is full width with fixed-size sticky sidebar", async ({ page }) => {
@@ -67,6 +493,13 @@ test("desktop shell is full width with fixed-size sticky sidebar", async ({ page
   expect(await page.getByTestId("codec-app").evaluate((node) => node.getBoundingClientRect().width)).toBe(
     await page.evaluate(() => innerWidth),
   );
+  const source = await codec.channel("base64", "top").boundingBox();
+  const target = await codec.channel("base64", "bottom").boundingBox();
+  const actions = await codec.workspaceActions().boundingBox();
+  expect(source && target && actions).toBeTruthy();
+  expect(source!.y).toBe(target!.y);
+  expect(actions!.x).toBeGreaterThan(source!.x + source!.width);
+  expect(actions!.x + actions!.width).toBeLessThanOrEqual(target!.x);
 });
 
 test("mobile drawer traps focus, closes, and fits large text at 320px", async ({ page }) => {
@@ -77,6 +510,10 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await expect(codec.sidebar()).toBeHidden();
   await codec.openDrawer();
   await expect(codec.drawer()).toBeVisible();
+  const drawerLayer = page.getByTestId("mobile-drawer-layer");
+  await expect(drawerLayer).toHaveAttribute("aria-modal", "true");
+  expect(await drawerLayer.evaluate((node) => node instanceof HTMLDialogElement && node.matches(":modal"))).toBe(true);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe("hidden");
   await expect(page.getByTestId("drawer-close")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(page.getByTestId("mobile-drawer").getByTestId("theme-control")).toBeFocused();
@@ -90,6 +527,7 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await page.getByTestId("drawer-close").focus();
   await page.keyboard.press("Escape");
   await expect(codec.drawer()).toBeHidden();
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe("hidden");
   await expect(page.getByTestId("menu-button")).toBeFocused();
   await codec.format("base64", "top").focus();
   await expect(codec.format("base64", "top")).toBeFocused();
@@ -152,7 +590,7 @@ test("new browser context starts with example workspace", async ({ browser }) =>
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
   await codec.open("/query");
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
   await codec.open("/python-json");
   await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
@@ -194,6 +632,11 @@ test("Convert tracks workspace freshness", async ({ page }) => {
 test("format selectors preserve text and swap exchanges channels", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
+  await expect(codec.format("base64", "top")).toHaveAccessibleName("Source format");
+  await expect(codec.format("base64", "bottom")).toHaveAccessibleName("Target format");
+  await expect(codec.input("base64-input")).toHaveAccessibleName("Source input");
+  await expect(codec.output("base64-output")).toHaveAccessibleName("Target output");
+  await expect(codec.swapControl()).toHaveAccessibleName("Swap source and target");
   await codec.chooseTopFormat("base64", "base64url");
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
@@ -206,25 +649,18 @@ test("format selectors preserve text and swap exchanges channels", async ({ page
   await expect(codec.format("base64", "top")).toHaveValue("base64");
 });
 
-test("Query formats convert, preserve, swap, validate, and stay private", async ({ page }) => {
+test("Query formats convert, swap, validate, and stay private", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   const codec = new CodecPage(page);
   await codec.open("/query");
-  await expect(codec.format("query", "top")).toHaveValue("query");
-  await expect(codec.format("query", "bottom")).toHaveValue("json");
-  await expect(codec.format("query", "top").getByRole("option", { name: "Query string" })).toHaveCount(1);
-  await expect(codec.format("query", "top").getByRole("option", { name: "JSON" })).toHaveCount(1);
-  await codec.chooseTopFormat("query", "json");
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
-  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  await expect(codec.format("query", "bottom")).toHaveValue("query");
-  await codec.chooseBottomFormat("query", "json");
+  await expect(codec.format("query", "top")).toHaveText("Query string");
+  await expect(codec.format("query", "bottom")).toHaveText("JSON");
   await codec.fill("query-input", "?private-query-value=1&private-query-value=2");
   await codec.act("Convert");
   await expect(codec.output("query-output")).toHaveValue('{\n  "private-query-value": [\n    "1",\n    "2"\n  ]\n}');
   await codec.swap();
-  await expect(codec.format("query", "top")).toHaveValue("json");
+  await expect(codec.format("query", "top")).toHaveText("JSON");
   await expect(codec.output("query-output")).toHaveValue("?private-query-value=1&private-query-value=2");
   await codec.fill("query-input", '{"message":"hello world"}');
   await codec.act("Convert");
@@ -232,6 +668,20 @@ test("Query formats convert, preserve, swap, validate, and stay private", async 
   await codec.fill("query-input", "[]");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("JSON must be an object.");
+  await codec.swap();
+  await codec.fill("query-input", "https://www.hoseasons.co.uk/search?adult=2&nights=7");
+  await codec.act("Convert");
+  await codec.swap();
+  await codec.fill("query-input", '{"adult":"4","nights":"7"}');
+  await codec.act("Convert");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=4&nights=7");
+  await codec.fill("query-input", "[]");
+  await codec.act("Convert");
+  await expect(codec.alert()).toHaveText("JSON must be an object.");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=4&nights=7");
+  await codec.fill("query-input", '{"adult":"1"}');
+  await codec.act("Convert");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=1");
   expect(requests.every((url) => !url.includes("private-query-value"))).toBe(true);
   expect(page.url()).not.toContain("private-query-value");
 });
@@ -239,24 +689,21 @@ test("Query formats convert, preserve, swap, validate, and stay private", async 
 test("Python formats convert both directions and reject invalid JSON", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open("/python-json");
-  await expect(codec.format("python", "top")).toHaveValue("python");
-  await expect(codec.format("python", "bottom")).toHaveValue("json");
-  await expect(codec.format("python", "top").getByRole("option", { name: "Python literal" })).toHaveCount(1);
-  await expect(codec.format("python", "top").getByRole("option", { name: "JSON" })).toHaveCount(1);
-  await codec.chooseTopFormat("python", "json");
-  await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
-  await expect(codec.output("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
+  await expect(codec.format("python", "top")).toHaveText("Python literal");
+  await expect(codec.format("python", "bottom")).toHaveText("JSON");
+  await codec.swap();
+  await expect(codec.format("python", "top")).toHaveText("JSON");
   await codec.fill("python-input", '{"items":[true,null,{"name":"Ada"}]}');
   await codec.act("Convert");
   await expect(codec.output("python-output")).toHaveValue("{'items': [True, None, {'name': 'Ada'}]}");
   await codec.swap();
-  await expect(codec.format("python", "top")).toHaveValue("python");
+  await expect(codec.format("python", "top")).toHaveText("Python literal");
   await codec.fill("python-input", "{'items': [True, None, {'name': 'Ada'}] }");
   await codec.act("Convert");
   await expect(codec.output("python-output")).toHaveValue(
     '{\n  "items": [\n    true,\n    null,\n    {\n      "name": "Ada"\n    }\n  ]\n}',
   );
-  await codec.chooseTopFormat("python", "json");
+  await codec.swap();
   await codec.fill("python-input", "nope");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("Enter valid JSON.");
@@ -265,12 +712,12 @@ test("Python formats convert both directions and reject invalid JSON", async ({ 
 test("page reload resets DATA workspace", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open("/query");
-  await codec.chooseTopFormat("query", "json");
+  await codec.swap();
   await codec.act("Clear");
   await page.reload();
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  await expect(codec.format("query", "top")).toHaveValue("query");
+  await expect(codec.format("query", "top")).toHaveText("Query string");
 });
 
 test("URL modes convert, preserve, swap, validate, copy, clear, and stay private", async ({ page, context }) => {
@@ -314,7 +761,7 @@ test("URL modes convert, preserve, swap, validate, copy, clear, and stay private
   await codec.fill("url-input", "%ZZ");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("Enter valid percent-encoded text.");
-  await expect(codec.output("url-output")).toHaveValue("");
+  await expect(codec.output("url-output")).toHaveValue("a b+c");
   await codec.act("Clear");
   await expect(codec.input("url-input")).toHaveValue("");
   await expect(codec.output("url-output")).toHaveValue("");
@@ -396,12 +843,9 @@ test("Timestamp converts every format privately and remains accessible", async (
     ),
   ).toEqual([]);
 
-  await page.emulateMedia({ colorScheme: "dark" });
-  await page.reload();
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  await page.emulateMedia({ colorScheme: "light" });
-  await page.reload();
+  await codec.chooseOppositeTheme();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(darkBackground);
 });

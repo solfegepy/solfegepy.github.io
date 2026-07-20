@@ -1,5 +1,7 @@
 ---
+import { Font } from "astro:assets";
 import "../styles/globals.css";
+import { THEME_BOOTSTRAP_SCRIPT } from "../lib/theme";
 
 interface Props {
   title: string;
@@ -18,6 +20,8 @@ const serializedStructuredData = structuredData ? JSON.stringify(structuredData)
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <Font cssVariable="--font-ibm-plex-sans" preload={[{ weight: 400 }]} />
+    <Font cssVariable="--font-jetbrains-mono" preload={[{ weight: 400 }]} />
     <meta name="description" content={description} />
     {robots && <meta name="robots" content={robots} />}
     {canonical && <link rel="canonical" href={canonical} />}
@@ -28,6 +32,13 @@ const serializedStructuredData = structuredData ? JSON.stringify(structuredData)
     <meta property="og:site_name" content={siteName} />
     {serializedStructuredData && <script type="application/ld+json" is:inline set:html={serializedStructuredData} />}
     <title>{title}</title>
+    <script is:inline set:html={THEME_BOOTSTRAP_SCRIPT} />
   </head>
-  <body><slot /></body>
+  <body>
+    <slot />
+    <script>
+      // Loaded on demand so the cookie banner code stays out of the critical path.
+      void import("../lib/analytics").then((m) => m.runCookieConsent());
+    </script>
+  </body>
 </html>

@@ -29,12 +29,56 @@ function jwtDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function faqDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/faq/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function privacyDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/privacy/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function aboutDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/about/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function notFoundDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/404.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+// Fontsource ships 6 subsets per weight file; both families preload weight 400 in every subset.
+const FONT_PRELOAD_COUNT = 2 * 6;
+
 describe("production homepage SEO", () => {
+  it("serves web fonts from the site's own origin", () => {
+    const pages = ["", "url/", "query/", "jwt/", "python-json/", "timestamp/", "faq/", "privacy/", "about/"];
+    const builtPages = [...pages.map((page) => `${page}index.html`), "404.html"].map((page) =>
+      new DOMParser().parseFromString(
+        readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8"),
+        "text/html",
+      ),
+    );
+    for (const document of builtPages) {
+      const linksAndStyles = [...document.querySelectorAll("link, style")].map((element) => element.outerHTML);
+      expect(linksAndStyles.join("\n")).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
+
+      const fontFaceCss = [...document.querySelectorAll("style")]
+        .map((style) => style.textContent ?? "")
+        .filter((css) => css.includes("@font-face"))
+        .join("\n");
+      const fontUrls = [...fontFaceCss.matchAll(/url\(["']?([^"')]+)/g)].map((match) => match[1]);
+      expect(fontUrls.length).toBeGreaterThan(0);
+      for (const fontUrl of fontUrls) expect(fontUrl).toMatch(/^\/_astro\//);
+
+      const preloads = [...document.querySelectorAll('link[rel="preload"][as="font"][crossorigin]')];
+      expect(preloads).toHaveLength(FONT_PRELOAD_COUNT);
+      for (const link of preloads) expect(link.getAttribute("href")).toMatch(/^\/_astro\//);
+    }
+  });
+
   it("renders every registered route with unique metadata and one heading", () => {
     for (const tool of TOOLS) {
       const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}/index.html`;
@@ -67,14 +111,25 @@ describe("production homepage SEO", () => {
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("Base64 Decode and Encode");
     expect(document.body.textContent).toContain("How to use");
     expect(document.body.textContent).toContain("What is Base64?");
-    expect(document.body.textContent).toContain("Base64 FAQ");
+    expect(document.body.textContent).not.toContain("Base64 FAQ");
     expect(document.querySelector("noscript")?.textContent).toContain("Enable JavaScript");
     expect(document.body.textContent).not.toMatch(/select (?:Encode|Decode)|Select Encode or Decode/);
     expect(document.body.textContent).toContain("Select channel formats, then convert and copy result.");
     expect(document.querySelector('[data-testid="base64-guidance"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-how-to"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-about"]')).not.toBeNull();
-    expect(document.querySelector('[data-testid="base64-faq"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="base64-faq"]')).toBeNull();
+    expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated")).toBe("false");
+    expect(document.querySelector('[data-testid="codec-app"]')?.hasAttribute("inert")).toBe(true);
+    expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("gates analytics behind consent and links the footer to the privacy page in static HTML", () => {
+    const document = productionDocument();
+
+    expect(document.querySelector('script[src*="googletagmanager.com/gtag/js"]')).toBeNull();
+    expect(document.querySelector('[data-testid="privacy-link"]')?.getAttribute("href")).toBe("/privacy");
+    expect(document.querySelector('[data-testid="cookie-settings-button"]')?.textContent).toBe("Cookie settings");
   });
 
   it("renders one valid WebApplication JSON-LD object", () => {
@@ -167,6 +222,81 @@ describe("production homepage SEO", () => {
   });
 });
 
+describe("production FAQ SEO", () => {
+  it("renders complete static FAQ content and metadata without structured data", () => {
+    const document = faqDocument();
+    const description =
+      "Answers about Base64, URL encoding, query strings, JWT decoding, Python-to-JSON conversion, and Unix timestamps.";
+    const canonical = "https://codec64.com/faq";
+
+    expect(document.title).toBe("Encoding and Conversion FAQ | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect([...document.querySelectorAll("h1")].map((heading) => heading.textContent?.trim())).toEqual([
+      "Encoding and Conversion FAQ",
+    ]);
+    expect([...document.querySelectorAll("h2")].map((heading) => heading.textContent?.trim())).toEqual([
+      "Base64",
+      "URL encoding",
+      "Query parameters",
+      "JWT",
+      "Python and JSON",
+      "Unix timestamps and Z time",
+    ]);
+    expect(document.querySelectorAll("h3")).toHaveLength(30);
+    expect(new Set([...document.querySelectorAll("h3")].map((heading) => heading.textContent?.trim())).size).toBe(30);
+    expect(document.querySelectorAll("details[data-testid='faq-item']")).toHaveLength(30);
+    expect(document.querySelectorAll("details > summary[data-testid='faq-summary']")).toHaveLength(30);
+    expect(document.querySelectorAll("details > [data-testid='faq-answer']")).toHaveLength(30);
+    expect(document.body.textContent).toContain("Anyone with a Base64 decoder can recover the original data");
+    expect(document.body.textContent).toContain("+ decodes to a space and %2B decodes to a literal plus");
+    expect(document.body.textContent).toContain("Never use decoded claims for authentication or authorization");
+    expect(document.body.textContent).toContain("does not call Python or eval");
+    expect(document.body.textContent).toContain("precision below one millisecond is truncated");
+    expect(
+      [...document.querySelectorAll('[data-testid="faq-tool-link"]')].map((link) => link.getAttribute("href")),
+    ).toEqual(["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]);
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
+    expect(document.documentElement.innerHTML).not.toMatch(/FAQPage|QAPage/);
+  });
+});
+
+describe("production Privacy SEO", () => {
+  it("renders the policy, cookie table, and vendor name in static HTML", () => {
+    const document = privacyDocument();
+    const canonical = "https://codec64.com/privacy";
+
+    expect(document.title).toBe("Privacy & Cookies Policy | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
+      "How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("Privacy & Cookies Policy");
+    expect(document.body.textContent).toContain("Google Analytics");
+    expect(document.querySelector('[data-testid="privacy-cookie-table"]')?.textContent).toContain("_ga");
+    expect(document.querySelector('[data-testid="privacy-cookie-table"]')?.textContent).toContain("_ga_J0WPVDJ942");
+    expect(document.querySelector('[data-testid="privacy-cookie-table"]')?.textContent).toContain("cc_cookie");
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
+  });
+});
+
+describe("production About SEO", () => {
+  it("renders metadata and a lead linking the privacy policy in static HTML", () => {
+    const document = aboutDocument();
+    const canonical = "https://codec64.com/about";
+
+    expect(document.title).toBe("About Codec Bench");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("About Codec Bench");
+    expect(document.querySelector('[data-testid="about-lead"] a')?.getAttribute("href")).toBe("/privacy");
+  });
+});
+
 describe("production 404", () => {
   it("generates a root fallback document", () => {
     const document = notFoundDocument();
@@ -190,6 +320,7 @@ describe("production 404", () => {
     expect(document.querySelector('[data-testid$="-workspace"]')).toBeNull();
     expect(document.querySelector('[data-testid="not-found-section"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="not-found-brand-link"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="not-found-brand-link"]')?.getAttribute("aria-label")).toBeNull();
     expect(document.querySelector('[data-testid="not-found-home"]')).not.toBeNull();
   });
 });

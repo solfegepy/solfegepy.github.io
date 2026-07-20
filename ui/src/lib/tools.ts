@@ -42,7 +42,7 @@ export const TOOLS = [
     group: "Encoding",
     label: "Query Params",
     route: "/query",
-    title: "Query Parameter Parser and Builder",
+    title: "Query Parameter Editor",
     description: ["Convert URL query parameters to JSON or build a query string from JSON."],
   },
   {

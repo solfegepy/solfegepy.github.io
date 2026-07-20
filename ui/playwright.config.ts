@@ -26,8 +26,9 @@ export default defineConfig({
   use: {
     baseURL: testUrl,
     viewport: { width: 1920, height: 1080 },
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
     actionTimeout: 10_000,
     navigationTimeout: 20_000,
   },
@@ -46,6 +47,9 @@ export default defineConfig({
   webServer: {
     command: `pnpm run build && pnpm exec astro preview --host 0.0.0.0 --port ${testPort}`,
     url: testUrl,
+    // ponytail: astro 7.2 auto-backgrounds preview/dev under agentic CLIs (am-i-vibing);
+    // this env var forces normal foreground behavior so Playwright can manage the process.
+    env: { ASTRO_PREVIEW_BACKGROUND: "1" },
     gracefulShutdown: { signal: "SIGTERM", timeout: 5_000 },
     reuseExistingServer: false,
     timeout: 30_000,

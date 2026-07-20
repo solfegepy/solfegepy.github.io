@@ -1,0 +1,18 @@
+cwd: ..  # or ../subproject1 . '.' is relative to 1st config file (probably this file)
+workspaces:
+  - name: Shells
+    tabs:
+      # ======== dev servers ========
+      - label: dev_servers
+        panes:
+          - command: m start-dev
+
+      # ======== shell commands ========
+      - label: misc
+        panes:
+          - command: ll
+      # - label: make
+      #   panes:
+      #     - command: make test
+      #       lf: false
+      #       split: down

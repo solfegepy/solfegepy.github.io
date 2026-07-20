@@ -1,65 +1,220 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
-@theme inline {
+@theme static {
   --color-paper: var(--paper);
   --color-panel: var(--panel);
+  --color-panel-target: var(--panel-target);
   --color-field: var(--field);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-tool-base64: var(--tool-base64);
+  --color-tool-base64-soft: var(--tool-base64-soft);
+  --color-tool-base64-border: var(--tool-base64-border);
+  --color-tool-url: var(--tool-url);
+  --color-tool-url-soft: var(--tool-url-soft);
+  --color-tool-url-border: var(--tool-url-border);
+  --color-tool-query: var(--tool-query);
+  --color-tool-query-soft: var(--tool-query-soft);
+  --color-tool-query-border: var(--tool-query-border);
+  --color-tool-jwt: var(--tool-jwt);
+  --color-tool-jwt-soft: var(--tool-jwt-soft);
+  --color-tool-jwt-border: var(--tool-jwt-border);
+  --color-tool-python: var(--tool-python);
+  --color-tool-python-soft: var(--tool-python-soft);
+  --color-tool-python-border: var(--tool-python-border);
+  --color-tool-timestamp: var(--tool-timestamp);
+  --color-tool-timestamp-soft: var(--tool-timestamp-soft);
+  --color-tool-timestamp-border: var(--tool-timestamp-border);
+  --color-tool-faq: var(--tool-faq);
+  --color-tool-faq-soft: var(--tool-faq-soft);
+  --color-tool-faq-border: var(--tool-faq-border);
+  --color-tool-privacy: var(--tool-privacy);
+  --color-tool-privacy-soft: var(--tool-privacy-soft);
+  --color-tool-privacy-border: var(--tool-privacy-border);
 }
 
 @theme {
   --breakpoint-md: 48rem;
-  --font-display: "Avenir Next", "Trebuchet MS", sans-serif;
-  --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --font-display: var(--font-ibm-plex-sans);
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-jetbrains-mono);
+  --radius-control: 0.75rem;
+  --radius-surface: 1rem;
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-  --paper: var(--color-slate-100);
-  --panel: var(--color-slate-50);
+  --paper: var(--color-stone-50);
+  --panel: var(--color-neutral-50);
+  --panel-target: var(--color-neutral-200);
   --field: var(--color-white);
   --ink: var(--color-slate-900);
   --muted: var(--color-slate-600);
-  --line: var(--color-slate-300);
+  --line: var(--color-stone-500);
   --primary: var(--color-blue-700);
   --primary-strong: var(--color-blue-800);
-  --accent: var(--color-orange-700);
-  --accent-strong: var(--color-orange-800);
+  --primary-soft: var(--color-blue-50);
+  --accent: var(--color-orange-600);
+  --accent-strong: var(--color-orange-700);
+  --success: var(--color-green-700);
+  --success-soft: var(--color-green-50);
+  --warning: var(--color-amber-800);
+  --warning-soft: var(--color-amber-50);
+  --danger: var(--color-red-700);
+  --danger-soft: var(--color-red-50);
+  --tool-base64: var(--color-cyan-800);
+  --tool-base64-soft: var(--color-cyan-50);
+  --tool-base64-border: var(--color-cyan-800);
+  --tool-url: var(--color-blue-700);
+  --tool-url-soft: var(--color-blue-50);
+  --tool-url-border: var(--color-blue-700);
+  --tool-query: var(--color-amber-800);
+  --tool-query-soft: var(--color-amber-50);
+  --tool-query-border: var(--color-amber-800);
+  --tool-jwt: var(--color-rose-700);
+  --tool-jwt-soft: var(--color-rose-50);
+  --tool-jwt-border: var(--color-rose-700);
+  --tool-python: var(--color-emerald-700);
+  --tool-python-soft: var(--color-emerald-50);
+  --tool-python-border: var(--color-emerald-700);
+  --tool-timestamp: var(--color-violet-700);
+  --tool-timestamp-soft: var(--color-violet-50);
+  --tool-timestamp-border: var(--color-violet-700);
+  --tool-faq: var(--color-sky-800);
+  --tool-faq-soft: var(--color-sky-50);
+  --tool-faq-border: var(--color-sky-800);
+  --tool-privacy: var(--color-zinc-700);
+  --tool-privacy-soft: var(--color-zinc-50);
+  --tool-privacy-border: var(--color-zinc-700);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
   --paper: var(--color-slate-950);
   --panel: var(--color-slate-900);
+  --panel-target: var(--color-slate-900);
   --field: var(--color-slate-800);
-  --ink: var(--color-slate-100);
+  --ink: var(--color-slate-50);
   --muted: var(--color-slate-400);
-  --line: var(--color-slate-700);
+  --line: var(--color-slate-500);
   --primary: var(--color-blue-400);
   --primary-strong: var(--color-blue-300);
+  --primary-soft: var(--color-blue-950);
   --accent: var(--color-orange-400);
   --accent-strong: var(--color-orange-300);
+  --success: var(--color-green-300);
+  --success-soft: var(--color-green-950);
+  --warning: var(--color-amber-300);
+  --warning-soft: var(--color-amber-950);
+  --danger: var(--color-red-300);
+  --danger-soft: var(--color-red-950);
+  --tool-base64: var(--color-cyan-300);
+  --tool-base64-soft: var(--color-cyan-950);
+  --tool-base64-border: var(--color-cyan-300);
+  --tool-url: var(--color-blue-300);
+  --tool-url-soft: var(--color-blue-950);
+  --tool-url-border: var(--color-blue-300);
+  --tool-query: var(--color-amber-300);
+  --tool-query-soft: var(--color-amber-950);
+  --tool-query-border: var(--color-amber-300);
+  --tool-jwt: var(--color-rose-300);
+  --tool-jwt-soft: var(--color-rose-950);
+  --tool-jwt-border: var(--color-rose-300);
+  --tool-python: var(--color-emerald-300);
+  --tool-python-soft: var(--color-emerald-950);
+  --tool-python-border: var(--color-emerald-300);
+  --tool-timestamp: var(--color-violet-300);
+  --tool-timestamp-soft: var(--color-violet-950);
+  --tool-timestamp-border: var(--color-violet-300);
+  --tool-faq: var(--color-sky-300);
+  --tool-faq-soft: var(--color-sky-950);
+  --tool-faq-border: var(--color-sky-300);
+  --tool-privacy: var(--color-zinc-300);
+  --tool-privacy-soft: var(--color-zinc-950);
+  --tool-privacy-border: var(--color-zinc-300);
   color-scheme: dark;
 }
 
 html {
   background: var(--paper);
 }
+
+/*
+ * The cookie banner (vanilla-cookieconsent) renders outside the app components and themes itself through
+ * `--cc-*` variables. Binding them to the semantic roles keeps it in step with light and dark mode.
+ */
+#cc-main {
+  --cc-font-family: var(--font-sans);
+  --cc-modal-border-radius: var(--radius-surface);
+  --cc-btn-border-radius: var(--radius-control);
+  --cc-bg: var(--panel);
+  --cc-primary-color: var(--ink);
+  --cc-secondary-color: var(--muted);
+  --cc-link-color: var(--primary);
+  --cc-btn-primary-bg: var(--primary);
+  --cc-btn-primary-color: var(--paper);
+  --cc-btn-primary-border-color: var(--primary);
+  --cc-btn-primary-hover-bg: var(--primary-strong);
+  --cc-btn-primary-hover-color: var(--paper);
+  --cc-btn-primary-hover-border-color: var(--primary-strong);
+  --cc-btn-secondary-bg: var(--field);
+  --cc-btn-secondary-color: var(--ink);
+  --cc-btn-secondary-border-color: var(--line);
+  --cc-btn-secondary-hover-bg: var(--primary-soft);
+  --cc-btn-secondary-hover-color: var(--primary);
+  --cc-btn-secondary-hover-border-color: var(--primary);
+  --cc-separator-border-color: var(--line);
+  --cc-toggle-on-bg: var(--primary);
+  --cc-toggle-off-bg: var(--muted);
+  --cc-toggle-readonly-bg: var(--line);
+  --cc-cookie-category-block-bg: var(--field);
+  --cc-cookie-category-block-border: var(--line);
+  --cc-cookie-category-block-hover-bg: var(--primary-soft);
+  --cc-cookie-category-block-hover-border: var(--primary);
+  --cc-footer-bg: var(--field);
+  --cc-footer-color: var(--muted);
+  --cc-footer-border-color: var(--line);
+}
 body {
   min-width: 0;
   min-height: 100vh;
   margin: 0;
   background-color: var(--paper);
-  background-image: radial-gradient(color-mix(in srgb, var(--line) 45%, transparent) 0.04rem, transparent 0.04rem);
-  background-size: 1rem 1rem;
   color: var(--ink);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.714;
 }
 
 .skip-link {
@@ -76,6 +231,11 @@ body {
 .skip-link:focus {
   transform: translateY(0);
 }
+
+.mobile-drawer-dialog::backdrop {
+  background: transparent;
+}
+
 .icon-button {
   display: inline-flex;
   min-width: 2.75rem;
@@ -83,25 +243,18 @@ body {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   background: var(--field);
   color: var(--ink);
   transition:
-    transform 200ms,
-    border-color 200ms,
-    color 200ms;
+    transform var(--default-transition-duration) var(--default-transition-timing-function),
+    border-color var(--default-transition-duration) var(--default-transition-timing-function),
+    background-color var(--default-transition-duration) var(--default-transition-timing-function),
+    color var(--default-transition-duration) var(--default-transition-timing-function);
 }
 .icon-button:hover {
   border-color: var(--primary);
   color: var(--primary);
-}
-.icon-button.bg-primary {
-  background: var(--primary);
-  color: var(--paper);
-}
-.icon-button.bg-primary:hover {
-  background: var(--primary-strong);
-  color: var(--paper);
 }
 .icon-button:active {
   transform: translateY(1px);
@@ -111,19 +264,38 @@ body {
   outline-offset: 2px;
 }
 
-.channel {
-  position: relative;
+.workspace-container {
+  container-type: inline-size;
 }
-.channel::before {
-  position: absolute;
-  top: 2.45rem;
-  bottom: 0.75rem;
-  left: 0;
-  width: 0.2rem;
-  border-radius: 999px;
-  background: var(--primary);
-  content: "";
-  transform: translateX(-0.1rem);
+
+.workspace-grid {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@container (min-width: 44rem) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 7.5rem minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .workspace-actions {
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+kbd {
+  min-width: 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: var(--field);
+  color: var(--ink);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

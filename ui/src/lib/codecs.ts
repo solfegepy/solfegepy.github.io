@@ -10,6 +10,7 @@ const fail = (error: string): ConversionResult => ({ ok: false, error });
 const pass = (value: string): ConversionResult => ({ ok: true, value });
 
 const JWT_MAX_LENGTH = 100_000;
+const BASE64_MAX_LENGTH = 1_000_000;
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 function isValidJwtSegment(segment: string, allowEmpty = false): boolean {
@@ -328,6 +329,9 @@ export function encodeBase64(input: string, variant: Base64Variant): ConversionR
 }
 
 export function decodeBase64(input: string, variant: Base64Variant): ConversionResult {
+  if (input.length > BASE64_MAX_LENGTH) {
+    return fail("Base64 is too large. Maximum size is 1000000 characters.");
+  }
   const compact = input.replace(/\s/g, "");
   const alphabet = variant === "url-safe" ? "[A-Za-z0-9_-]" : "[A-Za-z0-9+/]";
   const unpadded = compact.replace(/=+$/, "");
@@ -415,7 +419,14 @@ function isQueryValue(value: unknown): value is QueryValue {
   return typeof value === "string" || (Array.isArray(value) && value.every((item) => typeof item === "string"));
 }
 
-export function serializeQuery(input: string): ConversionResult {
+/** Returns the URL or path before a query string, or "" when the target is bare params. */
+function queryBase(target: string): string {
+  const beforeFragment = target.includes("#") ? target.slice(0, target.indexOf("#")) : target;
+  if (beforeFragment.includes("?")) return beforeFragment.slice(0, beforeFragment.indexOf("?"));
+  return /^([A-Za-z][A-Za-z\d+.-]*:\/\/|\/)/.test(beforeFragment) ? beforeFragment : "";
+}
+
+export function serializeQuery(input: string, target = ""): ConversionResult {
   let source: unknown;
   try {
     source = JSON.parse(input);
@@ -429,5 +440,7 @@ export function serializeQuery(input: string): ConversionResult {
   for (const [key, value] of Object.entries(source)) {
     for (const item of Array.isArray(value) ? value : [value]) parameters.append(key, item);
   }
-  return pass(parameters.toString());
+  const query = parameters.toString();
+  const base = queryBase(target);
+  return pass(base && query ? `${base}?${query}` : base || query);
 }

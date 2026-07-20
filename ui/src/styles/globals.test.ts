@@ -7,17 +7,48 @@ const SOURCE_ROOT = join(process.cwd(), "src");
 const SEMANTIC_COLORS = [
   "paper",
   "panel",
+  "panel-target",
   "field",
   "ink",
   "muted",
   "line",
   "primary",
   "primary-strong",
+  "primary-soft",
   "accent",
   "accent-strong",
+  "success",
+  "success-soft",
+  "warning",
+  "warning-soft",
+  "danger",
+  "danger-soft",
+  "tool-base64",
+  "tool-base64-soft",
+  "tool-base64-border",
+  "tool-url",
+  "tool-url-soft",
+  "tool-url-border",
+  "tool-query",
+  "tool-query-soft",
+  "tool-query-border",
+  "tool-jwt",
+  "tool-jwt-soft",
+  "tool-jwt-border",
+  "tool-python",
+  "tool-python-soft",
+  "tool-python-border",
+  "tool-timestamp",
+  "tool-timestamp-soft",
+  "tool-timestamp-border",
+  "tool-faq",
+  "tool-faq-soft",
+  "tool-faq-border",
+  "tool-privacy",
+  "tool-privacy-soft",
+  "tool-privacy-border",
 ] as const;
-const APPROVED_COLORS =
-  /^var\(--color-(?:slate-(?:50|[1-9]00|950)|blue-(?:50|[1-9]00|950)|orange-(?:50|[1-9]00|950)|white|transparent)\)$/;
+const APPROVED_COLORS = /^oklch\([\d.]+% [\d.]+ [\d.]+\)$/;
 const TEST_ID_SURFACES = ["section", "header", "footer", "main", "nav", "article", "button", "a", "input", "textarea"];
 
 function sourceFiles(directory: string): string[] {
@@ -45,14 +76,18 @@ describe("Tailwind theme contract", () => {
     for (const color of SEMANTIC_COLORS) expect(css).toContain(`--color-${color}: var(--${color});`);
   });
 
-  it("maps theme colors only to approved Tailwind colors", () => {
-    const declarations = [
-      ...css.matchAll(/^\s+--(paper|panel|field|ink|muted|line|primary(?:-strong)?|accent(?:-strong)?): (.+);$/gm),
-    ];
+  it("maps theme colors only to approved OKLCH tokens", () => {
+    const declarations = [...css.matchAll(/^\s+--([\w-]+): (oklch\(.+\));$/gm)].filter(([, name]) =>
+      SEMANTIC_COLORS.includes(name as (typeof SEMANTIC_COLORS)[number]),
+    );
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
     for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLORS);
-    expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl|oklch)a?\(/i);
+    expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i);
+  });
+
+  it("uses solid canvas without gradients or glass effects", () => {
+    expect(css).not.toMatch(/gradient|backdrop-filter/i);
   });
 });
 

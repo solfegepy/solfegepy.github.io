@@ -12,7 +12,7 @@ export function ThemeControl({ dark, onToggle }: ThemeControlProps) {
     <button
       data-testid="theme-control"
       type="button"
-      className="border-line bg-panel text-ink hover:border-primary hover:text-primary focus-visible:outline-primary inline-flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control inline-flex size-11 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={onToggle}
       aria-label={label}
       title={label}

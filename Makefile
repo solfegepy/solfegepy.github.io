@@ -1,4 +1,4 @@
-.PHONY: start-dev stop clean build format format-check typecheck eslint lint test test-e2e test-e2e-slow test-e2e-step-by-step outdated upgrade zap lighthouse
+.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug test-report outdated upgrade zap lighthouse audit
 
 include .devcontainer/.env
 export
@@ -15,16 +15,18 @@ zap:
 		ghcr.io/zaproxy/zaproxy:weekly zap-baseline.py -t "$$2" -c /zap.conf \
 		| tee "$$1/ui/test-results/zap.log"' _ "$(CURDIR)" "$(DEPLOYED_URL)"
 
+deploy:
+	docker exec -it saicli--ai-codec64 make build
+	@echo "You must now 'git commit', 'git push'\n\
+	  To check the status: https://github.com/solfegepy/solfegepy.github.io/actions\n\
+	  To check the site: $(DEPLOYED_URL)"
+
+# ------------ run from devcontainer (with node) ----------
 lighthouse:
 	mkdir -p ui/test-results/lighthouse
 	cd ui && pnpm exec lighthouse "$(DEPLOYED_URL)" --no-enable-error-reporting --view \
 		--output-path=./test-results/lighthouse --output=html --output=json
 
-deploy:
-	docker exec -it saicli__ai_codec64 make build
-	echo "You can now 'git push' and check status: https://github.com/solfegepy/solfegepy.github.io/actions"
-
-# ------------ run from devcontainer (with node) ----------
 start-dev:
 	cd ui && pnpm run dev
 
@@ -42,6 +44,7 @@ lint: ui/node_modules
 	cd ui && pnpm run typecheck
 	cd ui && pnpm exec eslint .
 	cd ui && semgrep scan --error --config auto .
+	~/.local/bin/assert_ui_breakpoint.sh ui/src
 
 test: ui/node_modules
 	cd ui && pnpm test -- --bail=1
@@ -49,17 +52,31 @@ test: ui/node_modules
 test-e2e: ui/node_modules
 	cd ui && pnpm exec playwright test --max-failures=1
 
+test-e2e-headed: ui/node_modules
+	cd ui && pnpm exec playwright test --headed --max-failures=1
+
 test-e2e-slow: ui/node_modules
 	cd ui && PLAYWRIGHT_SLOW_MO=1000 pnpm exec playwright test --headed --max-failures=1
 
-test-e2e-step-by-step: ui/node_modules
-	cd ui && pnpm exec playwright test --debug
+test-e2e-debug: ui/node_modules
+	cd ui && DEBUG='pw:api,pw:browser*' pnpm exec playwright test --debug
+
+test-report: ui/node_modules
+	cd ui && pnpm exec playwright show-report --host 0.0.0.0 test-results/playwright/report
 
 outdated: ui/node_modules
 	cd ui && pnpm outdated
 
+# ponytail: pnpm audit only checks JS/TS dependency advisories, not container images or IaC.
+# This repo ships neither today. If either is added later, replace with a Trivy scan (fs + image/config).
+audit: ui/node_modules
+	cd ui && pnpm audit --audit-level high
+
 upgrade: ui/node_modules
 	cd ui && pnpm update
+	@pkg=$$(jq -r '.devDependencies["@playwright/test"]' ui/package.json | tr -d '^~='); \
+	img=$$(jq -r '.driverVersion' /ms-playwright/.docker-info); \
+	[ "$$pkg" = "$$img" ] || { echo "Playwright mismatch: package.json wants $$pkg, devcontainer image has $$img. Bump the Playwright image version in .devcontainer/compose.devcontainer.yaml (or its Dockerfile) to $$pkg."; exit 1; }
 
 ui/node_modules:
 	cd ui && pnpm install --frozen-lockfile

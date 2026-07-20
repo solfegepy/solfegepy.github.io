@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["_astro/analytics.AOd7DQN4.js","_astro/analytics.DjanN7tQ.css"])))=>i.map(i=>d[i]);
+import{t as e}from"./preload-helper.CxFQXtKk.js";e(()=>import(`./analytics.AOd7DQN4.js`).then(e=>e.runCookieConsent()),__vite__mapDeps([0,1]));

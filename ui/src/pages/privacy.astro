@@ -1,0 +1,13 @@
+---
+import { CodecApp } from "../components/pages/CodecApp";
+import Layout from "../layouts/Layout.astro";
+
+const title = "Privacy & Cookies Policy | Codec Bench";
+const description =
+  "How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.";
+const canonical = "https://codec64.com/privacy";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec Bench">
+  <CodecApp page="privacy" client:load />
+</Layout>

@@ -1,0 +1,33 @@
+{
+  "packages": {
+    "immich": {
+      "docker": "ghcr.io/immich-app/immich-server:v3",
+      "notes": "https://github.com/immich-app/immich/pkgs/container/immich-server/versions?filters%5Bversion_type%5D=tagged"
+    },
+    "n8n": {
+      "docker": "n8nio/n8n:2.41.3",
+      "notes": "https://hub.docker.com/r/n8nio/n8n"
+    },
+    "node": {
+      "docker": "node:24-slim",
+      "notes": "Node 24 is LTS until 2026-oct https://nodejs.org/en/about/previous-releases"
+    },
+    "playwright": {
+      "docker": "mcr.microsoft.com/playwright:v1.63.0-resolute",
+      "notes": "https://mcr.microsoft.com/artifact/mar/playwright",
+      "version": "1.63.0"
+    },
+    "postgres": {
+      "docker": "postgres:18",
+      "notes": "https://hub.docker.com/_/postgres"
+    },
+    "python": {
+      "docker": "python:3.14",
+      "notes": "https://hub.docker.com/_/python"
+    },
+    "uv": {
+      "docker": "ghcr.io/astral-sh/uv:0.12",
+      "notes": "https://hub.docker.com/r/astral/uv"
+    }
+  }
+}
