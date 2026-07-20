@@ -13,7 +13,7 @@
   },
 
   // localWorkspaceFolder is set with --workspace-folder (default to .)
-  "workspaceFolder": "/workspaces",  // container cwd after create
+  "workspaceFolder": "/workspaces/project",  // container cwd after create
   // "onCreateCommand": "${containerWorkspaceFolder}/.devcontainer/_on_create.sh",
   // "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/_post_start.sh",
   "postAttachCommand": "${containerWorkspaceFolder}/.devcontainer/_entrypoint.sh",

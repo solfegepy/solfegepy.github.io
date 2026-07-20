@@ -10,7 +10,7 @@ services:
       - "${UI_EXT_PORT}:${UI_INT_PORT}"
     init: true  # wrapper because 'sleep' does not handle SIGTERM
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
-      - ..:/workspaces
+      - ..:/workspaces/project
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
