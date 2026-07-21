@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface FaqItemData {
@@ -312,19 +313,25 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
 ];
 
 interface FaqItemProps {
+  accordionName: string;
   item: FaqItemData;
 }
 
-function FaqItem({ item }: FaqItemProps) {
+function FaqItem({ accordionName, item }: FaqItemProps) {
   return (
-    <details data-testid="faq-item" className="border-line bg-panel group rounded-lg border open:shadow-sm">
+    <details data-testid="faq-item" name={accordionName} className="bg-panel open:bg-field group">
       <summary
         data-testid="faq-summary"
-        className="focus-visible:outline-primary cursor-pointer list-none px-4 py-4 focus-visible:outline-2 focus-visible:-outline-offset-2"
+        className="hover:bg-field focus-visible:outline-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
       >
-        <h3 className="font-display text-ink inline text-lg leading-7 font-semibold">{item.question}</h3>
+        <h3 className="font-display text-ink min-w-0 text-base leading-7 font-semibold md:text-lg">{item.question}</h3>
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="text-muted size-5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+          strokeWidth={2}
+        />
       </summary>
-      <p data-testid="faq-answer" className="text-muted px-4 pb-4 leading-7 break-words">
+      <p data-testid="faq-answer" className="text-muted px-4 pt-1 pb-5 leading-7 break-words md:pr-12">
         {item.answer}
       </p>
     </details>
@@ -336,6 +343,8 @@ interface FaqCategoryProps {
 }
 
 function FaqCategory({ section }: FaqCategoryProps) {
+  const accordionName = `faq-${section.heading.toLowerCase().replaceAll(" ", "-")}`;
+
   return (
     <section data-testid="faq-category" className={SECTION_CLASSES}>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
@@ -348,9 +357,12 @@ function FaqCategory({ section }: FaqCategoryProps) {
           {section.linkLabel}
         </a>
       </div>
-      <div className="grid gap-3">
+      <div
+        data-testid="faq-accordion"
+        className="border-line bg-panel divide-line divide-y overflow-hidden rounded-xl border shadow-sm"
+      >
         {section.items.map((item) => (
-          <FaqItem key={item.question} item={item} />
+          <FaqItem key={item.question} accordionName={accordionName} item={item} />
         ))}
       </div>
     </section>

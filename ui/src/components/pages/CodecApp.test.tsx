@@ -149,6 +149,15 @@ describe("CodecApp", () => {
     expect(new Set(questions.map((heading) => heading.textContent)).size).toBe(30);
     expect(screen.getAllByTestId("faq-item")).toHaveLength(30);
     expect(screen.getAllByTestId("faq-summary")).toHaveLength(30);
+    expect(screen.getAllByTestId("faq-accordion")).toHaveLength(6);
+    for (const accordion of screen.getAllByTestId("faq-accordion")) {
+      const items = within(accordion).getAllByTestId("faq-item");
+      expect(items).toHaveLength(5);
+      expect(new Set(items.map((item) => item.getAttribute("name"))).size).toBe(1);
+      expect(items[0]).toHaveAttribute("name");
+    }
+    for (const summary of screen.getAllByTestId("faq-summary"))
+      expect(summary.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     for (const answer of APPROVED_ANSWER_TEXT) expect(screen.getByTestId("faq-content")).toHaveTextContent(answer);
     for (const { route, link } of FAQ_SECTIONS)
       expect(screen.getByRole("link", { name: link })).toHaveAttribute("href", route);

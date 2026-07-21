@@ -132,6 +132,8 @@ test("FAQ navigation, static disclosures, route isolation, and converter links",
 
   const traffic = codec.trackRequests();
   await codec.toggleFaqQuestion("Is Base64 encryption?");
+  await expect(codec.faqItems().first()).not.toHaveAttribute("open");
+  await expect(codec.faqItems().nth(2)).toHaveAttribute("open");
   expect(traffic).toEqual([]);
   await codec.followFaqCategoryTool("Open Base64 encoder and decoder");
   await expect(page).toHaveURL(/\/$/);
