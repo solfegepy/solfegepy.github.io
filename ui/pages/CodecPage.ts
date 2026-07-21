@@ -129,6 +129,63 @@ export class CodecPage {
     } as const satisfies Record<ToolName, ToolId>;
     await this.page.getByTestId(`tool-link-${ids[name]}`).first().click();
   }
+  async openFaq(): Promise<void> {
+    await this.open("/faq");
+  }
+  async chooseFaq(): Promise<void> {
+    const drawer = this.page.getByTestId("mobile-drawer");
+    const link =
+      (await drawer.count()) > 0 ? drawer.getByTestId("faq-link") : this.page.getByTestId("faq-link").first();
+    await link.click();
+  }
+  faqNavigation(): Locator {
+    return this.page.getByTestId("faq-link").first();
+  }
+  activeFaq(): Locator {
+    return this.page.locator('[data-testid="faq-link"][aria-current="page"]').first();
+  }
+  faqCategories(): Locator {
+    return this.page.getByTestId("faq-content").getByRole("heading", { level: 2 });
+  }
+  faqQuestions(): Locator {
+    return this.page.getByTestId("faq-content").getByRole("heading", { level: 3 });
+  }
+  faqItems(): Locator {
+    return this.page.getByTestId("faq-item");
+  }
+  faqQuestion(question: string): Locator {
+    return this.page.getByTestId("faq-summary").filter({ hasText: question });
+  }
+  async toggleFaqQuestion(question: string): Promise<void> {
+    await this.faqQuestion(question).click();
+  }
+  async toggleFaqQuestionWithKeyboard(question: string): Promise<void> {
+    const summary = this.faqQuestion(question);
+    await summary.focus();
+    await summary.press("Enter");
+  }
+  async followFaqCategoryTool(name: string): Promise<void> {
+    await this.page.getByTestId("faq-tool-link").filter({ hasText: name }).click();
+  }
+  faqMain(): Locator {
+    return this.page.getByTestId("app-main");
+  }
+  async faqCategoryQuestionCounts(): Promise<number[]> {
+    return this.page
+      .getByTestId("faq-category")
+      .evaluateAll((categories) =>
+        categories.map((category) => category.querySelectorAll('[data-testid="faq-item"]').length),
+      );
+  }
+  async hasHorizontalOverflow(): Promise<boolean> {
+    return this.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  }
+  async useLargeText(): Promise<void> {
+    await this.page.addStyleTag({ content: "html { font-size: 200%; }" });
+  }
+  async setMobileViewport(): Promise<void> {
+    await this.page.setViewportSize({ width: 320, height: 812 });
+  }
   async openDrawer(): Promise<void> {
     await this.page.getByTestId("menu-button").click();
   }

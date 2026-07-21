@@ -26,7 +26,154 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const FAQ_SECTIONS = [
+  {
+    heading: "Base64",
+    route: "/",
+    link: "Open Base64 encoder and decoder",
+    questions: [
+      "How do I encode text to Base64?",
+      "How do I decode Base64 to text?",
+      "Is Base64 encryption?",
+      "What is the difference between Base64 and Base64url?",
+      "Why does Base64 end with =?",
+    ],
+  },
+  {
+    heading: "URL encoding",
+    route: "/url",
+    link: "Open URL encoder and decoder",
+    questions: [
+      "What is URL encoding or percent-encoding?",
+      "How do I URL-encode a string?",
+      "Should a URL space be %20 or +?",
+      "What is the difference between encodeURI and encodeURIComponent?",
+      "Why does URL decoding fail?",
+    ],
+  },
+  {
+    heading: "Query parameters",
+    route: "/query",
+    link: "Open query parameter parser and builder",
+    questions: [
+      "How do I parse URL query parameters into JSON?",
+      "How do I convert JSON into a URL query string?",
+      "How are duplicate query parameters converted to JSON?",
+      "Does a query string need a leading question mark?",
+      "How are spaces and plus signs handled in query parameters?",
+    ],
+  },
+  {
+    heading: "JWT",
+    route: "/jwt",
+    link: "Open JWT decoder",
+    questions: [
+      "Can I decode a JWT without a secret key?",
+      "Does decoding a JWT verify its signature?",
+      "What are the three parts of a JWT?",
+      "Can an expired JWT still be decoded?",
+      "Is a JWT encrypted?",
+    ],
+  },
+  {
+    heading: "Python and JSON",
+    route: "/python-json",
+    link: "Open Python literal to JSON converter",
+    questions: [
+      "How do I convert a Python dictionary to JSON?",
+      "Why is a Python dictionary not valid JSON?",
+      "How do Python True, False, and None convert to JSON?",
+      "Can nested Python dictionaries and lists convert to JSON?",
+      "Does the Python-to-JSON converter execute Python code?",
+    ],
+  },
+  {
+    heading: "Unix timestamps and Z time",
+    route: "/timestamp",
+    link: "Open Unix timestamp and Z time converter",
+    questions: [
+      "How do I convert a Unix timestamp to a UTC date?",
+      "Is a Unix timestamp in seconds or milliseconds?",
+      "What is the Unix epoch?",
+      "What does Z mean in a date and time?",
+      "Why is my Unix timestamp invalid?",
+    ],
+  },
+] as const;
+
+const APPROVED_ANSWER_TEXT = [
+  "Enter UTF-8 text in the Base64 tool, choose Plain text as the source and Base64 encoded as the target, then select Convert. For example, Hello becomes SGVsbG8=.",
+  "Paste Base64, choose Base64 encoded as the source and Plain text as the target, then select Convert. The decoded bytes must be valid UTF-8 text; binary files are outside this tool's scope.",
+  "No. Base64 changes bytes into a text-safe representation and adds no confidentiality. Anyone with a Base64 decoder can recover the original data, so never treat encoding as secret protection.",
+  "Standard Base64 uses + and / and commonly uses = padding. Base64url uses - and _ so values fit URLs and file names more safely, and it commonly omits padding.",
+  "One or two = characters pad the final Base64 group when input length does not divide evenly into three-byte blocks. Padding carries no secret data; whether it may be omitted depends on the format using Base64.",
+  "Percent-encoding represents characters as % followed by hexadecimal byte values, such as a space written as %20. It lets text travel safely in URL components while preserving URL syntax.",
+  "Use RFC 3986 component mode for one path, query, or fragment value. Use Full URI only for a complete URI whose structural characters, such as :, /, ?, and #, must remain intact.",
+  "Use %20 in ordinary URL percent-encoding. + represents a space in form URL encoding; a literal plus in that format must be %2B.",
+  "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec Bench's Full URI and RFC 3986 component modes provide those respective behaviors.",
+  "Common causes include incomplete % escapes, non-hex escape characters, invalid UTF-8, or choosing form decoding for a value that uses a different convention. Confirm whether input is a full URI, component, or form value.",
+  "Paste a full URL, a query beginning with ?, or the query text alone. Choose Query string as the source and JSON as the target, then select Convert.",
+  "Use a JSON object whose values are strings or arrays of strings, choose JSON as the source, and convert. The result omits the leading ?, ready to append after one.",
+  'Repeated names become arrays in encounter order. For example, tag=one&tag=two becomes { "tag": ["one", "two"] }.',
+  "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built query output intentionally excludes the leading question mark.",
+  "Query parsing follows form-style URL rules: + decodes to a space and %2B decodes to a literal plus. Building a query writes spaces as + and literal plus signs as %2B.",
+  "Yes, when it is a signed three-part JWT with readable Base64url header and payload. A key is required to verify its signature, not to inspect those encoded fields.",
+  "No. Codec Bench displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
+  "A compact signed JWT contains a JOSE header, claims payload, and signature separated by periods. The first two parts are Base64url-encoded JSON objects.",
+  "Yes. Expiry does not prevent Base64url decoding, and this decoder does not evaluate the exp claim. A decoded expired token remains expired and must not be accepted.",
+  "A typical three-part signed JWT is encoded and readable, not encrypted. Encrypted JWE tokens use a different structure and are not supported by this decoder.",
+  "Paste a supported Python literal, choose Python literal as the source and JSON as the target, then select Convert. String keys, nested dictionaries, lists, tuples, finite numbers, booleans, and None are supported.",
+  "Python and JSON use similar containers but different literal syntax. JSON requires double-quoted object keys and strings, and uses true, false, and null instead of Python's True, False, and None.",
+  "They become JSON true, false, and null. Converting back restores True, False, and None.",
+  "Yes. Supported dictionaries, lists, and tuples can nest; tuples become JSON arrays. Sets, bytes, object constructors, and executable expressions are not supported.",
+  "No. It parses a limited literal grammar in the browser and does not call Python or eval. Function calls, imports, comprehensions, and other executable expressions are rejected.",
+  "Choose Unix seconds or Unix milliseconds as the source and Z time as the target, enter the value, then select Convert. Output uses UTC ISO 8601, such as 2026-07-21T12:00:00.000Z.",
+  "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec Bench requires explicit format selection instead of guessing.",
+  "The Unix epoch is 1970-01-01T00:00:00Z. Unix timestamps count elapsed seconds or, in some systems, milliseconds from that UTC instant while ignoring leap seconds.",
+  "A trailing Z identifies zero-offset UTC, sometimes called Zulu time. Codec Bench accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.",
+  "Check seconds vs milliseconds, remove signs or non-numeric text, and use a non-negative value within years 1970–9999. Decimal input is accepted, but precision below one millisecond is truncated and Unix output is an integer.",
+] as const;
+
 describe("CodecApp", () => {
+  it("renders the complete static FAQ contract without a converter or WebMCP registration", async () => {
+    const registerTool = installModelContext();
+    const user = userEvent.setup();
+    render(<CodecApp page="faq" />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Encoding and Conversion FAQ" })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)).toEqual(
+      FAQ_SECTIONS.map(({ heading }) => heading),
+    );
+    const questions = screen.getAllByRole("heading", { level: 3 });
+    expect(questions.map((heading) => heading.textContent)).toEqual(FAQ_SECTIONS.flatMap(({ questions }) => questions));
+    expect(new Set(questions.map((heading) => heading.textContent)).size).toBe(30);
+    expect(screen.getAllByTestId("faq-item")).toHaveLength(30);
+    expect(screen.getAllByTestId("faq-summary")).toHaveLength(30);
+    for (const answer of APPROVED_ANSWER_TEXT) expect(screen.getByTestId("faq-content")).toHaveTextContent(answer);
+    for (const { route, link } of FAQ_SECTIONS)
+      expect(screen.getByRole("link", { name: link })).toHaveAttribute("href", route);
+    for (const item of screen.getAllByTestId("faq-item")) expect(item).not.toHaveAttribute("open");
+    await user.click(screen.getAllByTestId("faq-summary")[0]!);
+    expect(screen.getAllByTestId("faq-item")[0]).toHaveAttribute("open");
+    expect(registerTool).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["base64", "Base64 Decode and Encode", "base64-workspace"],
+    ["url", "URL Encode and Decode", "url-workspace"],
+    ["query", "Query Parameter Parser and Builder", "query-workspace"],
+    ["jwt", "JWT Decoder", "jwt-tool"],
+    ["python", "Python Literal to JSON Converter", "python-workspace"],
+    ["timestamp", "Z Time and Unix Timestamp Converter", "timestamp-workspace"],
+  ] as const)("retains the %s tool identity", (toolId, heading, workspace) => {
+    render(<CodecApp toolId={toolId} />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(heading);
+    expect(screen.getByTestId(workspace)).toBeInTheDocument();
+  });
+
   it("registers isolated Base64 WebMCP execution without changing workspace state", async () => {
     const registerTool = installModelContext();
     const user = userEvent.setup();
@@ -160,6 +307,36 @@ describe("CodecApp", () => {
     expect(screen.getAllByTestId("tool-link-base64")[0]).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Base64 Decode");
     expect(screen.getByTestId("sidebar-footer")).not.toHaveTextContent(/local only|no uploads/i);
+  });
+
+  it("shows inactive Help/FAQ navigation on every tool identity", () => {
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
+      const view = render(<CodecApp toolId={toolId} />);
+      const faqLink = screen.getByTestId("faq-link");
+      expect(faqLink).toHaveAttribute("href", "/faq");
+      expect(faqLink).not.toHaveAttribute("aria-current");
+      expect(faqLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByTestId(`tool-link-${toolId}`)).toHaveAttribute("aria-current", "page");
+      view.unmount();
+    }
+  });
+
+  it("marks only Help/FAQ current on FAQ identity", () => {
+    render(<CodecApp page="faq" />);
+    expect(screen.getByTestId("faq-link")).toHaveAttribute("aria-current", "page");
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"])
+      expect(screen.getByTestId(`tool-link-${toolId}`)).not.toHaveAttribute("aria-current");
+  });
+
+  it("renders Help/FAQ in the mobile drawer and closes through the shared callback", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await user.click(screen.getByTestId("menu-button"));
+    const drawer = screen.getByTestId("mobile-drawer");
+    const faqLink = within(drawer).getByTestId("faq-link");
+    expect(faqLink).toHaveAttribute("href", "/faq");
+    await user.click(faqLink);
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
   });
 
   it("opens accessible drawer, traps focus, and restores menu focus", async () => {

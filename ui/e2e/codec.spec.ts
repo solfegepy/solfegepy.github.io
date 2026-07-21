@@ -100,12 +100,75 @@ test("unsupported and rejected WebMCP registration preserve human flows", async 
   await expect(codec.alert()).toHaveText("JWT must contain three segments.");
 });
 
+test("FAQ navigation, static disclosures, route isolation, and converter links", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.installWebMcpMock();
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]) {
+    await codec.open(route);
+    await expect(codec.faqNavigation(), route).toHaveAttribute("href", "/faq");
+  }
+
+  await codec.chooseFaq();
+  await expect(page).toHaveURL(/\/faq$/);
+  await expect(codec.activeFaq()).toHaveText("FAQ");
+  await expect(codec.activeTool()).toHaveCount(0);
+  await expect(codec.primaryHeading()).toHaveText("Encoding and Conversion FAQ");
+  await expect(codec.faqCategories()).toHaveText([
+    "Base64",
+    "URL encoding",
+    "Query parameters",
+    "JWT",
+    "Python and JSON",
+    "Unix timestamps and Z time",
+  ]);
+  await expect(codec.faqQuestions()).toHaveCount(30);
+  expect(await codec.faqCategoryQuestionCounts()).toEqual([5, 5, 5, 5, 5, 5]);
+  await expect(codec.faqItems().first()).not.toHaveAttribute("open");
+  await codec.toggleFaqQuestion("How do I encode text to Base64?");
+  await expect(codec.faqItems().first()).toHaveAttribute("open");
+  expect(await codec.webMcpToolNames()).toEqual([]);
+  await expect(codec.faqMain().locator("form, textarea")).toHaveCount(0);
+  await expect(codec.faqMain().getByRole("button", { name: /convert|decode/i })).toHaveCount(0);
+
+  const traffic = codec.trackRequests();
+  await codec.toggleFaqQuestion("Is Base64 encryption?");
+  expect(traffic).toEqual([]);
+  await codec.followFaqCategoryTool("Open Base64 encoder and decoder");
+  await expect(page).toHaveURL(/\/$/);
+  await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
+});
+
+test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.open();
+  await codec.openDrawer();
+  await codec.chooseFaq();
+  await expect(page).toHaveURL(/\/faq$/);
+  await expect(codec.drawer()).toBeHidden();
+  await codec.useLargeText();
+  expect(await codec.hasHorizontalOverflow()).toBe(false);
+
+  const summary = codec.faqQuestion("Why is my Unix timestamp invalid?");
+  await codec.toggleFaqQuestionWithKeyboard("Why is my Unix timestamp invalid?");
+  await expect(summary).toBeFocused();
+  await expect(summary.locator("..")).toHaveAttribute("open");
+  expect(await summary.evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+});
+
 test("publishes route metadata and navigates with browser history", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
   await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/");
-  await expect(codec.staticSection("Base64 FAQ")).toBeVisible();
+  await expect(codec.staticSection("Base64 FAQ")).toHaveCount(0);
   await codec.chooseTool("URL");
   await expect(page).toHaveURL(/\/url$/);
   await expect(codec.activeTool()).toHaveText("URL");
@@ -192,7 +255,7 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
 
 test("every route fits 320px at 200 percent text", async ({ page }) => {
   const codec = new CodecPage(page);
-  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/missing"]) {
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq", "/missing"]) {
     await codec.open(route);
     await page.addStyleTag({ content: "html { font-size: 200%; }" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);

@@ -29,6 +29,11 @@ function jwtDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function faqDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/faq/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function notFoundDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/404.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
@@ -67,14 +72,14 @@ describe("production homepage SEO", () => {
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("Base64 Decode and Encode");
     expect(document.body.textContent).toContain("How to use");
     expect(document.body.textContent).toContain("What is Base64?");
-    expect(document.body.textContent).toContain("Base64 FAQ");
+    expect(document.body.textContent).not.toContain("Base64 FAQ");
     expect(document.querySelector("noscript")?.textContent).toContain("Enable JavaScript");
     expect(document.body.textContent).not.toMatch(/select (?:Encode|Decode)|Select Encode or Decode/);
     expect(document.body.textContent).toContain("Select channel formats, then convert and copy result.");
     expect(document.querySelector('[data-testid="base64-guidance"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-how-to"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-about"]')).not.toBeNull();
-    expect(document.querySelector('[data-testid="base64-faq"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="base64-faq"]')).toBeNull();
   });
 
   it("renders one valid WebApplication JSON-LD object", () => {
@@ -164,6 +169,46 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="jwt-how-to"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="jwt-verification"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="jwt-privacy"]')).toBeNull();
+  });
+});
+
+describe("production FAQ SEO", () => {
+  it("renders complete static FAQ content and metadata without structured data", () => {
+    const document = faqDocument();
+    const description =
+      "Answers about Base64, URL encoding, query strings, JWT decoding, Python-to-JSON conversion, and Unix timestamps.";
+    const canonical = "https://codec64.com/faq";
+
+    expect(document.title).toBe("Encoding and Conversion FAQ | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect([...document.querySelectorAll("h1")].map((heading) => heading.textContent?.trim())).toEqual([
+      "Encoding and Conversion FAQ",
+    ]);
+    expect([...document.querySelectorAll("h2")].map((heading) => heading.textContent?.trim())).toEqual([
+      "Base64",
+      "URL encoding",
+      "Query parameters",
+      "JWT",
+      "Python and JSON",
+      "Unix timestamps and Z time",
+    ]);
+    expect(document.querySelectorAll("h3")).toHaveLength(30);
+    expect(new Set([...document.querySelectorAll("h3")].map((heading) => heading.textContent?.trim())).size).toBe(30);
+    expect(document.querySelectorAll("details[data-testid='faq-item']")).toHaveLength(30);
+    expect(document.querySelectorAll("details > summary[data-testid='faq-summary']")).toHaveLength(30);
+    expect(document.querySelectorAll("details > [data-testid='faq-answer']")).toHaveLength(30);
+    expect(document.body.textContent).toContain("Anyone with a Base64 decoder can recover the original data");
+    expect(document.body.textContent).toContain("+ decodes to a space and %2B decodes to a literal plus");
+    expect(document.body.textContent).toContain("Never use decoded claims for authentication or authorization");
+    expect(document.body.textContent).toContain("does not call Python or eval");
+    expect(document.body.textContent).toContain("precision below one millisecond is truncated");
+    expect(
+      [...document.querySelectorAll('[data-testid="faq-tool-link"]')].map((link) => link.getAttribute("href")),
+    ).toEqual(["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]);
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
+    expect(document.documentElement.innerHTML).not.toMatch(/FAQPage|QAPage/);
   });
 });
 

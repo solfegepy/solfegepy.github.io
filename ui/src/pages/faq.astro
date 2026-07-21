@@ -1,0 +1,13 @@
+---
+import { CodecApp } from "../components/pages/CodecApp";
+import Layout from "../layouts/Layout.astro";
+
+const title = "Encoding and Conversion FAQ | Codec Bench";
+const description =
+  "Answers about Base64, URL encoding, query strings, JWT decoding, Python-to-JSON conversion, and Unix timestamps.";
+const canonical = "https://codec64.com/faq";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec Bench">
+  <CodecApp page="faq" client:load />
+</Layout>

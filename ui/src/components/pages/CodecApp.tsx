@@ -1,4 +1,13 @@
-import { BracesIcon, ClockIcon, CodeXmlIcon, KeyRoundIcon, LinkIcon, MenuIcon, XIcon } from "lucide-react";
+import {
+  BracesIcon,
+  CircleHelpIcon,
+  ClockIcon,
+  CodeXmlIcon,
+  KeyRoundIcon,
+  LinkIcon,
+  MenuIcon,
+  XIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
@@ -13,6 +22,7 @@ import {
 } from "../../lib/theme";
 import { ThemeControl } from "../ui/ThemeControl";
 import { Base64Tool } from "./Base64Tool";
+import { FaqContent } from "./FaqContent";
 import { JwtTool } from "./JwtTool";
 import { PythonTool } from "./PythonTool";
 import { QueryTool } from "./QueryTool";
@@ -32,16 +42,17 @@ const NAV_LINK_CLASSES =
 const ACTIVE_NAV_LINK_CLASSES = "border-accent bg-field font-semibold text-ink shadow-sm";
 
 interface ToolNavigationProps {
-  activeTool: ToolId;
+  activeTool: ToolId | undefined;
+  faqCurrent: boolean;
   onNavigate?: () => void;
 }
 
-function ToolNavigation({ activeTool, onNavigate }: ToolNavigationProps) {
+function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationProps) {
   return (
-    <nav data-testid="tool-navigation" aria-label="Tools" className="flex flex-1 flex-col py-5">
+    <nav data-testid="tool-navigation" aria-label="Tools and help" className="flex flex-1 flex-col py-5">
       {TOOL_GROUPS.map((group) => (
         <section data-testid="tool-navigation-group" key={group} className="mb-5">
-          <h2 className="text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase">{group}</h2>
+          <p className="text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase">{group}</p>
           <div>
             {TOOLS.filter((tool) => tool.group === group).map((tool) => {
               const Icon = ICONS[tool.id];
@@ -64,17 +75,31 @@ function ToolNavigation({ activeTool, onNavigate }: ToolNavigationProps) {
           </div>
         </section>
       ))}
+      <section data-testid="help-navigation-group" className="mb-5">
+        <p className="text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase">Help</p>
+        <a
+          data-testid="faq-link"
+          href="/faq"
+          aria-current={faqCurrent ? "page" : undefined}
+          className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+          onClick={onNavigate}
+        >
+          <span className="border-line bg-panel inline-flex size-8 shrink-0 items-center justify-center rounded-md border">
+            <CircleHelpIcon aria-hidden="true" size={16} strokeWidth={1.8} />
+          </span>
+          FAQ
+        </a>
+      </section>
     </nav>
   );
 }
 
-export interface CodecAppProps {
-  toolId: ToolId;
-}
+export type CodecAppProps = { toolId: ToolId; page?: never } | { page: "faq"; toolId?: never };
 
-export function CodecApp({ toolId }: CodecAppProps) {
-  const tool = getTool(toolId);
-  const [descriptionSummary, ...descriptionDetails] = tool.description;
+export function CodecApp(props: CodecAppProps) {
+  const isFaq = props.page === "faq";
+  const tool = isFaq ? undefined : getTool(props.toolId);
+  const [descriptionSummary, ...descriptionDetails] = tool?.description ?? [];
   const [theme, setTheme] = useState<{ override: ThemeOverride; resolved: "light" | "dark" }>(() => initializeTheme());
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
@@ -155,7 +180,7 @@ export function CodecApp({ toolId }: CodecAppProps) {
             Codec<span className="text-accent">/</span>Bench
           </span>
         </a>
-        <ToolNavigation activeTool={toolId} />
+        <ToolNavigation activeTool={isFaq ? undefined : props.toolId} faqCurrent={isFaq} />
         <footer data-testid="sidebar-footer" className="border-line mt-auto flex justify-end border-t p-4">
           <ThemeControl
             dark={theme.resolved === "dark"}
@@ -217,7 +242,11 @@ export function CodecApp({ toolId }: CodecAppProps) {
                 <XIcon aria-hidden="true" size={20} />
               </button>
             </div>
-            <ToolNavigation activeTool={toolId} onNavigate={() => setDrawerOpen(false)} />
+            <ToolNavigation
+              activeTool={isFaq ? undefined : props.toolId}
+              faqCurrent={isFaq}
+              onNavigate={() => setDrawerOpen(false)}
+            />
             <footer data-testid="mobile-footer" className="border-line mt-auto flex justify-end border-t p-4">
               <ThemeControl
                 dark={theme.resolved === "dark"}
@@ -235,25 +264,31 @@ export function CodecApp({ toolId }: CodecAppProps) {
         data-testid="app-main"
         className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-7 pb-12 md:px-8 md:pt-10"
       >
-        <header data-testid="tool-header" className="border-line mb-7 border-b pb-6">
+        <header data-testid={isFaq ? "faq-header" : "tool-header"} className="border-line mb-7 border-b pb-6">
           <p className="text-accent mb-2 font-mono text-xs font-semibold tracking-widest uppercase">
-            Tool / {tool.group}
+            {tool ? `Tool / ${tool.group}` : "Help / Reference"}
           </p>
           <h1 className="font-display text-ink text-3xl leading-tight font-bold tracking-tight text-balance md:text-4xl">
-            {tool.title}
+            {tool ? tool.title : "Encoding and Conversion FAQ"}
           </h1>
-          <div data-testid="tool-description" className="text-muted mt-3 max-w-prose leading-7 text-pretty">
-            <p>{descriptionSummary}</p>
-            {descriptionDetails.length > 0 && (
-              <ul className="list-disc pl-5">
-                {descriptionDetails.map((detail) => (
-                  <li key={detail}>{detail}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          {isFaq ? (
+            <p data-testid="faq-lead" className="text-muted mt-3 max-w-prose leading-7 text-pretty">
+              Direct answers about Codec Bench formats, limits, and browser-only conversion tools.
+            </p>
+          ) : (
+            <div data-testid="tool-description" className="text-muted mt-3 max-w-prose leading-7 text-pretty">
+              <p>{descriptionSummary}</p>
+              {descriptionDetails.length > 0 && (
+                <ul className="list-disc pl-5">
+                  {descriptionDetails.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </header>
-        {tools[toolId]}
+        {isFaq ? <FaqContent /> : tools[props.toolId]}
       </main>
     </div>
   );
