@@ -14,7 +14,7 @@ interface FaqSectionData {
 }
 
 const CODE_CLASSES = "break-all font-mono text-sm text-ink";
-const SECTION_CLASSES = "border-line border-t pt-7 first:border-t-0 first:pt-0";
+const SECTION_CLASSES = "border-line border-t pt-8 first:border-t-0 first:pt-0";
 
 const FAQ_SECTIONS: readonly FaqSectionData[] = [
   {
@@ -324,14 +324,14 @@ function FaqItem({ accordionName, item }: FaqItemProps) {
         data-testid="faq-summary"
         className="hover:bg-field focus-visible:outline-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
       >
-        <h3 className="font-display text-ink min-w-0 text-base leading-7 font-semibold md:text-lg">{item.question}</h3>
+        <h3 className="font-display text-ink min-w-0 text-xl leading-7 font-bold">{item.question}</h3>
         <ChevronDownIcon
           aria-hidden="true"
           className="text-muted size-5 shrink-0 transition-transform duration-200 group-open:rotate-180"
           strokeWidth={2}
         />
       </summary>
-      <p data-testid="faq-answer" className="text-muted px-4 pt-1 pb-5 leading-7 break-words md:pr-12">
+      <p data-testid="faq-answer" className="text-muted max-w-prose px-4 pt-1 pb-5 leading-7 break-words md:pr-12">
         {item.answer}
       </p>
     </details>
@@ -372,7 +372,7 @@ function FaqCategory({ section }: FaqCategoryProps) {
 /** Renders static FAQ categories and native disclosure items. */
 export function FaqContent() {
   return (
-    <div data-testid="faq-content" className="grid gap-9">
+    <div data-testid="faq-content" className="grid gap-12">
       {FAQ_SECTIONS.map((section) => (
         <FaqCategory key={section.heading} section={section} />
       ))}

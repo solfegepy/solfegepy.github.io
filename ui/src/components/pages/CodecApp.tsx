@@ -6,6 +6,7 @@ import {
   KeyRoundIcon,
   LinkIcon,
   MenuIcon,
+  ShieldCheckIcon,
   XIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
@@ -38,8 +39,8 @@ const ICONS = {
   timestamp: ClockIcon,
 } as const;
 const NAV_LINK_CLASSES =
-  "group mx-2 flex min-h-11 items-center gap-3 rounded-lg border-l-2 border-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:border-line hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
-const ACTIVE_NAV_LINK_CLASSES = "border-accent bg-field font-semibold text-ink shadow-sm";
+  "group mx-3 flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
+const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold text-primary";
 
 interface ToolNavigationProps {
   activeTool: ToolId | undefined;
@@ -56,16 +57,19 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
           <div>
             {TOOLS.filter((tool) => tool.group === group).map((tool) => {
               const Icon = ICONS[tool.id];
+              const current = tool.id === activeTool;
               return (
                 <a
                   data-testid={`tool-link-${tool.id}`}
                   key={tool.id}
                   href={tool.route}
-                  aria-current={tool.id === activeTool ? "page" : undefined}
-                  className={`${NAV_LINK_CLASSES} ${tool.id === activeTool ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+                  aria-current={current ? "page" : undefined}
+                  className={`${NAV_LINK_CLASSES} ${current ? ACTIVE_NAV_LINK_CLASSES : ""}`}
                   onClick={onNavigate}
                 >
-                  <span className="border-line bg-panel inline-flex size-8 shrink-0 items-center justify-center rounded-md border">
+                  <span
+                    className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border ${current ? "border-primary bg-primary text-paper" : "border-line bg-field"}`}
+                  >
                     <Icon aria-hidden="true" size={16} strokeWidth={1.8} />
                   </span>
                   {tool.label}
@@ -84,7 +88,9 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
           className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <span className="border-line bg-panel inline-flex size-8 shrink-0 items-center justify-center rounded-md border">
+          <span
+            className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border ${faqCurrent ? "border-primary bg-primary text-paper" : "border-line bg-field"}`}
+          >
             <CircleHelpIcon aria-hidden="true" size={16} strokeWidth={1.8} />
           </span>
           FAQ
@@ -181,7 +187,11 @@ export function CodecApp(props: CodecAppProps) {
           </span>
         </a>
         <ToolNavigation activeTool={isFaq ? undefined : props.toolId} faqCurrent={isFaq} />
-        <footer data-testid="sidebar-footer" className="border-line mt-auto flex justify-end border-t p-4">
+        <footer
+          data-testid="sidebar-footer"
+          className="border-line mt-auto flex items-center justify-between gap-3 border-t p-4"
+        >
+          <span className="text-muted text-sm font-medium">Appearance</span>
           <ThemeControl
             dark={theme.resolved === "dark"}
             overridden={theme.override !== null}
@@ -193,7 +203,7 @@ export function CodecApp(props: CodecAppProps) {
 
       <header
         data-testid="mobile-header"
-        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-2 md:hidden"
+        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 md:hidden"
       >
         <a data-testid="mobile-home-link" href="/" className="font-display min-w-0 text-base font-bold tracking-tight">
           Codec<span className="text-accent">/</span>Bench
@@ -262,24 +272,32 @@ export function CodecApp(props: CodecAppProps) {
       <main
         id="main-content"
         data-testid="app-main"
-        className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-7 pb-12 md:px-8 md:pt-10"
+        className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-5 pb-12 md:px-6 md:pt-8"
       >
-        <header data-testid={isFaq ? "faq-header" : "tool-header"} className="border-line mb-7 border-b pb-6">
-          <p className="text-accent mb-2 font-mono text-xs font-semibold tracking-widest uppercase">
-            {tool ? `Tool / ${tool.group}` : "Help / Reference"}
-          </p>
-          <h1 className="font-display text-ink text-3xl leading-tight font-bold tracking-tight text-balance md:text-4xl">
-            {tool ? tool.title : "Encoding and Conversion FAQ"}
-          </h1>
+        <header data-testid={isFaq ? "faq-header" : "tool-header"} className="mb-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <h1 className="font-display text-ink text-4xl leading-tight font-bold tracking-tight text-balance">
+              {tool ? tool.title : "Encoding and Conversion FAQ"}
+            </h1>
+            {!isFaq && (
+              <p
+                data-testid="tool-privacy"
+                className="text-muted flex shrink-0 items-center gap-2 text-sm font-medium md:pt-2"
+              >
+                <ShieldCheckIcon aria-hidden="true" className="text-primary" size={18} strokeWidth={1.8} />
+                Your data stays in this browser.
+              </p>
+            )}
+          </div>
           {isFaq ? (
-            <p data-testid="faq-lead" className="text-muted mt-3 max-w-prose leading-7 text-pretty">
+            <p data-testid="faq-lead" className="text-muted mt-3 max-w-prose text-pretty">
               Direct answers about Codec Bench formats, limits, and browser-only conversion tools.
             </p>
           ) : (
-            <div data-testid="tool-description" className="text-muted mt-3 max-w-prose leading-7 text-pretty">
+            <div data-testid="tool-description" className="text-muted mt-2 max-w-prose text-sm leading-6 text-pretty">
               <p>{descriptionSummary}</p>
               {descriptionDetails.length > 0 && (
-                <ul className="list-disc pl-5">
+                <ul className="marker:text-accent mt-1 flex list-disc flex-wrap gap-x-6 gap-y-1 pl-4">
                   {descriptionDetails.map((detail) => (
                     <li key={detail}>{detail}</li>
                   ))}

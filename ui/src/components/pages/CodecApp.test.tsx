@@ -410,6 +410,27 @@ describe("CodecApp", () => {
     }
   });
 
+  it("makes browser-only privacy and editor metadata visible at the point of work", () => {
+    render(<CodecApp toolId="base64" />);
+
+    expect(screen.getByTestId("tool-privacy")).toHaveTextContent("Your data stays in this browser.");
+    expect(screen.getByTestId("base64-source-metadata")).toHaveTextContent("1 line13 bytesUTF-8");
+    expect(screen.getByTestId("base64-target-metadata")).toHaveTextContent("1 line20 bytesUTF-8");
+    expect(screen.getByTestId("workspace-shortcuts")).toHaveTextContent("CtrlEnterConvert");
+  });
+
+  it("converts from the workspace with Ctrl+Enter", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "keyboard");
+    await user.keyboard("{Control>}{Enter}{/Control}");
+
+    expect(screen.getByTestId("base64-output")).toHaveValue("a2V5Ym9hcmQ=");
+  });
+
   it.each([
     ["base64", "Convert"],
     ["url", "Convert"],
@@ -644,7 +665,7 @@ describe("CodecApp", () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);
     const swapButton = screen.getByTestId("codec-workspace-swap");
-    expect(swapButton).toHaveClass("bg-primary");
+    expect(swapButton).not.toHaveClass("bg-primary");
     await user.click(swapButton);
     expect(screen.getByTestId("base64-input")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-output")).toHaveValue("Hello, world!");
@@ -667,7 +688,7 @@ describe("CodecApp", () => {
     const swapButton = screen.getByTestId("codec-workspace-swap");
     const copyButton = screen.getByRole("button", { name: "Copy output" });
     expect(channels.children[1]).toBe(actions);
-    expect([...actions.children]).toEqual([
+    expect([...actions.querySelectorAll("button")]).toEqual([
       swapButton,
       screen.getByRole("button", { name: "Convert" }),
       screen.getByRole("button", { name: "Clear" }),

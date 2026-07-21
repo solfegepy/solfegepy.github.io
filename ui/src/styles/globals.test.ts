@@ -13,13 +13,15 @@ const SEMANTIC_COLORS = [
   "line",
   "primary",
   "primary-strong",
+  "primary-soft",
   "accent",
   "accent-strong",
   "success",
+  "success-soft",
   "danger",
+  "danger-soft",
 ] as const;
-const APPROVED_COLORS =
-  /^var\(--color-(?:slate-(?:50|[1-9]00|950)|blue-(?:50|[1-9]00|950)|orange-(?:50|[1-9]00|950)|white|transparent)\)$/;
+const APPROVED_COLORS = /^oklch\([\d.]+% [\d.]+ [\d.]+\)$/;
 const TEST_ID_SURFACES = ["section", "header", "footer", "main", "nav", "article", "button", "a", "input", "textarea"];
 
 function sourceFiles(directory: string): string[] {
@@ -47,16 +49,16 @@ describe("Tailwind theme contract", () => {
     for (const color of SEMANTIC_COLORS) expect(css).toContain(`--color-${color}: var(--${color});`);
   });
 
-  it("maps theme colors only to approved Tailwind colors", () => {
+  it("maps theme colors only to approved OKLCH tokens", () => {
     const declarations = [
       ...css.matchAll(
-        /^\s+--(paper|panel|field|ink|muted|line|primary(?:-strong)?|accent(?:-strong)?|success|danger): (.+);$/gm,
+        /^\s+--(paper|panel|field|ink|muted|line|primary(?:-(?:strong|soft))?|accent(?:-strong)?|success(?:-soft)?|danger(?:-soft)?): (.+);$/gm,
       ),
     ];
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
     for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLORS);
-    expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl|oklch)a?\(/i);
+    expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i);
   });
 
   it("uses solid canvas without gradients or glass effects", () => {
