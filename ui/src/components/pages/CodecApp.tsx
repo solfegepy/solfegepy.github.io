@@ -9,7 +9,7 @@ import {
   ShieldCheckIcon,
   XIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
 import {
@@ -106,43 +106,50 @@ export function CodecApp(props: CodecAppProps) {
   const isFaq = props.page === "faq";
   const tool = isFaq ? undefined : getTool(props.toolId);
   const [descriptionSummary, ...descriptionDetails] = tool?.description ?? [];
-  const [theme, setTheme] = useState<{ override: ThemeOverride; resolved: "light" | "dark" }>(() => initializeTheme());
+  const [theme, setTheme] = useState<{ override: ThemeOverride; resolved: "light" | "dark" }>({
+    override: null,
+    resolved: "light",
+  });
+  const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(
-    () => subscribeToSystemTheme(undefined, undefined, (resolved) => setTheme({ override: null, resolved })),
-    [],
-  );
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setTheme(initializeTheme());
+      setHydrated(true);
+    });
+    const unsubscribe = subscribeToSystemTheme(undefined, undefined, (resolved) =>
+      setTheme({ override: null, resolved }),
+    );
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
   useEffect(() => {
     if (!drawerOpen) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const previousOverflow = document.documentElement.style.overflow;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    document.documentElement.style.overflow = "hidden";
     closeRef.current?.focus();
-    const close = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setDrawerOpen(false);
-        menuRef.current?.focus();
-      }
+    return () => {
+      document.documentElement.style.overflow = previousOverflow;
+      if (typeof dialog.close === "function" && dialog.open) dialog.close();
+      else dialog.removeAttribute("open");
     };
-    document.addEventListener("keydown", close);
-    return () => document.removeEventListener("keydown", close);
   }, [drawerOpen]);
 
-  const trapFocus = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key !== "Tab") return;
-    const focusable = [...event.currentTarget.querySelectorAll<HTMLElement>("button, a[href]")];
-    const first = focusable[0];
-    const last = focusable.at(-1);
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last?.focus();
-    }
-    if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first?.focus();
-    }
-  };
   const closeDrawer = () => {
+    const dialog = dialogRef.current;
+    if (dialog?.open && typeof dialog.close === "function") dialog.close();
     setDrawerOpen(false);
     menuRef.current?.focus();
   };
@@ -168,7 +175,13 @@ export function CodecApp(props: CodecAppProps) {
   };
 
   return (
-    <div data-testid="codec-app" className="min-h-dvh md:flex">
+    <div
+      data-testid="codec-app"
+      data-hydrated={hydrated}
+      aria-busy={!hydrated}
+      inert={hydrated ? undefined : true}
+      className="min-h-dvh md:flex"
+    >
       <a data-testid="skip-link" className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -176,12 +189,7 @@ export function CodecApp(props: CodecAppProps) {
         data-testid="desktop-sidebar"
         className="border-line bg-panel sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r md:flex"
       >
-        <a
-          data-testid="desktop-home-link"
-          href="/"
-          className="border-line flex min-h-20 items-center border-b px-5"
-          aria-label="Codec Bench home"
-        >
+        <a data-testid="desktop-home-link" href="/" className="border-line flex min-h-20 items-center border-b px-5">
           <span className="font-display text-xl font-bold tracking-tight">
             Codec<span className="text-accent">/</span>Bench
           </span>
@@ -205,7 +213,11 @@ export function CodecApp(props: CodecAppProps) {
         data-testid="mobile-header"
         className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 md:hidden"
       >
-        <a data-testid="mobile-home-link" href="/" className="font-display min-w-0 text-base font-bold tracking-tight">
+        <a
+          data-testid="mobile-home-link"
+          href="/"
+          className="font-display inline-flex min-h-11 min-w-0 items-center text-base font-bold tracking-tight"
+        >
           Codec<span className="text-accent">/</span>Bench
         </a>
         <button
@@ -223,10 +235,41 @@ export function CodecApp(props: CodecAppProps) {
       </header>
 
       {drawerOpen && (
-        <div data-testid="mobile-drawer-layer" className="fixed inset-0 z-30 md:hidden">
+        <dialog
+          ref={dialogRef}
+          data-testid="mobile-drawer-layer"
+          aria-label="Tool menu"
+          aria-modal="true"
+          className="mobile-drawer-dialog fixed inset-0 z-30 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-0 md:hidden"
+          onCancel={(event) => {
+            event.preventDefault();
+            closeDrawer();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeDrawer();
+              return;
+            }
+            if (event.key !== "Tab") return;
+            const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
+              'a[href]:not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), input:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])',
+            );
+            const first = focusable.item(0);
+            const last = focusable.item(focusable.length - 1);
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          }}
+        >
           <button
             data-testid="drawer-backdrop"
             type="button"
+            tabIndex={-1}
             title="Close tools menu"
             aria-label="Close tools menu"
             className="bg-ink/45 absolute inset-0"
@@ -234,9 +277,8 @@ export function CodecApp(props: CodecAppProps) {
           />
           <aside
             data-testid="mobile-drawer"
-            aria-label="Tool menu"
+            aria-label="Tools"
             className="border-line bg-panel relative flex h-dvh w-4/5 max-w-80 flex-col border-r shadow-lg"
-            onKeyDown={trapFocus}
           >
             <div className="border-line flex min-h-16 items-center justify-between border-b px-4">
               <span className="font-display text-lg font-bold">Tools</span>
@@ -266,7 +308,7 @@ export function CodecApp(props: CodecAppProps) {
               />
             </footer>
           </aside>
-        </div>
+        </dialog>
       )}
 
       <main

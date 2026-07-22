@@ -108,6 +108,11 @@ code {
 .skip-link:focus {
   transform: translateY(0);
 }
+
+.mobile-drawer-dialog::backdrop {
+  background: transparent;
+}
+
 .icon-button {
   display: inline-flex;
   min-width: 2.75rem;

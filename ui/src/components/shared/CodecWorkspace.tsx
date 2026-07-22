@@ -60,7 +60,7 @@ function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectP
   return (
     <select
       data-testid={`${name}-${channel.toLowerCase()}-format`}
-      aria-label={`${channel} channel format`}
+      aria-label={channel === "Top" ? "Source format" : "Target format"}
       className={SELECT_CLASSES}
       value={value}
       onChange={(event) => {
@@ -212,7 +212,7 @@ export function CodecWorkspace({
             <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
           </div>
           <TextareaField
-            ariaLabel="Input"
+            ariaLabel="Source input"
             value={input}
             onChange={changeInput}
             placeholder={inputPlaceholder}
@@ -233,8 +233,8 @@ export function CodecWorkspace({
           <button
             data-testid="codec-workspace-swap"
             type="button"
-            aria-label="Swap"
-            title="Swap input and output"
+            aria-label="Swap source and target"
+            title="Swap source and target"
             onClick={swap}
             className="icon-button"
           >
@@ -263,7 +263,7 @@ export function CodecWorkspace({
           </div>
           <div className="relative min-w-0">
             <TextareaField
-              ariaLabel="Output"
+              ariaLabel="Target output"
               value={output}
               placeholder="Conversion appears here"
               disabled

@@ -80,6 +80,9 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="base64-how-to"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-about"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="base64-faq"]')).toBeNull();
+    expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated")).toBe("false");
+    expect(document.querySelector('[data-testid="codec-app"]')?.hasAttribute("inert")).toBe(true);
+    expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("aria-busy")).toBe("true");
   });
 
   it("renders one valid WebApplication JSON-LD object", () => {
@@ -235,6 +238,7 @@ describe("production 404", () => {
     expect(document.querySelector('[data-testid$="-workspace"]')).toBeNull();
     expect(document.querySelector('[data-testid="not-found-section"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="not-found-brand-link"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="not-found-brand-link"]')?.getAttribute("aria-label")).toBeNull();
     expect(document.querySelector('[data-testid="not-found-home"]')).not.toBeNull();
   });
 });

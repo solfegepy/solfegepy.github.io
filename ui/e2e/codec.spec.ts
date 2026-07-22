@@ -165,6 +165,23 @@ test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", asyn
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
 });
 
+test("FAQ and brand links expose 44px touch targets", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.openFaq();
+
+  for (const size of await codec.faqToolTargetSizes()) {
+    expect(size.width).toBeGreaterThanOrEqual(44);
+    expect(size.height).toBeGreaterThanOrEqual(44);
+  }
+  expect((await codec.mobileBrandTargetSize()).height).toBeGreaterThanOrEqual(44);
+
+  await codec.open("/missing");
+  const notFoundBrand = await codec.notFoundBrandTargetSize();
+  expect(notFoundBrand.width).toBeGreaterThanOrEqual(44);
+  expect(notFoundBrand.height).toBeGreaterThanOrEqual(44);
+});
+
 test("publishes route metadata and navigates with browser history", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
@@ -219,6 +236,21 @@ test("404 fallback follows system light and dark themes", async ({ page }) => {
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   expect(lightBackground).not.toBe(darkBackground);
+});
+
+test("every route hydrates system dark without browser errors", async ({ page }) => {
+  const codec = new CodecPage(page);
+  const errors = codec.trackBrowserErrors();
+  await page.emulateMedia({ colorScheme: "dark" });
+  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq"]) {
+    await codec.open(route);
+    await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
+    await expect(codec.app()).not.toHaveAttribute("inert");
+    await expect(codec.app()).toHaveAttribute("aria-busy", "false");
+    await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+    await expect(codec.themeControl()).toHaveAccessibleName("Use light theme");
+    expect(errors, route).toEqual([]);
+  }
 });
 
 test("explicit theme persists across reload and route navigation, then resets to live system", async ({ page }) => {
@@ -331,6 +363,10 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await expect(codec.sidebar()).toBeHidden();
   await codec.openDrawer();
   await expect(codec.drawer()).toBeVisible();
+  const drawerLayer = page.getByTestId("mobile-drawer-layer");
+  await expect(drawerLayer).toHaveAttribute("aria-modal", "true");
+  expect(await drawerLayer.evaluate((node) => node instanceof HTMLDialogElement && node.matches(":modal"))).toBe(true);
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe("hidden");
   await expect(page.getByTestId("drawer-close")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(page.getByTestId("mobile-drawer").getByTestId("theme-control")).toBeFocused();
@@ -344,6 +380,7 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await page.getByTestId("drawer-close").focus();
   await page.keyboard.press("Escape");
   await expect(codec.drawer()).toBeHidden();
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe("hidden");
   await expect(page.getByTestId("menu-button")).toBeFocused();
   await codec.format("base64", "top").focus();
   await expect(codec.format("base64", "top")).toBeFocused();
@@ -448,6 +485,11 @@ test("Convert tracks workspace freshness", async ({ page }) => {
 test("format selectors preserve text and swap exchanges channels", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
+  await expect(codec.format("base64", "top")).toHaveAccessibleName("Source format");
+  await expect(codec.format("base64", "bottom")).toHaveAccessibleName("Target format");
+  await expect(codec.input("base64-input")).toHaveAccessibleName("Source input");
+  await expect(codec.output("base64-output")).toHaveAccessibleName("Target output");
+  await expect(codec.swapControl()).toHaveAccessibleName("Swap source and target");
   await codec.chooseTopFormat("base64", "base64url");
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");

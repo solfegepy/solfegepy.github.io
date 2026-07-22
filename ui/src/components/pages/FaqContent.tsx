@@ -347,12 +347,12 @@ function FaqCategory({ section }: FaqCategoryProps) {
 
   return (
     <section data-testid="faq-category" className={SECTION_CLASSES}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-ink text-2xl font-bold tracking-tight">{section.heading}</h2>
         <a
           data-testid="faq-tool-link"
           href={section.route}
-          className="text-primary focus-visible:outline-primary text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-primary focus-visible:outline-primary inline-flex min-h-11 items-center text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {section.linkLabel}
         </a>

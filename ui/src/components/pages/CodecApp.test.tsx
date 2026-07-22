@@ -354,16 +354,22 @@ describe("CodecApp", () => {
     const menu = screen.getByTestId("menu-button");
     expect(screen.getByTestId("skip-link")).toHaveAttribute("href", "#main-content");
     expect(screen.getByTestId("desktop-home-link")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("desktop-home-link")).not.toHaveAttribute("aria-label");
+    expect(screen.getByTestId("desktop-home-link")).toHaveAccessibleName("Codec/Bench");
     expect(screen.getByTestId("mobile-home-link")).toHaveAttribute("href", "/");
     expect(menu).toHaveAttribute("title", "Open tools menu");
     await user.click(menu);
     expect(screen.getByTestId("mobile-drawer")).toBeInTheDocument();
+    expect(screen.getByTestId("mobile-drawer-layer")).toHaveAttribute("aria-modal", "true");
+    expect(screen.getByTestId("mobile-drawer-layer").tagName).toBe("DIALOG");
+    expect(document.documentElement).toHaveStyle({ overflow: "hidden" });
     expect(screen.getByTestId("drawer-backdrop")).toHaveAttribute("title", "Close tools menu");
     expect(screen.getByTestId("drawer-close")).toHaveAttribute("title", "Close tools menu");
     expect(screen.getByTestId("mobile-footer")).not.toHaveTextContent(/local only|no uploads/i);
     expect(screen.getByTestId("drawer-close")).toHaveFocus();
     await user.keyboard("{Escape}");
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+    expect(document.documentElement).not.toHaveStyle({ overflow: "hidden" });
     expect(menu).toHaveFocus();
   });
 
@@ -371,8 +377,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="base64" />);
     expect(screen.getByTestId("base64-top-format")).toHaveValue("plain");
     expect(screen.getByTestId("base64-bottom-format")).toHaveValue("base64");
-    expect(screen.getByTestId("base64-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("base64-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("base64-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("base64-bottom-format")).toHaveAccessibleName("Target format");
     expect(screen.getAllByRole("option", { name: "Plain text" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "Base64 encoded" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "Base64url encoded" })).toHaveLength(2);
@@ -382,8 +388,8 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-input")).toBeEnabled();
     expect(screen.getByTestId("base64-output")).toBeDisabled();
-    expect(screen.getByTestId("base64-input")).toHaveAccessibleName("Input");
-    expect(screen.getByTestId("base64-output")).toHaveAccessibleName("Output");
+    expect(screen.getByTestId("base64-input")).toHaveAccessibleName("Source input");
+    expect(screen.getByTestId("base64-output")).toHaveAccessibleName("Target output");
     expect(screen.queryByText("Top channel")).not.toBeInTheDocument();
     expect(screen.queryByText("Bottom channel")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Convert" })).toHaveLength(1);
@@ -700,7 +706,7 @@ describe("CodecApp", () => {
     expect(copyButton).not.toHaveClass("icon-button", "bg-panel");
     expect(screen.getByTestId("base64-bottom-channel")).toContainElement(copyButton);
     expect(copyButton.querySelector(".lucide-copy")).toBeInTheDocument();
-    expect(swapButton).toHaveAccessibleName("Swap");
+    expect(swapButton).toHaveAccessibleName("Swap source and target");
     await user.click(swapButton);
     expect(screen.getByTestId("base64-top-format")).toHaveValue("base64");
     await user.click(screen.getByRole("button", { name: "Convert" }));
@@ -793,8 +799,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="url" />);
     expect(screen.getByTestId("url-top-format")).toHaveValue("decoded");
     expect(screen.getByTestId("url-bottom-format")).toHaveValue("rfc3986");
-    expect(screen.getByTestId("url-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("url-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("url-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("url-bottom-format")).toHaveAccessibleName("Target format");
     for (const option of ["Plain text", "RFC 3986 component", "Full URI", "Form URL encoded"]) {
       expect(screen.getAllByRole("option", { name: option })).toHaveLength(2);
     }
@@ -883,8 +889,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="query" />);
     expect(screen.getByTestId("query-top-format")).toHaveValue("query");
     expect(screen.getByTestId("query-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("query-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("query-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("query-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("query-bottom-format")).toHaveAccessibleName("Target format");
     expect(screen.getAllByRole("option", { name: "Query string" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
     expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
@@ -901,8 +907,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="python" />);
     expect(screen.getByTestId("python-top-format")).toHaveValue("python");
     expect(screen.getByTestId("python-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("python-top-format")).toHaveAccessibleName("Top channel format");
-    expect(screen.getByTestId("python-bottom-format")).toHaveAccessibleName("Bottom channel format");
+    expect(screen.getByTestId("python-top-format")).toHaveAccessibleName("Source format");
+    expect(screen.getByTestId("python-bottom-format")).toHaveAccessibleName("Target format");
     expect(screen.getAllByRole("option", { name: "Python literal" })).toHaveLength(2);
     expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
     expect(screen.getByTestId("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");

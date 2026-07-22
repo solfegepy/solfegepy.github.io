@@ -27,6 +27,14 @@ export class CodecPage {
     this.page.on("request", (request) => traffic.push({ url: request.url(), body: request.postData() ?? "" }));
     return traffic;
   }
+  trackBrowserErrors(): string[] {
+    const errors: string[] = [];
+    this.page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    this.page.on("pageerror", (error) => errors.push(error.message));
+    return errors;
+  }
   async writeClipboard(value: string): Promise<void> {
     await this.page.evaluate((text) => navigator.clipboard.writeText(text), value);
   }
@@ -117,6 +125,14 @@ export class CodecPage {
   }
   async open(path = "/"): Promise<void> {
     await this.page.goto(path);
+    await this.page.waitForFunction(
+      () =>
+        document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated") === "true" ||
+        document.querySelector('[data-testid="not-found-page"]') !== null,
+    );
+  }
+  app(): Locator {
+    return this.page.getByTestId("codec-app");
   }
   async chooseTool(name: ToolName): Promise<void> {
     const ids = {
@@ -149,6 +165,14 @@ export class CodecPage {
   }
   faqQuestions(): Locator {
     return this.page.getByTestId("faq-content").getByRole("heading", { level: 3 });
+  }
+  async faqToolTargetSizes(): Promise<{ width: number; height: number }[]> {
+    return this.page.getByTestId("faq-tool-link").evaluateAll((links) =>
+      links.map((link) => {
+        const { width, height } = link.getBoundingClientRect();
+        return { width, height };
+      }),
+    );
   }
   faqItems(): Locator {
     return this.page.getByTestId("faq-item");
@@ -205,7 +229,10 @@ export class CodecPage {
     await this.format(toolId, "bottom").selectOption(format);
   }
   async swap(): Promise<void> {
-    await this.page.getByTestId("codec-workspace-swap").click();
+    await this.swapControl().click();
+  }
+  swapControl(): Locator {
+    return this.page.getByTestId("codec-workspace-swap");
   }
   format(toolId: ToolId, channel: Channel): Locator {
     return this.page.getByTestId(`${toolId}-${channel}-format`);
@@ -293,8 +320,20 @@ export class CodecPage {
   drawer(): Locator {
     return this.page.getByTestId("mobile-drawer");
   }
+  async mobileBrandTargetSize(): Promise<{ width: number; height: number }> {
+    return this.page.getByTestId("mobile-home-link").evaluate((link) => {
+      const { width, height } = link.getBoundingClientRect();
+      return { width, height };
+    });
+  }
   notFoundPage(): Locator {
     return this.page.getByTestId("not-found-page");
+  }
+  async notFoundBrandTargetSize(): Promise<{ width: number; height: number }> {
+    return this.page.getByTestId("not-found-brand-link").evaluate((link) => {
+      const { width, height } = link.getBoundingClientRect();
+      return { width, height };
+    });
   }
   notFoundHome(): Locator {
     return this.page.getByTestId("not-found-home");
