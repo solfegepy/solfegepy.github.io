@@ -1,5 +1,7 @@
+# Created on: 2026-08-06
+
 services:
-  dev_container:
+  devcontainer:
     build:
       context: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/docker
       dockerfile: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/docker/Dockerfile
@@ -8,13 +10,19 @@ services:
     hostname: saicli__ai_codec64
     ports:
       - "${UI_EXT_PORT}:${UI_INT_PORT}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     init: true  # wrapper because 'sleep' does not handle SIGTERM
+    environment:
+      - ENV=development
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
-      - ..:/workspaces/project
+      - ..:/workspaces/project  # modify .. if dockerComposeFile[0] changes
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
       - home:/home/admin
+      - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
+      - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/config.json
+      # - ~/.local/share/saicli/_data/common_auth/antigravity_auth.json:/home/admin/.gemini/antigravity-cli/antigravity-oauth-token
 
 volumes:
   home:
