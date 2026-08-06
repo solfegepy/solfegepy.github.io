@@ -2,24 +2,24 @@
 name: Codec Bench
 description: Browser-only developer conversions with precise, clean, low-friction controls.
 colors:
-  paper: "oklch(96.8% 0.007 247.896)"
-  panel: "oklch(98.4% 0.003 247.858)"
-  field: "#ffffff"
+  paper: "oklch(97.5% 0.006 85)"
+  panel: "oklch(98.8% 0.003 85)"
+  field: "oklch(100% 0 0)"
   ink: "oklch(20.8% 0.042 265.755)"
   muted: "oklch(44.6% 0.043 257.281)"
-  line: "oklch(86.9% 0.022 252.894)"
+  line: "oklch(64% 0.009 80)"
   instrument-blue: "oklch(48.8% 0.243 264.376)"
   instrument-blue-strong: "oklch(42.4% 0.199 265.638)"
   syntax-orange: "oklch(55.3% 0.195 38.402)"
   syntax-orange-strong: "oklch(47% 0.157 37.304)"
   success: "oklch(48.8% 0.243 264.376)"
   danger: "oklch(47% 0.157 37.304)"
-  dark-paper: "oklch(12.9% 0.042 264.695)"
-  dark-panel: "oklch(20.8% 0.042 265.755)"
-  dark-field: "oklch(27.9% 0.041 260.031)"
+  dark-paper: "oklch(13.2% 0.025 260)"
+  dark-panel: "oklch(18.5% 0.028 260)"
+  dark-field: "oklch(23.5% 0.03 260)"
   dark-ink: "oklch(96.8% 0.007 247.896)"
   dark-muted: "oklch(70.4% 0.04 256.788)"
-  dark-line: "oklch(37.2% 0.044 257.287)"
+  dark-line: "oklch(52% 0.035 258)"
   dark-instrument-blue: "oklch(70.7% 0.165 254.624)"
   dark-instrument-blue-strong: "oklch(80.9% 0.105 251.813)"
   dark-syntax-orange: "oklch(75% 0.183 55.934)"
@@ -28,40 +28,40 @@ colors:
   dark-danger: "oklch(83.7% 0.128 66.29)"
 typography:
   display:
-    fontFamily: "Avenir Next, Trebuchet MS, sans-serif"
+    fontFamily: "IBM Plex Sans, Segoe UI, ui-sans-serif, system-ui, sans-serif"
     fontSize: "2.25rem"
     fontWeight: 700
     lineHeight: 1.25
     letterSpacing: "-0.025em"
   headline:
-    fontFamily: "Avenir Next, Trebuchet MS, sans-serif"
+    fontFamily: "IBM Plex Sans, Segoe UI, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.5rem"
     fontWeight: 700
     lineHeight: 1.333
     letterSpacing: "-0.025em"
   title:
-    fontFamily: "Avenir Next, Trebuchet MS, sans-serif"
+    fontFamily: "IBM Plex Sans, Segoe UI, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1.25rem"
     fontWeight: 700
     lineHeight: 1.4
   body:
-    fontFamily: "Avenir Next, Segoe UI, ui-sans-serif, system-ui, sans-serif"
+    fontFamily: "IBM Plex Sans, Segoe UI, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.75
   control:
-    fontFamily: "IBM Plex Mono, SFMono-Regular, Consolas, monospace"
+    fontFamily: "JetBrains Mono, SFMono-Regular, Consolas, monospace"
     fontSize: "0.875rem"
     fontWeight: 600
     lineHeight: 1.429
   label:
-    fontFamily: "IBM Plex Mono, SFMono-Regular, Consolas, monospace"
+    fontFamily: "JetBrains Mono, SFMono-Regular, Consolas, monospace"
     fontSize: "0.75rem"
     fontWeight: 600
     lineHeight: 1.333
     letterSpacing: "0.1em"
   code:
-    fontFamily: "IBM Plex Mono, SFMono-Regular, Consolas, monospace"
+    fontFamily: "JetBrains Mono, SFMono-Regular, Consolas, monospace"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.714
@@ -120,7 +120,7 @@ components:
 
 **Creative North Star: "Clean Room"**
 
-Codec Bench behaves like a clean room for technical data: crisp, modern, fast, and free of distractions. Cool Slate surfaces separate tools from fields while Instrument Blue identifies action and Syntax Orange carries identity and caution.
+Codec Bench behaves like a clean room for technical data: crisp, modern, fast, and free of distractions. Warm Paper in light mode and Deep Navy in dark mode separate tools from fields while Instrument Blue identifies action and Syntax Orange carries identity and caution.
 
 Controls stay restrained and familiar. Clear hierarchy, conventional interactions, and consistent 2.75rem targets let developers begin work without learning an interface. Responsive behavior changes structure at 48rem; typography stays stable and task-focused.
 
@@ -129,14 +129,14 @@ The system rejects cluttered converter sites such as base64decode.org: dense sec
 **Key Characteristics:**
 
 - Clear source → action → target workflow
-- Cool Slate tonal layering in light and dark themes
+- Warm Paper light surfaces and Deep Navy dark surfaces
 - Instrument Blue for action; Syntax Orange for identity and caution
 - Restrained, familiar controls with consistent 2.75rem targets
 - Crisp structural borders with purposeful lift
 
 ## Colors
 
-Cool Slate provides quiet structure; Instrument Blue signals interaction; Syntax Orange marks brand identity, caution, and destructive feedback.
+Warm Paper and Deep Navy provide quiet structure; Instrument Blue signals interaction; Syntax Orange marks brand identity, caution, and destructive feedback.
 
 ### Primary
 
@@ -150,13 +150,13 @@ Cool Slate provides quiet structure; Instrument Blue signals interaction; Syntax
 
 ### Neutral
 
-- **Cool Slate Paper** (`colors.paper`): page canvas.
-- **Cool Slate Panel** (`colors.panel`): navigation, workspaces, and grouped content.
+- **Warm Paper** (`colors.paper`): calm off-white page canvas in light mode.
+- **Warm Panel** (`colors.panel`): near-white navigation, workspaces, and grouped content in light mode.
 - **Clean Field** (`colors.field`): editable controls and active navigation.
 - **Deep Slate Ink** (`colors.ink`): headings and primary text.
 - **Quiet Slate** (`colors.muted`): supporting text and inactive controls.
-- **Cool Slate Line** (`colors.line`): dividers, field borders, and structural outlines.
-- **Dark theme counterparts** (`colors.dark-paper` through `colors.dark-danger`): preserve semantic roles under dark color scheme; never swap role meaning.
+- **Structural Line** (`colors.line`): dividers, field borders, and structural outlines with 3:1 boundary contrast.
+- **Deep Navy counterparts** (`colors.dark-paper` through `colors.dark-danger`): preserve semantic roles under dark color scheme; never swap role meaning.
 
 ### Named Rules
 
@@ -166,11 +166,13 @@ Cool Slate provides quiet structure; Instrument Blue signals interaction; Syntax
 
 ## Typography
 
-**Display Font:** Avenir Next with Trebuchet MS fallback  
-**Body Font:** Avenir Next with Segoe UI and system fallbacks  
-**Label/Mono Font:** IBM Plex Mono with SFMono-Regular and Consolas fallbacks
+**Display Font:** IBM Plex Sans with Segoe UI and system fallbacks  
+**Body Font:** IBM Plex Sans with Segoe UI and system fallbacks  
+**Label/Mono Font:** JetBrains Mono with SFMono-Regular and Consolas fallbacks
 
 **Character:** Friendly sans typography keeps navigation and prose immediately readable. Monospace controls expose technical structure without turning the whole interface into a terminal.
+
+IBM Plex Sans and JetBrains Mono load once per document from Google Fonts with `display=swap` and preconnect hints. System fallbacks keep text visible and the application usable when the CDN is slow or blocked. This approved external request can expose visitor network metadata to Google; converter input never enters font requests.
 
 ### Hierarchy
 
@@ -208,7 +210,7 @@ Components feel restrained and familiar: standard controls, consistent dimension
 - **Shape:** gently curved rectangle (`rounded.md`) with 2.75rem minimum height.
 - **Primary:** Instrument Blue fill, paper text, and matching border; use for one leading action such as Convert.
 - **Hover / Focus:** strong blue hover; 2px Instrument Blue outline with 2px offset; 150–200ms state transitions; 1px downward active movement where specified.
-- **Quiet:** panel fill, ink text, and Cool Slate Line border; hover shifts border and text to Instrument Blue.
+- **Quiet:** panel fill, ink text, and Structural Line border; hover shifts border and text to Instrument Blue.
 - **Disabled:** paper fill, muted text, line border, and no pointer affordance.
 
 ### Cards / Containers
@@ -216,7 +218,7 @@ Components feel restrained and familiar: standard controls, consistent dimension
 - **Corner Style:** compact 0.75rem workspace corners; nested channels use 0.5rem.
 - **Background:** panel for outer workspaces, field for source and target channels.
 - **Shadow Strategy:** Raised Low on outer containers; nested channels rely on borders only.
-- **Border:** single Cool Slate Line stroke.
+- **Border:** single Structural Line stroke.
 - **Internal Padding:** 0.75rem on mobile and 1.25rem from 48rem.
 
 ### Inputs / Fields

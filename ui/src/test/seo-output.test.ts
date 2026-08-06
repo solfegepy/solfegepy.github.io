@@ -8,6 +8,8 @@ const TITLE = "Base64 Decode and Encode | Codec Bench";
 const DESCRIPTION =
   "Convert plain text, Base64, or Base64url: Base64: uses +, /, and = padding Base64url: uses - and _ without padding.";
 const URL = "https://codec64.com/";
+const GOOGLE_FONTS_STYLESHEET =
+  "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap";
 
 function productionDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/index.html"), "utf8");
@@ -40,6 +42,21 @@ function notFoundDocument(): Document {
 }
 
 describe("production homepage SEO", () => {
+  it("loads the shared Google Fonts families without blocking fallback text", () => {
+    for (const document of [productionDocument(), urlDocument(), timestampDocument(), jwtDocument(), faqDocument()]) {
+      const fontStylesheets = document.querySelectorAll(
+        'link[rel="stylesheet"][href^="https://fonts.googleapis.com/"]',
+      );
+      expect(fontStylesheets).toHaveLength(1);
+      expect(fontStylesheets[0]?.getAttribute("href")).toBe(GOOGLE_FONTS_STYLESHEET);
+
+      expect(document.querySelector('link[rel="preconnect"][href="https://fonts.googleapis.com"]')).not.toBeNull();
+      expect(
+        document.querySelector('link[rel="preconnect"][href="https://fonts.gstatic.com"]')?.hasAttribute("crossorigin"),
+      ).toBe(true);
+    }
+  });
+
   it("renders every registered route with unique metadata and one heading", () => {
     for (const tool of TOOLS) {
       const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}/index.html`;

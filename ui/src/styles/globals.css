@@ -43,9 +43,9 @@
 
 @theme {
   --breakpoint-md: 48rem;
-  --font-display: "Avenir Next", "Trebuchet MS", sans-serif;
-  --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --font-display: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
   --radius-control: 0.75rem;
   --radius-surface: 1rem;
   --default-transition-duration: 180ms;
@@ -53,12 +53,12 @@
 }
 
 :root {
-  --paper: oklch(96.8% 0.007 247.896);
-  --panel: oklch(98.4% 0.003 247.858);
+  --paper: oklch(97.5% 0.006 85);
+  --panel: oklch(98.8% 0.003 85);
   --field: oklch(100% 0 0);
   --ink: oklch(20.8% 0.042 265.755);
   --muted: oklch(44.6% 0.043 257.281);
-  --line: oklch(86.9% 0.022 252.894);
+  --line: oklch(64% 0.009 80);
   --primary: oklch(48.8% 0.243 264.376);
   --primary-strong: oklch(42.4% 0.199 265.638);
   --primary-soft: oklch(93% 0.034 257);
@@ -95,12 +95,12 @@
 }
 
 :root[data-theme="dark"] {
-  --paper: oklch(12.9% 0.042 264.695);
-  --panel: oklch(20.8% 0.042 265.755);
-  --field: oklch(27.9% 0.041 260.031);
+  --paper: oklch(13.2% 0.025 260);
+  --panel: oklch(18.5% 0.028 260);
+  --field: oklch(23.5% 0.03 260);
   --ink: oklch(96.8% 0.007 247.896);
   --muted: oklch(70.4% 0.04 256.788);
-  --line: oklch(37.2% 0.044 257.287);
+  --line: oklch(52% 0.035 258);
   --primary: oklch(70.7% 0.165 254.624);
   --primary-strong: oklch(80.9% 0.105 251.813);
   --primary-soft: oklch(27% 0.07 260);

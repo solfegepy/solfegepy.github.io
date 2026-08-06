@@ -7,6 +7,7 @@ test("visual contract: Base64 desktop dark", async ({ page }) => {
   await codec.setViewport(1440, 900);
   await codec.useColorScheme("dark");
   await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
 
   await expect(page).toHaveScreenshot("base64-desktop-dark.png", { animations: "disabled", fullPage: true });
 });
@@ -16,6 +17,7 @@ test("visual contract: Base64 mobile light", async ({ page }) => {
   await codec.setViewport(375, 812);
   await codec.useColorScheme("light");
   await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
 
   await expect(page).toHaveScreenshot("base64-mobile-light.png", { animations: "disabled", fullPage: true });
 });
@@ -25,6 +27,7 @@ test("visual contract: JWT desktop light", async ({ page }) => {
   await codec.setViewport(1440, 900);
   await codec.useColorScheme("light");
   await codec.open("/jwt");
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
 
   await expect(page).toHaveScreenshot("jwt-desktop-light.png", { animations: "disabled", fullPage: true });
 });
@@ -34,9 +37,74 @@ test("visual contract: FAQ mobile dark", async ({ page }) => {
   await codec.setViewport(375, 812);
   await codec.useColorScheme("dark");
   await codec.openFaq();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
   await codec.toggleFaqQuestion("How do I encode text to Base64?");
 
   await expect(page).toHaveScreenshot("faq-mobile-dark.png", { animations: "disabled", fullPage: true });
+});
+
+test("blocked font CDN preserves readable conversion fallback", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.blockWebFonts();
+  await codec.open();
+
+  await expect(codec.primaryHeading()).toBeVisible();
+  await expect(codec.activeTool()).toHaveAttribute("aria-current", "page");
+  await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/");
+  expect(await codec.loadedWebFonts()).toEqual([]);
+
+  const initialTheme = await codec.root().getAttribute("data-theme");
+  await codec.chooseOppositeTheme();
+  expect(await codec.root().getAttribute("data-theme")).not.toBe(initialTheme);
+
+  await codec.fill("base64-input", "fallback");
+  await codec.act("Convert");
+  await expect(codec.output("base64-output")).toHaveValue("ZmFsbGJhY2s=");
+  await codec.chooseTool("URL");
+  await expect(page).toHaveURL(/\/url$/);
+  await expect(codec.primaryHeading()).toHaveText("URL Encode and Decode");
+  await codec.setMobileViewport();
+  expect(await codec.hasHorizontalOverflow()).toBe(false);
+});
+
+test("web fonts preserve long editor containment and metadata", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setMobileViewport();
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+
+  await codec.fill("base64-input", "x".repeat(2_048));
+  expect(await codec.editorLayout("base64")).toEqual({
+    pageOverflow: false,
+    inputContained: true,
+    metadataVisible: true,
+    metadata: "1 line2048 bytesUTF-8",
+  });
+});
+
+test("font traffic uses approved origins and excludes converter input", async ({ page }) => {
+  const codec = new CodecPage(page);
+  const traffic = codec.trackRequestDetails();
+  const marker = "FONT_PRIVACY_MARKER_61f";
+  const payload = Buffer.from(JSON.stringify({ private: marker })).toString("base64url");
+  const token = `eyJhbGciOiJub25lIn0.${payload}.`;
+
+  await codec.open();
+  expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
+  await codec.fill("base64-input", marker);
+  await codec.act("Convert");
+  await codec.open("/jwt");
+  await codec.enterJwt(token);
+  await codec.decodeJwt();
+
+  const allowedOrigins = new Set([
+    "http://127.0.0.1:3001",
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+  ]);
+  expect(traffic.every(({ url }) => allowedOrigins.has(new URL(url).origin))).toBe(true);
+  expect(JSON.stringify(traffic)).not.toContain(marker);
+  expect(JSON.stringify(traffic)).not.toContain(token);
 });
 
 test("responsive layout matrix preserves order, target size, and page containment", async ({ page }) => {
@@ -373,13 +441,23 @@ test("light and dark workbench states keep readable contrast and visible reduced
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   await codec.open();
 
-  const contrast = async (locator: Locator, foregroundProperty: "color" | "borderColor" = "color"): Promise<number> =>
+  const contrast = async (
+    locator: Locator,
+    foregroundProperty: "color" | "borderColor" | "outlineColor" = "color",
+  ): Promise<number> =>
     locator.evaluate((node, property) => {
       const context = document.createElement("canvas").getContext("2d")!;
       context.canvas.width = 1;
       context.canvas.height = 1;
       const style = getComputedStyle(node);
-      const values = [style[property], style.backgroundColor].map((color) => {
+      let backgroundNode: Element | null = node;
+      let effectiveBackground = "transparent";
+      while (backgroundNode) {
+        effectiveBackground = getComputedStyle(backgroundNode).backgroundColor;
+        if (effectiveBackground !== "rgba(0, 0, 0, 0)" && effectiveBackground !== "transparent") break;
+        backgroundNode = backgroundNode.parentElement;
+      }
+      const values = [style[property], effectiveBackground].map((color) => {
         context.clearRect(0, 0, 1, 1);
         context.fillStyle = color;
         context.fillRect(0, 0, 1, 1);
@@ -398,6 +476,15 @@ test("light and dark workbench states keep readable contrast and visible reduced
 
   for (const theme of ["light", "dark"] as const) {
     if ((await codec.root().getAttribute("data-theme")) !== theme) await codec.chooseOppositeTheme();
+    expect(await contrast(page.locator("body")), `${theme} ink on canvas`).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(page.getByTestId("tool-description")), `${theme} muted on canvas`).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(await contrast(codec.sidebar(), "borderColor"), `${theme} canvas/panel boundary`).toBeGreaterThanOrEqual(3);
+    expect(
+      await contrast(codec.channel("base64", "top"), "borderColor"),
+      `${theme} panel/field boundary`,
+    ).toBeGreaterThanOrEqual(3);
     expect(await contrast(codec.output("base64-output"))).toBeGreaterThanOrEqual(4.5);
     expect(await contrast(page.getByTestId("tool-link-base64").first())).toBeGreaterThanOrEqual(4.5);
     for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
@@ -406,7 +493,15 @@ test("light and dark workbench states keep readable contrast and visible reduced
       expect(await contrast(tile, "borderColor"), `${theme} ${toolId} accent border`).toBeGreaterThanOrEqual(3);
     }
 
+    await codec.openFaq();
+    const faqTile = page.getByTestId("faq-link").first().locator("span");
+    expect(await contrast(faqTile), `${theme} faq accent text`).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(faqTile, "borderColor"), `${theme} faq accent border`).toBeGreaterThanOrEqual(3);
+    await codec.open();
+
     expect(await contrast(codec.convert()), `${theme} disabled`).toBeGreaterThanOrEqual(4.5);
+    await codec.fill("base64-input", `active-${theme}`);
+    expect(await contrast(codec.convert()), `${theme} primary`).toBeGreaterThanOrEqual(4.5);
     await page.getByRole("button", { name: "Copy output" }).click();
     expect(await contrast(codec.status()), `${theme} success`).toBeGreaterThanOrEqual(4.5);
     await codec.chooseTopFormat("base64", "base64");
@@ -416,6 +511,8 @@ test("light and dark workbench states keep readable contrast and visible reduced
     await codec.open("/jwt");
     expect(await contrast(page.getByTestId("jwt-guidance")), `${theme} warning`).toBeGreaterThanOrEqual(4.5);
     await codec.open();
+    await codec.themeControl().focus();
+    expect(await contrast(codec.themeControl(), "outlineColor"), `${theme} focus`).toBeGreaterThanOrEqual(3);
   }
   await codec.systemThemeReset().focus();
   await page.keyboard.press("Tab");

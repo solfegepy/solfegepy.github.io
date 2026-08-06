@@ -27,6 +27,13 @@ export class CodecPage {
     this.page.on("request", (request) => traffic.push({ url: request.url(), body: request.postData() ?? "" }));
     return traffic;
   }
+  trackRequestDetails(): { url: string; body: string; headers: Record<string, string> }[] {
+    const traffic: { url: string; body: string; headers: Record<string, string> }[] = [];
+    this.page.on("request", (request) =>
+      traffic.push({ url: request.url(), body: request.postData() ?? "", headers: request.headers() }),
+    );
+    return traffic;
+  }
   trackBrowserErrors(): string[] {
     const errors: string[] = [];
     this.page.on("console", (message) => {
@@ -131,6 +138,29 @@ export class CodecPage {
         document.querySelector('[data-testid="not-found-page"]') !== null,
     );
   }
+  async blockWebFonts(): Promise<void> {
+    await this.page.route(/https:\/\/fonts\.(?:googleapis|gstatic)\.com\//, (route) => route.abort());
+  }
+  async loadedWebFonts(): Promise<string[]> {
+    return this.page.evaluate(async () => {
+      await document.fonts.ready;
+      const loaded = new Set<string>();
+      document.fonts.forEach((font) => {
+        if (font.status === "loaded") loaded.add(font.family.replaceAll('"', ""));
+      });
+      return [...loaded].sort();
+    });
+  }
+  async waitForWebFonts(): Promise<{ sans: boolean; mono: boolean }> {
+    await this.page.evaluate(async () => {
+      await Promise.all([
+        document.fonts.load("400 1rem 'IBM Plex Sans'"),
+        document.fonts.load("400 1rem 'JetBrains Mono'"),
+      ]);
+    });
+    const loaded = await this.loadedWebFonts();
+    return { sans: loaded.includes("IBM Plex Sans"), mono: loaded.includes("JetBrains Mono") };
+  }
   app(): Locator {
     return this.page.getByTestId("codec-app");
   }
@@ -203,6 +233,27 @@ export class CodecPage {
   }
   async hasHorizontalOverflow(): Promise<boolean> {
     return this.page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  }
+  async editorLayout(toolId: ToolId): Promise<{
+    pageOverflow: boolean;
+    inputContained: boolean;
+    metadataVisible: boolean;
+    metadata: string;
+  }> {
+    return this.page.evaluate((id) => {
+      const channel = document.querySelector(`[data-testid="${id}-top-channel"]`)!;
+      const input = document.querySelector(`[data-testid="${id}-input"]`)!;
+      const metadata = document.querySelector(`[data-testid="${id}-source-metadata"]`)!;
+      const channelBounds = channel.getBoundingClientRect();
+      const inputBounds = input.getBoundingClientRect();
+      const metadataBounds = metadata.getBoundingClientRect();
+      return {
+        pageOverflow: document.documentElement.scrollWidth > innerWidth,
+        inputContained: inputBounds.left >= channelBounds.left && inputBounds.right <= channelBounds.right,
+        metadataVisible: metadataBounds.width > 0 && metadataBounds.height > 0,
+        metadata: metadata.textContent ?? "",
+      };
+    }, toolId);
   }
   async useLargeText(): Promise<void> {
     await this.page.addStyleTag({ content: "html { font-size: 200%; }" });
