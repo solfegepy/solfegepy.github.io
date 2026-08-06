@@ -2,19 +2,21 @@
   "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.base.schema.json",
   // "name": "saicli",
   "dockerComposeFile": [
-    "compose.yml",
-    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.gui.yml",
-    // "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.audio.yml",
+    // "../compose.yaml",  // if uncommenting: replace .. with . in ./compose.devcontainer.yaml
+    "./compose.devcontainer.yaml",
+    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.gui.yaml"
+    // "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.audio.yaml",
   ],
-  "service": "dev_container",
-  "updateRemoteUserUID": false,  // remote user already has same host UID/GID
+  "service": "devcontainer", // devcontainer service to work on
+  "runServices": ["devcontainer"], // services to start ([] = start all defined in dockerComposeFile)
+  "updateRemoteUserUID": false, // remote user already has same host UID/GID
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}"
   },
+  "workspaceFolder": "/workspaces/project", // cwd after create
 
-  // localWorkspaceFolder is set with --workspace-folder (default to .)
-  "workspaceFolder": "/workspaces/project",  // container cwd after create
-  // "onCreateCommand": "${containerWorkspaceFolder}/.devcontainer/_on_create.sh",
+  // "initializeCommand": "${localWorkspaceFolder}/.devcontainer/_host_start.sh", on HOST, every start
+  // "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/_post_create.sh",
   // "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/_post_start.sh",
-  "postAttachCommand": "${containerWorkspaceFolder}/.devcontainer/_entrypoint.sh",
+  "postAttachCommand": "${containerWorkspaceFolder}/.devcontainer/_entrypoint.sh"
 }

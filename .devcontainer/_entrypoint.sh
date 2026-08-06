@@ -13,4 +13,4 @@ tmux new-session \; \
   select-pane -t 1
 
 # In case we exit tmux
-exec bash -l
+# exec bash -l
