@@ -1,4 +1,4 @@
-import { MoonIcon, SunIcon } from "lucide-react";
+import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 
 interface ThemeControlProps {
   dark: boolean;
@@ -15,18 +15,19 @@ export function ThemeControl({ dark, overridden, onReset, onToggle }: ThemeContr
       <button
         data-testid="theme-system-reset"
         type="button"
-        className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper min-h-11 rounded-lg px-2 font-mono text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+        className="border-line bg-field text-muted hover:border-primary hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control inline-flex min-h-11 items-center gap-2 border px-3 font-mono text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         onClick={onReset}
         disabled={!overridden}
         aria-label="Use system theme"
         title="Use system theme"
       >
+        <MonitorIcon aria-hidden="true" size={16} />
         System
       </button>
       <button
         data-testid="theme-control"
         type="button"
-        className="border-line bg-panel text-ink hover:border-primary hover:text-primary focus-visible:outline-primary inline-flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control inline-flex size-11 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2"
         onClick={onToggle}
         aria-label={label}
         title={label}

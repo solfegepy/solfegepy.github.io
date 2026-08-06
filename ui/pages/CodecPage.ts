@@ -210,6 +210,12 @@ export class CodecPage {
   async setMobileViewport(): Promise<void> {
     await this.page.setViewportSize({ width: 320, height: 812 });
   }
+  async setViewport(width: number, height: number): Promise<void> {
+    await this.page.setViewportSize({ width, height });
+  }
+  async useColorScheme(colorScheme: "light" | "dark"): Promise<void> {
+    await this.page.emulateMedia({ colorScheme });
+  }
   async openDrawer(): Promise<void> {
     await this.page.getByTestId("menu-button").click();
   }

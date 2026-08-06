@@ -1,5 +1,8 @@
-import { ChevronDownIcon } from "lucide-react";
+import { ArrowUpRightIcon, ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
+
+import { TOOL_PRESENTATION } from "../../lib/presentation";
+import { TOOLS } from "../../lib/tools";
 
 interface FaqItemData {
   question: string;
@@ -14,7 +17,7 @@ interface FaqSectionData {
 }
 
 const CODE_CLASSES = "break-all font-mono text-sm text-ink";
-const SECTION_CLASSES = "border-line border-t pt-8 first:border-t-0 first:pt-0";
+const SECTION_CLASSES = "border-line bg-panel min-w-0 rounded-surface border p-4 shadow-sm md:p-6";
 
 const FAQ_SECTIONS: readonly FaqSectionData[] = [
   {
@@ -319,7 +322,7 @@ interface FaqItemProps {
 
 function FaqItem({ accordionName, item }: FaqItemProps) {
   return (
-    <details data-testid="faq-item" name={accordionName} className="bg-panel open:bg-field group">
+    <details data-testid="faq-item" name={accordionName} className="bg-panel open:bg-field group transition-colors">
       <summary
         data-testid="faq-summary"
         className="hover:bg-field focus-visible:outline-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
@@ -344,22 +347,33 @@ interface FaqCategoryProps {
 
 function FaqCategory({ section }: FaqCategoryProps) {
   const accordionName = `faq-${section.heading.toLowerCase().replaceAll(" ", "-")}`;
+  const toolId = TOOLS.find((tool) => tool.route === section.route)!.id;
+  const { Icon, accentClasses } = TOOL_PRESENTATION[toolId];
 
   return (
     <section data-testid="faq-category" className={SECTION_CLASSES}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-ink text-2xl font-bold tracking-tight">{section.heading}</h2>
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            data-testid="faq-category-icon"
+            className={`rounded-control inline-flex size-11 shrink-0 items-center justify-center border ${accentClasses}`}
+          >
+            <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
+          </span>
+          <h2 className="font-display text-ink text-2xl font-bold tracking-tight">{section.heading}</h2>
+        </div>
         <a
           data-testid="faq-tool-link"
           href={section.route}
-          className="text-primary focus-visible:outline-primary inline-flex min-h-11 items-center text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-primary focus-visible:outline-primary inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {section.linkLabel}
+          <ArrowUpRightIcon aria-hidden="true" size={16} />
         </a>
       </div>
       <div
         data-testid="faq-accordion"
-        className="border-line bg-panel divide-line divide-y overflow-hidden rounded-xl border shadow-sm"
+        className="border-line bg-panel divide-line rounded-control divide-y overflow-hidden border"
       >
         {section.items.map((item) => (
           <FaqItem key={item.question} accordionName={accordionName} item={item} />
@@ -372,7 +386,7 @@ function FaqCategory({ section }: FaqCategoryProps) {
 /** Renders static FAQ categories and native disclosure items. */
 export function FaqContent() {
   return (
-    <div data-testid="faq-content" className="grid gap-12">
+    <div data-testid="faq-content" className="grid gap-5">
       {FAQ_SECTIONS.map((section) => (
         <FaqCategory key={section.heading} section={section} />
       ))}

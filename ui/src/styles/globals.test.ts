@@ -18,8 +18,31 @@ const SEMANTIC_COLORS = [
   "accent-strong",
   "success",
   "success-soft",
+  "warning",
+  "warning-soft",
   "danger",
   "danger-soft",
+  "tool-base64",
+  "tool-base64-soft",
+  "tool-base64-border",
+  "tool-url",
+  "tool-url-soft",
+  "tool-url-border",
+  "tool-query",
+  "tool-query-soft",
+  "tool-query-border",
+  "tool-jwt",
+  "tool-jwt-soft",
+  "tool-jwt-border",
+  "tool-python",
+  "tool-python-soft",
+  "tool-python-border",
+  "tool-timestamp",
+  "tool-timestamp-soft",
+  "tool-timestamp-border",
+  "tool-faq",
+  "tool-faq-soft",
+  "tool-faq-border",
 ] as const;
 const APPROVED_COLORS = /^oklch\([\d.]+% [\d.]+ [\d.]+\)$/;
 const TEST_ID_SURFACES = ["section", "header", "footer", "main", "nav", "article", "button", "a", "input", "textarea"];
@@ -50,11 +73,9 @@ describe("Tailwind theme contract", () => {
   });
 
   it("maps theme colors only to approved OKLCH tokens", () => {
-    const declarations = [
-      ...css.matchAll(
-        /^\s+--(paper|panel|field|ink|muted|line|primary(?:-(?:strong|soft))?|accent(?:-strong)?|success(?:-soft)?|danger(?:-soft)?): (.+);$/gm,
-      ),
-    ];
+    const declarations = [...css.matchAll(/^\s+--([\w-]+): (oklch\(.+\));$/gm)].filter(([, name]) =>
+      SEMANTIC_COLORS.includes(name as (typeof SEMANTIC_COLORS)[number]),
+    );
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
     for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLORS);

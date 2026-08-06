@@ -14,7 +14,7 @@ interface TextareaFieldProps {
 }
 
 const FIELD_CLASSES =
-  "border-line bg-field rounded-lg border p-4 focus:border-primary focus:ring-primary/15 focus:ring-3";
+  "border-line bg-field rounded-control border p-4 focus:border-primary focus:ring-primary/15 focus:ring-3";
 const EDITOR_CLASSES = "border-0 bg-transparent px-4 py-3 focus:ring-0";
 const HEIGHT_CLASSES = {
   standard: "min-h-56 md:min-h-72",
@@ -40,7 +40,7 @@ export function TextareaField({
       <textarea
         data-testid={testId}
         aria-label={ariaLabel}
-        className={`text-ink placeholder:text-muted disabled:text-muted w-full min-w-0 resize-y overflow-auto font-mono text-sm leading-6 transition outline-none disabled:cursor-not-allowed disabled:resize-none ${HEIGHT_CLASSES[height]} ${variant === "editor" ? EDITOR_CLASSES : FIELD_CLASSES} ${className}`}
+        className={`text-ink placeholder:text-muted disabled:text-muted w-full min-w-0 resize-y overflow-auto font-mono text-sm leading-6 transition-colors outline-none disabled:cursor-not-allowed disabled:resize-none ${HEIGHT_CLASSES[height]} ${variant === "editor" ? EDITOR_CLASSES : FIELD_CLASSES} ${className}`}
         value={value}
         onChange={onChange}
         placeholder={placeholder}

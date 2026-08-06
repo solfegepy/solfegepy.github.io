@@ -14,8 +14,31 @@
   --color-accent-strong: var(--accent-strong);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-tool-base64: var(--tool-base64);
+  --color-tool-base64-soft: var(--tool-base64-soft);
+  --color-tool-base64-border: var(--tool-base64-border);
+  --color-tool-url: var(--tool-url);
+  --color-tool-url-soft: var(--tool-url-soft);
+  --color-tool-url-border: var(--tool-url-border);
+  --color-tool-query: var(--tool-query);
+  --color-tool-query-soft: var(--tool-query-soft);
+  --color-tool-query-border: var(--tool-query-border);
+  --color-tool-jwt: var(--tool-jwt);
+  --color-tool-jwt-soft: var(--tool-jwt-soft);
+  --color-tool-jwt-border: var(--tool-jwt-border);
+  --color-tool-python: var(--tool-python);
+  --color-tool-python-soft: var(--tool-python-soft);
+  --color-tool-python-border: var(--tool-python-border);
+  --color-tool-timestamp: var(--tool-timestamp);
+  --color-tool-timestamp-soft: var(--tool-timestamp-soft);
+  --color-tool-timestamp-border: var(--tool-timestamp-border);
+  --color-tool-faq: var(--tool-faq);
+  --color-tool-faq-soft: var(--tool-faq-soft);
+  --color-tool-faq-border: var(--tool-faq-border);
 }
 
 @theme {
@@ -23,6 +46,10 @@
   --font-display: "Avenir Next", "Trebuchet MS", sans-serif;
   --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --radius-control: 0.75rem;
+  --radius-surface: 1rem;
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
@@ -39,8 +66,31 @@
   --accent-strong: oklch(47% 0.157 37.304);
   --success: oklch(45% 0.15 151);
   --success-soft: oklch(94% 0.04 151);
-  --danger: oklch(47% 0.157 37.304);
-  --danger-soft: oklch(94% 0.04 37.304);
+  --warning: oklch(43% 0.13 65);
+  --warning-soft: oklch(94% 0.04 75);
+  --danger: oklch(48% 0.19 25);
+  --danger-soft: oklch(94% 0.035 25);
+  --tool-base64: oklch(42% 0.12 220);
+  --tool-base64-soft: oklch(94% 0.035 220);
+  --tool-base64-border: oklch(42% 0.12 220);
+  --tool-url: oklch(47% 0.2 265);
+  --tool-url-soft: oklch(94% 0.035 265);
+  --tool-url-border: oklch(47% 0.2 265);
+  --tool-query: oklch(45% 0.13 55);
+  --tool-query-soft: oklch(95% 0.04 70);
+  --tool-query-border: oklch(45% 0.13 55);
+  --tool-jwt: oklch(48% 0.18 15);
+  --tool-jwt-soft: oklch(95% 0.035 15);
+  --tool-jwt-border: oklch(48% 0.18 15);
+  --tool-python: oklch(43% 0.13 150);
+  --tool-python-soft: oklch(94% 0.035 150);
+  --tool-python-border: oklch(43% 0.13 150);
+  --tool-timestamp: oklch(46% 0.17 300);
+  --tool-timestamp-soft: oklch(95% 0.035 300);
+  --tool-timestamp-border: oklch(46% 0.17 300);
+  --tool-faq: oklch(43% 0.11 235);
+  --tool-faq-soft: oklch(94% 0.035 235);
+  --tool-faq-border: oklch(43% 0.11 235);
   color-scheme: light;
 }
 
@@ -58,8 +108,31 @@
   --accent-strong: oklch(83.7% 0.128 66.29);
   --success: oklch(76% 0.14 151);
   --success-soft: oklch(27% 0.05 151);
-  --danger: oklch(83.7% 0.128 66.29);
-  --danger-soft: oklch(27% 0.06 37.304);
+  --warning: oklch(80% 0.13 75);
+  --warning-soft: oklch(27% 0.05 75);
+  --danger: oklch(78% 0.14 25);
+  --danger-soft: oklch(27% 0.055 25);
+  --tool-base64: oklch(78% 0.11 220);
+  --tool-base64-soft: oklch(25% 0.045 220);
+  --tool-base64-border: oklch(78% 0.11 220);
+  --tool-url: oklch(78% 0.13 265);
+  --tool-url-soft: oklch(25% 0.05 265);
+  --tool-url-border: oklch(78% 0.13 265);
+  --tool-query: oklch(82% 0.12 70);
+  --tool-query-soft: oklch(26% 0.045 70);
+  --tool-query-border: oklch(82% 0.12 70);
+  --tool-jwt: oklch(80% 0.12 15);
+  --tool-jwt-soft: oklch(26% 0.05 15);
+  --tool-jwt-border: oklch(80% 0.12 15);
+  --tool-python: oklch(79% 0.12 150);
+  --tool-python-soft: oklch(25% 0.045 150);
+  --tool-python-border: oklch(79% 0.12 150);
+  --tool-timestamp: oklch(81% 0.12 300);
+  --tool-timestamp-soft: oklch(26% 0.05 300);
+  --tool-timestamp-border: oklch(81% 0.12 300);
+  --tool-faq: oklch(79% 0.1 235);
+  --tool-faq-soft: oklch(25% 0.045 235);
+  --tool-faq-border: oklch(79% 0.1 235);
   color-scheme: dark;
 }
 
@@ -120,14 +193,14 @@ code {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-control);
   background: var(--field);
   color: var(--ink);
   transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform var(--default-transition-duration) var(--default-transition-timing-function),
+    border-color var(--default-transition-duration) var(--default-transition-timing-function),
+    background-color var(--default-transition-duration) var(--default-transition-timing-function),
+    color var(--default-transition-duration) var(--default-transition-timing-function);
 }
 .icon-button:hover {
   border-color: var(--primary);

@@ -1,17 +1,8 @@
-import {
-  BracesIcon,
-  CircleHelpIcon,
-  ClockIcon,
-  CodeXmlIcon,
-  KeyRoundIcon,
-  LinkIcon,
-  MenuIcon,
-  ShieldCheckIcon,
-  XIcon,
-} from "lucide-react";
+import { CircleHelpIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
+import { TOOL_PRESENTATION } from "../../lib/presentation";
 import {
   applyTheme,
   initializeTheme,
@@ -30,17 +21,13 @@ import { QueryTool } from "./QueryTool";
 import { TimestampTool } from "./TimestampTool";
 import { UrlTool } from "./UrlTool";
 
-const ICONS = {
-  base64: BracesIcon,
-  url: LinkIcon,
-  query: CodeXmlIcon,
-  jwt: KeyRoundIcon,
-  python: BracesIcon,
-  timestamp: ClockIcon,
-} as const;
 const NAV_LINK_CLASSES =
   "group mx-3 flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
 const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold text-primary";
+const NAV_GROUP_CLASSES = "mb-5";
+const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase";
+const BRAND_SLASH_CLASSES = "text-accent";
+const ICON_BUTTON_CLASSES = "icon-button";
 
 interface ToolNavigationProps {
   activeTool: ToolId | undefined;
@@ -52,15 +39,16 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
   return (
     <nav data-testid="tool-navigation" aria-label="Tools and help" className="flex flex-1 flex-col py-5">
       {TOOL_GROUPS.map((group) => (
-        <section data-testid="tool-navigation-group" key={group} className="mb-5">
-          <p className="text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase">{group}</p>
+        <section data-testid="tool-navigation-group" key={group} className={NAV_GROUP_CLASSES}>
+          <p className={NAV_GROUP_LABEL_CLASSES}>{group}</p>
           <div>
             {TOOLS.filter((tool) => tool.group === group).map((tool) => {
-              const Icon = ICONS[tool.id];
+              const { Icon, accentClasses } = TOOL_PRESENTATION[tool.id];
               const current = tool.id === activeTool;
               return (
                 <a
                   data-testid={`tool-link-${tool.id}`}
+                  data-accent={tool.id}
                   key={tool.id}
                   href={tool.route}
                   aria-current={current ? "page" : undefined}
@@ -68,7 +56,7 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
                   onClick={onNavigate}
                 >
                   <span
-                    className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border ${current ? "border-primary bg-primary text-paper" : "border-line bg-field"}`}
+                    className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${accentClasses}`}
                   >
                     <Icon aria-hidden="true" size={16} strokeWidth={1.8} />
                   </span>
@@ -79,17 +67,18 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
           </div>
         </section>
       ))}
-      <section data-testid="help-navigation-group" className="mb-5">
-        <p className="text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase">Help</p>
+      <section data-testid="help-navigation-group" className={NAV_GROUP_CLASSES}>
+        <p className={NAV_GROUP_LABEL_CLASSES}>Help</p>
         <a
           data-testid="faq-link"
+          data-accent="faq"
           href="/faq"
           aria-current={faqCurrent ? "page" : undefined}
           className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
           <span
-            className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border ${faqCurrent ? "border-primary bg-primary text-paper" : "border-line bg-field"}`}
+            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.faq.accentClasses}`}
           >
             <CircleHelpIcon aria-hidden="true" size={16} strokeWidth={1.8} />
           </span>
@@ -173,6 +162,8 @@ export function CodecApp(props: CodecAppProps) {
     python: <PythonTool />,
     timestamp: <TimestampTool />,
   };
+  const pagePresentation = TOOL_PRESENTATION[isFaq ? "faq" : props.toolId];
+  const PageIcon = pagePresentation.Icon;
 
   return (
     <div
@@ -187,19 +178,19 @@ export function CodecApp(props: CodecAppProps) {
       </a>
       <aside
         data-testid="desktop-sidebar"
-        className="border-line bg-panel sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r md:flex"
+        className="border-line bg-panel sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r shadow-sm md:flex"
       >
         <a data-testid="desktop-home-link" href="/" className="border-line flex min-h-20 items-center border-b px-5">
-          <span className="font-display text-xl font-bold tracking-tight">
-            Codec<span className="text-accent">/</span>Bench
+          <span className="font-display text-xl font-extrabold tracking-tight">
+            Codec<span className={BRAND_SLASH_CLASSES}>/</span>Bench
           </span>
         </a>
         <ToolNavigation activeTool={isFaq ? undefined : props.toolId} faqCurrent={isFaq} />
         <footer
           data-testid="sidebar-footer"
-          className="border-line mt-auto flex items-center justify-between gap-3 border-t p-4"
+          className="border-line mt-auto flex flex-col items-stretch gap-3 border-t p-4"
         >
-          <span className="text-muted text-sm font-medium">Appearance</span>
+          <span className="text-muted text-sm font-medium whitespace-nowrap">Appearance</span>
           <ThemeControl
             dark={theme.resolved === "dark"}
             overridden={theme.override !== null}
@@ -211,21 +202,21 @@ export function CodecApp(props: CodecAppProps) {
 
       <header
         data-testid="mobile-header"
-        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 md:hidden"
+        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 shadow-sm md:hidden"
       >
         <a
           data-testid="mobile-home-link"
           href="/"
-          className="font-display inline-flex min-h-11 min-w-0 items-center text-base font-bold tracking-tight"
+          className="font-display inline-flex min-h-11 min-w-0 items-center text-base font-extrabold tracking-tight"
         >
-          Codec<span className="text-accent">/</span>Bench
+          Codec<span className={BRAND_SLASH_CLASSES}>/</span>Bench
         </a>
         <button
           ref={menuRef}
           data-testid="menu-button"
           type="button"
           title="Open tools menu"
-          className="icon-button"
+          className={ICON_BUTTON_CLASSES}
           aria-label="Open tools menu"
           aria-expanded={drawerOpen}
           onClick={() => setDrawerOpen(true)}
@@ -287,7 +278,7 @@ export function CodecApp(props: CodecAppProps) {
                 data-testid="drawer-close"
                 type="button"
                 title="Close tools menu"
-                className="icon-button"
+                className={ICON_BUTTON_CLASSES}
                 aria-label="Close tools menu"
                 onClick={closeDrawer}
               >
@@ -316,17 +307,29 @@ export function CodecApp(props: CodecAppProps) {
         data-testid="app-main"
         className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-5 pb-12 md:px-6 md:pt-8"
       >
-        <header data-testid={isFaq ? "faq-header" : "tool-header"} className="mb-5">
+        <header
+          data-testid={isFaq ? "faq-header" : "tool-header"}
+          data-accent={isFaq ? "faq" : props.toolId}
+          className="mb-6"
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <h1 className="font-display text-ink text-4xl leading-tight font-bold tracking-tight text-balance">
-              {tool ? tool.title : "Encoding and Conversion FAQ"}
-            </h1>
+            <div className="flex min-w-0 items-start gap-3">
+              <span
+                data-testid="page-identity-icon"
+                className={`rounded-control mt-1 inline-flex size-11 shrink-0 items-center justify-center border ${pagePresentation.accentClasses}`}
+              >
+                <PageIcon aria-hidden="true" size={21} strokeWidth={1.8} />
+              </span>
+              <h1 className="font-display text-ink min-w-0 text-3xl leading-tight font-extrabold tracking-tight text-balance md:text-4xl">
+                {tool ? tool.title : "Encoding and Conversion FAQ"}
+              </h1>
+            </div>
             {!isFaq && (
               <p
                 data-testid="tool-privacy"
-                className="text-muted flex shrink-0 items-center gap-2 text-sm font-medium md:pt-2"
+                className="border-success bg-success-soft text-success rounded-control flex shrink-0 items-center gap-2 border px-3 py-2 text-sm font-semibold"
               >
-                <ShieldCheckIcon aria-hidden="true" className="text-primary" size={18} strokeWidth={1.8} />
+                <ShieldCheckIcon aria-hidden="true" size={18} strokeWidth={1.8} />
                 Your data stays in this browser.
               </p>
             )}

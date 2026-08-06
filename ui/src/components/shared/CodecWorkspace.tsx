@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ArrowRightLeftIcon, CopyIcon } from "lucide-react";
+import { ArrowRightIcon, ArrowRightLeftIcon, CopyIcon, EraserIcon, PlayIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 
 import type { ConversionResult } from "../../lib/types";
@@ -51,7 +51,12 @@ interface FormatSelectProps {
 }
 
 const SELECT_CLASSES =
-  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-lg border px-3 py-2 font-mono text-sm font-semibold outline-none transition focus:ring-3 md:w-auto md:min-w-44";
+  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-sm font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
+const CHANNEL_HEADER_CLASSES =
+  "border-line flex flex-col gap-2 border-b p-3 md:flex-row md:items-center md:justify-between";
+const CHANNEL_HEADING_GROUP_CLASSES = "flex items-center gap-2";
+const CHANNEL_HEADING_CLASSES = "text-ink text-base font-bold";
+const CHANNEL_STATE_CLASSES = "border-line bg-panel text-muted rounded-full border px-2 py-0.5 font-mono text-xs";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
@@ -203,12 +208,15 @@ export function CodecWorkspace({
       <div data-testid="codec-workspace-channels" className="workspace-grid">
         <div
           data-testid={`${name}-top-channel`}
-          className="border-line bg-field grid min-w-0 overflow-hidden rounded-xl border"
+          className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface grid min-w-0 overflow-hidden border transition-colors focus-within:ring-3"
           role="group"
           aria-label="Source"
         >
-          <div className="border-line flex flex-col gap-2 border-b p-3 md:flex-row md:items-center md:justify-between">
-            <h2 className="text-ink text-base font-bold">Source</h2>
+          <div className={CHANNEL_HEADER_CLASSES}>
+            <div className={CHANNEL_HEADING_GROUP_CLASSES}>
+              <h2 className={CHANNEL_HEADING_CLASSES}>Source</h2>
+              <span className={CHANNEL_STATE_CLASSES}>Editable</span>
+            </div>
             <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
           </div>
           <TextareaField
@@ -240,19 +248,26 @@ export function CodecWorkspace({
           >
             <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
           </button>
-          <ActionButton tone="primary" onClick={convert} disabled={!needsConversion}>
+          <ActionButton title="Convert" tone="primary" onClick={convert} disabled={!needsConversion}>
+            <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
             Convert
           </ActionButton>
-          <ActionButton onClick={clear}>Clear</ActionButton>
+          <ActionButton title="Clear" onClick={clear}>
+            <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
+            Clear
+          </ActionButton>
         </div>
         <div
           data-testid={`${name}-bottom-channel`}
-          className="border-line bg-field grid min-w-0 overflow-hidden rounded-xl border"
+          className="border-line bg-field rounded-surface grid min-w-0 overflow-hidden border transition-colors"
           role="group"
           aria-label="Target"
         >
-          <div className="border-line flex flex-col gap-2 border-b p-3 md:flex-row md:items-center md:justify-between">
-            <h2 className="text-ink text-base font-bold">Target</h2>
+          <div className={CHANNEL_HEADER_CLASSES}>
+            <div className={CHANNEL_HEADING_GROUP_CLASSES}>
+              <h2 className={CHANNEL_HEADING_CLASSES}>Target</h2>
+              <span className={CHANNEL_STATE_CLASSES}>Read only</span>
+            </div>
             <FormatSelect
               channel="Bottom"
               formats={formats}
@@ -278,7 +293,7 @@ export function CodecWorkspace({
               title="Copy output"
               onClick={copy}
               disabled={!output}
-              className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+              className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
             >
               <CopyIcon aria-hidden="true" size={18} strokeWidth={1.8} />
             </button>
@@ -290,7 +305,7 @@ export function CodecWorkspace({
       <aside
         data-testid="workspace-shortcuts"
         aria-label="Keyboard shortcuts"
-        className="border-line bg-panel text-muted flex min-h-11 flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border px-4 py-2 text-sm"
+        className="border-line bg-panel text-muted rounded-control flex min-h-11 flex-wrap items-center gap-x-6 gap-y-2 border px-4 py-2 text-sm"
       >
         <strong className="text-ink">Shortcuts</strong>
         <span className="inline-flex items-center gap-2">

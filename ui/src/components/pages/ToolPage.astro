@@ -21,7 +21,9 @@ const structuredData = {
   operatingSystem: "Any",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
-const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md:ml-72";
+const ARTICLE_CLASSES =
+  "border-line bg-panel mx-4 mb-12 min-w-0 rounded-surface border p-5 shadow-sm md:mr-6 md:ml-72 md:p-8";
+const GUIDANCE_CARD_CLASSES = "border-line bg-field min-w-0 rounded-control border p-5";
 ---
 
 <Layout {title} {description} {canonical} siteName="Codec Bench" {structuredData}>
@@ -31,7 +33,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
     toolId === "base64" && (
       <article data-testid="base64-guidance" class={ARTICLE_CLASSES}>
         <div class="grid gap-8 md:grid-cols-2">
-          <section data-testid="base64-how-to">
+          <section data-testid="base64-how-to" class={GUIDANCE_CARD_CLASSES}>
             <>
               <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
               <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
@@ -43,7 +45,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
               </ol>
             </>
           </section>
-          <section data-testid="base64-about">
+          <section data-testid="base64-about" class={GUIDANCE_CARD_CLASSES}>
             <>
               <h2 class="font-display text-ink text-2xl font-bold">What is Base64?</h2>
               <p class="text-muted mt-4 max-w-prose leading-7">
@@ -60,7 +62,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
     toolId === "url" && (
       <article data-testid="url-guidance" class={ARTICLE_CLASSES}>
         <div class="grid gap-8 md:grid-cols-2">
-          <section data-testid="url-how-to">
+          <section data-testid="url-how-to" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">How to use</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
               <li>Enter plain text or percent-encoded data.</li>
@@ -68,7 +70,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
               <li>Select Convert, then copy result.</li>
             </ol>
           </section>
-          <section data-testid="url-mode-guide">
+          <section data-testid="url-mode-guide" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">Choose URL encoding mode</h2>
             <p class="text-muted mt-4 max-w-prose leading-7">
               Use RFC 3986 component for one value, Full URI for complete URI syntax, or Form URL encoded for one form
@@ -76,9 +78,9 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
             </p>
           </section>
         </div>
-        <section data-testid="url-mode-comparison-section" class="border-line mt-10 border-t pt-10">
+        <section data-testid="url-mode-comparison-section" class={`${GUIDANCE_CARD_CLASSES} mt-8`}>
           <h2 class="font-display text-ink text-2xl font-bold">URL encoding comparison</h2>
-          <div class="border-line mt-5 overflow-x-auto rounded-lg border">
+          <div class="border-line rounded-control mt-5 max-w-full overflow-x-auto border">
             <table data-testid="url-mode-comparison" class="w-full text-left text-sm">
               <caption class="sr-only">URL encoding mode behavior</caption>
               <thead class="bg-field text-ink">
@@ -139,7 +141,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
     toolId === "jwt" && (
       <article data-testid="jwt-static-guidance" class={ARTICLE_CLASSES}>
         <div class="grid gap-8 md:grid-cols-2">
-          <section data-testid="jwt-how-to">
+          <section data-testid="jwt-how-to" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">How to decode</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
               <li>Paste compact JWT containing header, payload, and signature segments.</li>
@@ -147,7 +149,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
               <li>Copy only output needed.</li>
             </ol>
           </section>
-          <section data-testid="jwt-verification">
+          <section data-testid="jwt-verification" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">Decoding vs verification</h2>
             <p class="text-muted mt-4 max-w-prose leading-7">
               Decoding reveals token contents. It does not verify signature, issuer, claims, or authenticity.
@@ -161,7 +163,7 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
     toolId === "timestamp" && (
       <article class={ARTICLE_CLASSES} data-testid="timestamp-guidance">
         <div class="grid gap-8 md:grid-cols-2">
-          <section data-testid="timestamp-how-to">
+          <section data-testid="timestamp-how-to" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">How to convert timestamps</h2>
             <ol class="text-muted mt-4 list-decimal space-y-2 pl-5 leading-7">
               <li>Choose Z time, Unix seconds, or Unix milliseconds as source.</li>
@@ -169,16 +171,16 @@ const ARTICLE_CLASSES = "border-line mx-4 mb-12 min-w-0 border-t pt-8 md:mr-6 md
               <li>Select Convert, then copy result.</li>
             </ol>
           </section>
-          <section data-testid="timestamp-range">
+          <section data-testid="timestamp-range" class={GUIDANCE_CARD_CLASSES}>
             <h2 class="font-display text-ink text-2xl font-bold">Supported Z time range</h2>
             <p class="text-muted mt-4 max-w-prose leading-7">
               Z time accepts strict UTC ISO 8601 from 1970 through 9999.
             </p>
           </section>
         </div>
-        <section data-testid="timestamp-formats" class="border-line mt-10 min-w-0 border-t pt-10">
+        <section data-testid="timestamp-formats" class={`${GUIDANCE_CARD_CLASSES} mt-8`}>
           <h2 class="font-display text-ink text-2xl font-bold">Timestamp format semantics</h2>
-          <div class="border-line mt-5 max-w-full overflow-x-auto rounded-lg border">
+          <div class="border-line rounded-control mt-5 max-w-full overflow-x-auto border">
             <table data-testid="timestamp-format-table" class="w-full table-fixed text-left text-sm">
               <caption class="sr-only">Supported timestamp formats</caption>
               <thead class="bg-field text-ink">

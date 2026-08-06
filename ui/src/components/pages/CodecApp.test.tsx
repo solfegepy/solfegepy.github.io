@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -150,6 +150,10 @@ describe("CodecApp", () => {
     expect(screen.getAllByTestId("faq-item")).toHaveLength(30);
     expect(screen.getAllByTestId("faq-summary")).toHaveLength(30);
     expect(screen.getAllByTestId("faq-accordion")).toHaveLength(6);
+    expect(screen.getAllByTestId("faq-category-icon")).toHaveLength(6);
+    for (const icon of screen.getAllByTestId("faq-category-icon")) {
+      expect(icon.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
     for (const accordion of screen.getAllByTestId("faq-accordion")) {
       const items = within(accordion).getAllByTestId("faq-item");
       expect(items).toHaveLength(5);
@@ -330,11 +334,80 @@ describe("CodecApp", () => {
     }
   });
 
+  it.each([
+    ["base64", "/", "Base64", "Base64 Decode and Encode"],
+    ["url", "/url", "URL", "URL Encode and Decode"],
+    ["query", "/query", "Query Params", "Query Parameter Parser and Builder"],
+    ["jwt", "/jwt", "JWT", "JWT Decoder"],
+    ["python", "/python-json", "Python → JSON", "Python Literal to JSON Converter"],
+    ["timestamp", "/timestamp", "Timestamp", "Z Time and Unix Timestamp Converter"],
+  ] as const)("preserves %s route identity and accented navigation", (toolId, route, label, heading) => {
+    render(<CodecApp toolId={toolId} />);
+    const active = screen.getByTestId(`tool-link-${toolId}`);
+    expect(active).toHaveAttribute("href", route);
+    expect(active).toHaveAccessibleName(label);
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(active).toHaveAttribute("data-accent", toolId);
+    expect(active.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+  });
+
   it("marks only Help/FAQ current on FAQ identity", () => {
     render(<CodecApp page="faq" />);
     expect(screen.getByTestId("faq-link")).toHaveAttribute("aria-current", "page");
     for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"])
       expect(screen.getByTestId(`tool-link-${toolId}`)).not.toHaveAttribute("aria-current");
+  });
+
+  it("gives tool and FAQ headings visible decorative accent identities", () => {
+    const view = render(<CodecApp toolId="base64" />);
+    const toolHeader = screen.getByTestId("tool-header");
+    expect(toolHeader).toHaveAttribute("data-accent", "base64");
+    expect(toolHeader.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+
+    view.rerender(<CodecApp page="faq" />);
+    const faqHeader = screen.getByTestId("faq-header");
+    expect(faqHeader).toHaveAttribute("data-accent", "faq");
+    expect(faqHeader.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("keeps action labels and names while rendering decorative icons", () => {
+    render(<CodecApp toolId="base64" />);
+
+    for (const name of ["Convert", "Clear", "Copy output", "Swap source and target"]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(screen.getByRole("button", { name: "Convert" })).toHaveTextContent("Convert");
+    expect(screen.getByRole("button", { name: "Clear" })).toHaveTextContent("Clear");
+    expect(screen.getByRole("button", { name: "Copy output" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Swap source and target" })).toBeEnabled();
+  });
+
+  it("adds decorative icons without changing feedback semantics", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+
+    await user.click(screen.getByRole("button", { name: "Copy output" }));
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Copied");
+    expect(status.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+
+    const input = screen.getByTestId("base64-input");
+    await user.clear(input);
+    await user.type(input, "***");
+    await user.selectOptions(screen.getByTestId("base64-top-format"), "base64");
+    await user.click(screen.getByRole("button", { name: "Convert" }));
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Enter valid Base64.");
+    expect(alert.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("exposes active navigation through current state, border, surface, and weight", () => {
+    render(<CodecApp toolId="url" />);
+    const active = screen.getByTestId("tool-link-url");
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(active).toHaveClass("border-primary/20", "bg-primary-soft", "font-semibold");
   });
 
   it("renders Help/FAQ in the mobile drawer and closes through the shared callback", async () => {
@@ -346,6 +419,50 @@ describe("CodecApp", () => {
     expect(faqLink).toHaveAttribute("href", "/faq");
     await user.click(faqLink);
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+  });
+
+  it("keeps desktop and mobile navigation destinations identical", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="query" />);
+    await user.click(screen.getByTestId("menu-button"));
+
+    const desktop = screen.getAllByTestId("tool-navigation")[0]!;
+    const mobile = within(screen.getByTestId("mobile-drawer")).getByTestId("tool-navigation");
+    for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
+      expect(within(mobile).getByTestId(`tool-link-${toolId}`)).toHaveAttribute(
+        "href",
+        within(desktop).getByTestId(`tool-link-${toolId}`).getAttribute("href"),
+      );
+    }
+  });
+
+  it("follows operating-system changes only without a manual override", async () => {
+    let dark = false;
+    let listener: (() => void) | undefined;
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn(() => ({
+        get matches() {
+          return dark;
+        },
+        addEventListener: (_event: string, next: () => void) => {
+          listener = next;
+        },
+        removeEventListener: vi.fn(),
+      })),
+    });
+    render(<CodecApp toolId="base64" />);
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
+
+    dark = true;
+    act(() => listener?.());
+    expect(document.documentElement.dataset.theme).toBe("dark");
+
+    await userEvent.setup().click(screen.getAllByRole("button", { name: "Use light theme" })[0]!);
+    dark = false;
+    act(() => listener?.());
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(localStorage.getItem("codec-bench-theme")).toBe("light");
   });
 
   it("opens accessible drawer, traps focus, and restores menu focus", async () => {
@@ -370,6 +487,10 @@ describe("CodecApp", () => {
     await user.keyboard("{Escape}");
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
     expect(document.documentElement).not.toHaveStyle({ overflow: "hidden" });
+    expect(menu).toHaveFocus();
+    await user.click(menu);
+    await user.click(screen.getByTestId("drawer-backdrop"));
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
     expect(menu).toHaveFocus();
   });
 
@@ -1070,6 +1191,17 @@ describe("CodecApp", () => {
     expect(screen.queryByText("Token is valid")).not.toBeInTheDocument();
     expect(screen.queryByText("Signature verified")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Decode" })).toBeDisabled();
+  });
+
+  it("keeps JWT action labels and names with decorative icons", () => {
+    render(<CodecApp toolId="jwt" />);
+
+    for (const name of ["Decode", "Clear", "Copy Header", "Copy Payload", "Copy Signature"]) {
+      const action = screen.getByRole("button", { name });
+      expect(action.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(screen.getByRole("button", { name: "Decode" })).toHaveTextContent("Decode");
+    expect(screen.getByRole("button", { name: "Clear" })).toHaveTextContent("Clear");
   });
 
   it("decodes edits, settles attempts, clears stale output, status, and all state", async () => {

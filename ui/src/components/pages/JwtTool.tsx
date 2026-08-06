@@ -1,4 +1,14 @@
-import { CopyIcon } from "lucide-react";
+import {
+  BracesIcon,
+  CircleAlertIcon,
+  CopyIcon,
+  EraserIcon,
+  FileJsonIcon,
+  FingerprintIcon,
+  KeyRoundIcon,
+  ScanTextIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 
 import { decodeJwt } from "../../lib/codecs";
@@ -23,6 +33,14 @@ interface JwtOutputFieldProps {
   onCopy: () => void;
 }
 
+const OUTPUT_ICONS = {
+  Header: BracesIcon,
+  Payload: FileJsonIcon,
+  Signature: FingerprintIcon,
+} as const satisfies Record<JwtOutputFieldProps["label"], LucideIcon>;
+const OUTPUT_HEADING_CLASSES = "text-ink font-display flex items-center gap-2 text-lg font-bold";
+const JWT_ICON_CLASSES = "text-tool-jwt";
+
 const formatOutput = ({ header, payload, signature }: DecodedJwt): JwtOutput => ({
   header: JSON.stringify(header, null, 2),
   payload: JSON.stringify(payload, null, 2),
@@ -40,13 +58,17 @@ const EMPTY_OUTPUT: JwtOutput = { header: "", payload: "", signature: "" };
 function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
   const id = label.toLowerCase();
   const compact = label === "Signature";
+  const Icon = OUTPUT_ICONS[label];
   return (
     <section
       data-testid={`jwt-${id}-group`}
-      className={`border-line bg-field grid min-w-0 overflow-hidden rounded-xl border ${compact ? "md:col-span-2" : ""}`}
+      className={`border-line bg-field rounded-surface grid min-w-0 overflow-hidden border ${compact ? "md:col-span-2" : ""}`}
     >
       <div className="border-line flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2">
-        <h2 className="text-ink font-display text-lg font-bold">{label}</h2>
+        <h2 className={OUTPUT_HEADING_CLASSES}>
+          <Icon aria-hidden="true" className={JWT_ICON_CLASSES} size={18} strokeWidth={1.8} />
+          {label}
+        </h2>
         <button
           data-testid={`jwt-copy-${id}`}
           type="button"
@@ -54,7 +76,7 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
           title={`Copy ${label}`}
           onClick={onCopy}
           disabled={!value}
-          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper inline-flex min-h-11 items-center gap-2 rounded-lg px-3 font-mono text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control inline-flex min-h-11 items-center gap-2 px-3 font-mono text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         >
           <CopyIcon aria-hidden="true" size={17} />
           Copy
@@ -118,9 +140,12 @@ export function JwtTool() {
 
   return (
     <section data-testid="jwt-tool" aria-label="JWT decoder" className="min-w-0 space-y-4">
-      <div className="border-line bg-field overflow-hidden rounded-xl border">
+      <div className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface overflow-hidden border transition-colors focus-within:ring-3">
         <div className="border-line flex min-h-12 items-center border-b px-4">
-          <h2 className="text-ink font-display text-lg font-bold">Token</h2>
+          <h2 className={OUTPUT_HEADING_CLASSES}>
+            <KeyRoundIcon aria-hidden="true" className={JWT_ICON_CLASSES} size={18} strokeWidth={1.8} />
+            Token
+          </h2>
         </div>
         <TextareaField
           ariaLabel="JWT token"
@@ -137,20 +162,24 @@ export function JwtTool() {
         <div data-testid="jwt-actions" className="flex flex-wrap gap-2">
           <ActionButton
             data-testid="jwt-decode"
+            title="Decode"
             tone="primary"
             onClick={decode}
             disabled={!input.trim() || input === lastAttemptInput}
           >
+            <ScanTextIcon aria-hidden="true" size={17} strokeWidth={1.8} />
             Decode
           </ActionButton>
-          <ActionButton data-testid="jwt-clear" onClick={clear}>
+          <ActionButton data-testid="jwt-clear" title="Clear" onClick={clear}>
+            <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
             Clear
           </ActionButton>
         </div>
         <aside
           data-testid="jwt-guidance"
-          className="border-accent bg-danger-soft text-accent-strong rounded-lg border px-4 py-2 text-sm font-medium"
+          className="border-warning bg-warning-soft text-warning rounded-control flex items-start gap-2 border px-4 py-2 text-sm font-medium"
         >
+          <CircleAlertIcon aria-hidden="true" className="mt-1 shrink-0" size={17} />
           <p data-testid="jwt-warning">Decoded only. Signature not verified.</p>
         </aside>
       </div>
