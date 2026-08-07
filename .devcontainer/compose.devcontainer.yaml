@@ -1,4 +1,4 @@
-# Created on: 2026-08-06
+# Created on: 2026-08-07
 
 services:
   devcontainer:
@@ -21,8 +21,11 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - home:/home/admin
       - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
-      - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/config.json
+      - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/_config_auth_backup.json
+      # - ~/.local/share/saicli/_data/common_auth/cursor_auth.json:/home/admin/.config/cursor/auth.json
       # - ~/.local/share/saicli/_data/common_auth/antigravity_auth.json:/home/admin/.gemini/antigravity-cli/antigravity-oauth-token
+    tmpfs:
+      - /tmp
 
 volumes:
   home:
