@@ -13,5 +13,12 @@ export default defineConfig({
   outDir: "../docs",
   output: "static",
   server: { host: "0.0.0.0", port },
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    server: {
+      watch: {
+        ignored: ["**/.pnpm-store/**", "**/test-results/**", "**/node_modules/**"],
+      },
+    },
+  },
 });
