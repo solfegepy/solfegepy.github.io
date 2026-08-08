@@ -24,6 +24,10 @@ Use strict TypeScript; avoid `any`. Prettier enforces two-space indentation, sem
 
 Keep implementation minimal. Reuse platform features and installed dependencies before adding abstractions or packages. Add `data-testid` to components, buttons, and tables used by browser tests.
 
+## UI Design
+
+[DESIGN.md](DESIGN.md) is source of truth for visual and interaction work.
+
 ## Testing Guidelines
 
 Use Vitest with Testing Library for unit and component behavior. Use Playwright page objects for browser flows; tests express intent and own assertions. Follow red-green-refactor. During debugging, stop at first failure with `pnpm test -- --bail=1` or Playwright `--max-failures=1`. Add regression tests beside every bug fix.
