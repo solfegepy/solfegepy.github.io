@@ -5,18 +5,11 @@ set -e
 rm -f ui/.astro/dev.json
 
 # If using copilot
-~/.copilot/config_backup_restore_auth.py
+# ~/.copilot/config_backup_restore_auth.py
 
-tmux new-session \; \
-  send-keys 'copilot' \; \
-  split-window -v \; \
-  send-keys 'm start-dev' C-m \; \
-  select-pane -t 1
-  # split-window -v \; \
-  # send-keys 'm start-ui-dev' C-m \; \
-  # split-window -h \; \
-  # send-keys 'm start-api-dev' C-m \; \
-
+herdr_spreader.py --file .devcontainer/herdr_start_config.yaml
+# user can only detach, so we stop herdr here
+herdr server stop
 
 # In case we exit tmux
-# exec bash -l
+exec bash -l

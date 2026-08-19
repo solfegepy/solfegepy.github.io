@@ -1,4 +1,4 @@
-# Created on: 2026-08-07
+# Created on: 2026-08-20
 
 services:
   devcontainer:
@@ -15,13 +15,16 @@ services:
     init: true  # wrapper because 'sleep' does not handle SIGTERM
     environment:
       - ENV=development
+      - WAYLAND_DISPLAY=/tmp/host-wayland # for clipboard copy
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
       - ..:/workspaces/project  # modify .. if dockerComposeFile[0] changes
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - home:/home/admin
+      - ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:/tmp/host-wayland # for clipboard copy
       - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
-      - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/_config_auth_backup.json
+      - ~/.local/share/saicli/_data/common_auth/claude_auth.json:/home/admin/.claude/.credentials.json
+      # - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/_config_auth_backup.json
       # - ~/.local/share/saicli/_data/common_auth/cursor_auth.json:/home/admin/.config/cursor/auth.json
       # - ~/.local/share/saicli/_data/common_auth/antigravity_auth.json:/home/admin/.gemini/antigravity-cli/antigravity-oauth-token
     tmpfs:
