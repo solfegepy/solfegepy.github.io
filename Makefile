@@ -60,6 +60,9 @@ outdated: ui/node_modules
 
 upgrade: ui/node_modules
 	cd ui && pnpm update
+	@pkg=$$(jq -r '.devDependencies["@playwright/test"]' ui/package.json | tr -d '^~='); \
+	img=$$(jq -r '.driverVersion' /ms-playwright/.docker-info); \
+	[ "$$pkg" = "$$img" ] || { echo "Playwright mismatch: package.json wants $$pkg, devcontainer image has $$img. Bump the Playwright image version in .devcontainer/compose.devcontainer.yaml (or its Dockerfile) to $$pkg."; exit 1; }
 
 ui/node_modules:
 	cd ui && pnpm install --frozen-lockfile

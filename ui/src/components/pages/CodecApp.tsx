@@ -1,6 +1,8 @@
 import { CircleHelpIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 
+import { disableAnalytics, loadAnalytics } from "../../lib/analytics";
+import { parseConsentRecord, shouldShowBanner, CONSENT_STORAGE_KEY, type ConsentRecord } from "../../lib/consent";
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
 import { TOOL_PRESENTATION } from "../../lib/presentation";
 import {
@@ -12,14 +14,32 @@ import {
   writeThemeOverride,
   type ThemeOverride,
 } from "../../lib/theme";
+import { CookieBanner } from "../ui/CookieBanner";
 import { ThemeControl } from "../ui/ThemeControl";
 import { Base64Tool } from "./Base64Tool";
 import { FaqContent } from "./FaqContent";
 import { JwtTool } from "./JwtTool";
+import { PrivacyContent } from "./PrivacyContent";
 import { PythonTool } from "./PythonTool";
 import { QueryTool } from "./QueryTool";
 import { TimestampTool } from "./TimestampTool";
 import { UrlTool } from "./UrlTool";
+
+function readConsentRecord(): ConsentRecord | null {
+  try {
+    return parseConsentRecord(localStorage.getItem(CONSENT_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function writeConsentRecord(record: ConsentRecord): void {
+  try {
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(record));
+  } catch {
+    // ponytail: consent simply does not persist when storage is blocked; the banner reappears next visit.
+  }
+}
 
 const NAV_LINK_CLASSES =
   "group mx-3 flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
@@ -89,11 +109,36 @@ function ToolNavigation({ activeTool, faqCurrent, onNavigate }: ToolNavigationPr
   );
 }
 
-export type CodecAppProps = { toolId: ToolId; page?: never } | { page: "faq"; toolId?: never };
+interface FooterLegalLinksProps {
+  onReopenCookieSettings: (event: MouseEvent) => void;
+}
+
+const FOOTER_LINK_CLASSES = "text-muted hover:text-primary min-h-11 text-sm font-medium underline underline-offset-2";
+
+function FooterLegalLinks({ onReopenCookieSettings }: FooterLegalLinksProps) {
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <a data-testid="privacy-link" href="/privacy" className={FOOTER_LINK_CLASSES}>
+        Privacy &amp; cookies
+      </a>
+      <a
+        data-testid="cookie-settings-link"
+        href="#cookie-banner"
+        className={FOOTER_LINK_CLASSES}
+        onClick={onReopenCookieSettings}
+      >
+        Cookie settings
+      </a>
+    </div>
+  );
+}
+
+export type CodecAppProps = { toolId: ToolId; page?: never } | { page: "faq" | "privacy"; toolId?: never };
 
 export function CodecApp(props: CodecAppProps) {
   const isFaq = props.page === "faq";
-  const tool = isFaq ? undefined : getTool(props.toolId);
+  const isPrivacy = props.page === "privacy";
+  const tool = props.page === undefined ? getTool(props.toolId) : undefined;
   const [descriptionSummary, ...descriptionDetails] = tool?.description ?? [];
   const [theme, setTheme] = useState<{ override: ThemeOverride; resolved: "light" | "dark" }>({
     override: null,
@@ -101,6 +146,8 @@ export function CodecApp(props: CodecAppProps) {
   });
   const [hydrated, setHydrated] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [consentRecord, setConsentRecord] = useState<ConsentRecord | null>(null);
+  const [bannerVisible, setBannerVisible] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -118,6 +165,19 @@ export function CodecApp(props: CodecAppProps) {
     return () => {
       active = false;
       unsubscribe();
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      const record = readConsentRecord();
+      setConsentRecord(record);
+      if (record?.status === "granted") loadAnalytics();
+      setBannerVisible(shouldShowBanner(record, Date.now()));
+    });
+    return () => {
+      active = false;
     };
   }, []);
   useEffect(() => {
@@ -154,6 +214,28 @@ export function CodecApp(props: CodecAppProps) {
     applyTheme(resolved);
     setTheme({ override: null, resolved });
   };
+  const acceptConsent = () => {
+    const record: ConsentRecord = { status: "granted", decidedAt: Date.now() };
+    writeConsentRecord(record);
+    setConsentRecord(record);
+    setBannerVisible(false);
+    loadAnalytics();
+  };
+  const rejectConsent = () => {
+    const previouslyGranted = consentRecord?.status === "granted";
+    const record: ConsentRecord = { status: "denied", decidedAt: Date.now() };
+    writeConsentRecord(record);
+    setConsentRecord(record);
+    setBannerVisible(false);
+    if (previouslyGranted) {
+      disableAnalytics();
+      window.location.reload();
+    }
+  };
+  const reopenCookieSettings = (event: MouseEvent) => {
+    event.preventDefault();
+    setBannerVisible(true);
+  };
   const tools = {
     base64: <Base64Tool />,
     url: <UrlTool />,
@@ -162,7 +244,7 @@ export function CodecApp(props: CodecAppProps) {
     python: <PythonTool />,
     timestamp: <TimestampTool />,
   };
-  const pagePresentation = TOOL_PRESENTATION[isFaq ? "faq" : props.toolId];
+  const pagePresentation = TOOL_PRESENTATION[props.page ?? props.toolId];
   const PageIcon = pagePresentation.Icon;
 
   return (
@@ -185,7 +267,7 @@ export function CodecApp(props: CodecAppProps) {
             Codec<span className={BRAND_SLASH_CLASSES}>/</span>Bench
           </span>
         </a>
-        <ToolNavigation activeTool={isFaq ? undefined : props.toolId} faqCurrent={isFaq} />
+        <ToolNavigation activeTool={props.page ? undefined : props.toolId} faqCurrent={isFaq} />
         <footer
           data-testid="sidebar-footer"
           className="border-line mt-auto flex flex-col items-stretch gap-3 border-t p-4"
@@ -197,6 +279,7 @@ export function CodecApp(props: CodecAppProps) {
             onToggle={toggleTheme}
             onReset={resetTheme}
           />
+          <FooterLegalLinks onReopenCookieSettings={reopenCookieSettings} />
         </footer>
       </aside>
 
@@ -286,17 +369,23 @@ export function CodecApp(props: CodecAppProps) {
               </button>
             </div>
             <ToolNavigation
-              activeTool={isFaq ? undefined : props.toolId}
+              activeTool={props.page ? undefined : props.toolId}
               faqCurrent={isFaq}
               onNavigate={() => setDrawerOpen(false)}
             />
-            <footer data-testid="mobile-footer" className="border-line mt-auto flex justify-end border-t p-4">
-              <ThemeControl
-                dark={theme.resolved === "dark"}
-                overridden={theme.override !== null}
-                onToggle={toggleTheme}
-                onReset={resetTheme}
-              />
+            <footer
+              data-testid="mobile-footer"
+              className="border-line mt-auto flex flex-col items-stretch gap-3 border-t p-4"
+            >
+              <FooterLegalLinks onReopenCookieSettings={reopenCookieSettings} />
+              <div className="flex justify-end">
+                <ThemeControl
+                  dark={theme.resolved === "dark"}
+                  overridden={theme.override !== null}
+                  onToggle={toggleTheme}
+                  onReset={resetTheme}
+                />
+              </div>
             </footer>
           </aside>
         </dialog>
@@ -308,8 +397,8 @@ export function CodecApp(props: CodecAppProps) {
         className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-5 pb-12 md:px-6 md:pt-8"
       >
         <header
-          data-testid={isFaq ? "faq-header" : "tool-header"}
-          data-accent={isFaq ? "faq" : props.toolId}
+          data-testid={isFaq ? "faq-header" : isPrivacy ? "privacy-header" : "tool-header"}
+          data-accent={isFaq ? "faq" : isPrivacy ? "privacy" : props.toolId}
           className="mb-6"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -321,10 +410,10 @@ export function CodecApp(props: CodecAppProps) {
                 <PageIcon aria-hidden="true" size={21} strokeWidth={1.8} />
               </span>
               <h1 className="font-display text-ink min-w-0 text-3xl leading-tight font-extrabold tracking-tight text-balance md:text-4xl">
-                {tool ? tool.title : "Encoding and Conversion FAQ"}
+                {tool ? tool.title : isFaq ? "Encoding and Conversion FAQ" : "Privacy & Cookies Policy"}
               </h1>
             </div>
-            {!isFaq && (
+            {!isFaq && !isPrivacy && (
               <p
                 data-testid="tool-privacy"
                 className="border-success bg-success-soft text-success rounded-control flex shrink-0 items-center gap-2 border px-3 py-2 text-sm font-semibold"
@@ -337,6 +426,10 @@ export function CodecApp(props: CodecAppProps) {
           {isFaq ? (
             <p data-testid="faq-lead" className="text-muted mt-3 max-w-prose text-pretty">
               Direct answers about Codec Bench formats, limits, and browser-only conversion tools.
+            </p>
+          ) : isPrivacy ? (
+            <p data-testid="privacy-lead" className="text-muted mt-3 max-w-prose text-pretty">
+              How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.
             </p>
           ) : (
             <div data-testid="tool-description" className="text-muted mt-2 max-w-prose text-sm leading-6 text-pretty">
@@ -351,8 +444,9 @@ export function CodecApp(props: CodecAppProps) {
             </div>
           )}
         </header>
-        {isFaq ? <FaqContent /> : tools[props.toolId]}
+        {isFaq ? <FaqContent /> : isPrivacy ? <PrivacyContent /> : tool ? tools[tool.id] : null}
       </main>
+      <CookieBanner visible={bannerVisible} onAccept={acceptConsent} onReject={rejectConsent} />
     </div>
   );
 }

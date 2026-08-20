@@ -1,9 +1,12 @@
 import { expect, test, type Locator } from "@playwright/test";
 
 import { CodecPage } from "../pages/CodecPage";
+import { CookieBannerPage } from "../pages/CookieBannerPage";
 
 test("visual contract: Base64 desktop dark", async ({ page }) => {
   const codec = new CodecPage(page);
+  await new CookieBannerPage(page).seedConsent("granted");
+  await page.route(/googletagmanager\.com/, (route) => route.abort());
   await codec.setViewport(1440, 900);
   await codec.useColorScheme("dark");
   await codec.open();
@@ -14,6 +17,8 @@ test("visual contract: Base64 desktop dark", async ({ page }) => {
 
 test("visual contract: Base64 mobile light", async ({ page }) => {
   const codec = new CodecPage(page);
+  await new CookieBannerPage(page).seedConsent("granted");
+  await page.route(/googletagmanager\.com/, (route) => route.abort());
   await codec.setViewport(375, 812);
   await codec.useColorScheme("light");
   await codec.open();
@@ -24,6 +29,8 @@ test("visual contract: Base64 mobile light", async ({ page }) => {
 
 test("visual contract: JWT desktop light", async ({ page }) => {
   const codec = new CodecPage(page);
+  await new CookieBannerPage(page).seedConsent("granted");
+  await page.route(/googletagmanager\.com/, (route) => route.abort());
   await codec.setViewport(1440, 900);
   await codec.useColorScheme("light");
   await codec.open("/jwt");
@@ -34,6 +41,8 @@ test("visual contract: JWT desktop light", async ({ page }) => {
 
 test("visual contract: FAQ mobile dark", async ({ page }) => {
   const codec = new CodecPage(page);
+  await new CookieBannerPage(page).seedConsent("granted");
+  await page.route(/googletagmanager\.com/, (route) => route.abort());
   await codec.setViewport(375, 812);
   await codec.useColorScheme("dark");
   await codec.openFaq();

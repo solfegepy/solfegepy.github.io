@@ -36,6 +36,11 @@ function faqDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function privacyDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/privacy/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function notFoundDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/404.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
@@ -43,7 +48,14 @@ function notFoundDocument(): Document {
 
 describe("production homepage SEO", () => {
   it("loads the shared Google Fonts families without blocking fallback text", () => {
-    for (const document of [productionDocument(), urlDocument(), timestampDocument(), jwtDocument(), faqDocument()]) {
+    for (const document of [
+      productionDocument(),
+      urlDocument(),
+      timestampDocument(),
+      jwtDocument(),
+      faqDocument(),
+      privacyDocument(),
+    ]) {
       const fontStylesheets = document.querySelectorAll(
         'link[rel="stylesheet"][href^="https://fonts.googleapis.com/"]',
       );
@@ -100,6 +112,15 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated")).toBe("false");
     expect(document.querySelector('[data-testid="codec-app"]')?.hasAttribute("inert")).toBe(true);
     expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("aria-busy")).toBe("true");
+  });
+
+  it("gates analytics behind consent and links the footer to the privacy page in static HTML", () => {
+    const document = productionDocument();
+
+    expect(document.querySelector('script[src*="googletagmanager.com/gtag/js"]')).toBeNull();
+    expect(document.querySelector('[data-testid="cookie-banner"]')?.hasAttribute("hidden")).toBe(true);
+    expect(document.querySelector('[data-testid="privacy-link"]')?.getAttribute("href")).toBe("/privacy");
+    expect(document.querySelector('[data-testid="cookie-settings-link"]')?.getAttribute("href")).toBe("#cookie-banner");
   });
 
   it("renders one valid WebApplication JSON-LD object", () => {
@@ -229,6 +250,26 @@ describe("production FAQ SEO", () => {
     ).toEqual(["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]);
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
     expect(document.documentElement.innerHTML).not.toMatch(/FAQPage|QAPage/);
+  });
+});
+
+describe("production Privacy SEO", () => {
+  it("renders the policy, cookie table, and vendor name in static HTML", () => {
+    const document = privacyDocument();
+    const canonical = "https://codec64.com/privacy";
+
+    expect(document.title).toBe("Privacy & Cookies Policy | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
+      "How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("Privacy & Cookies Policy");
+    expect(document.body.textContent).toContain("Google Analytics");
+    expect(document.querySelector('[data-testid="privacy-cookie-table"]')?.textContent).toContain("_ga");
+    expect(document.querySelector('[data-testid="privacy-cookie-table"]')?.textContent).toContain("_ga_J0WPVDJ942");
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
   });
 });
 

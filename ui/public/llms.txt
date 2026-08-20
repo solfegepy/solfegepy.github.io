@@ -12,3 +12,7 @@ Codec Bench provides free web utilities at https://codec64.com.
 - [JWT Decoder](https://codec64.com/jwt): Decode JWT headers and payloads without signature verification.
 - [Python Literal to JSON Converter](https://codec64.com/python-json): Convert Python dictionaries from PDB or print output into JSON.
 - [Z Time and Unix Timestamp Converter](https://codec64.com/timestamp): Convert UTC Z time, Unix seconds, and Unix milliseconds.
+
+## Other
+
+- [Privacy & Cookies Policy](https://codec64.com/privacy): How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.

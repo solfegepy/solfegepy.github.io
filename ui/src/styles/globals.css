@@ -40,6 +40,9 @@
   --color-tool-faq: var(--tool-faq);
   --color-tool-faq-soft: var(--tool-faq-soft);
   --color-tool-faq-border: var(--tool-faq-border);
+  --color-tool-privacy: var(--tool-privacy);
+  --color-tool-privacy-soft: var(--tool-privacy-soft);
+  --color-tool-privacy-border: var(--tool-privacy-border);
 }
 
 @theme {
@@ -92,6 +95,9 @@
   --tool-faq: var(--color-sky-800);
   --tool-faq-soft: var(--color-sky-50);
   --tool-faq-border: var(--color-sky-800);
+  --tool-privacy: var(--color-zinc-700);
+  --tool-privacy-soft: var(--color-zinc-50);
+  --tool-privacy-border: var(--color-zinc-700);
   color-scheme: light;
 }
 
@@ -134,11 +140,20 @@
   --tool-faq: var(--color-sky-300);
   --tool-faq-soft: var(--color-sky-950);
   --tool-faq-border: var(--color-sky-300);
+  --tool-privacy: var(--color-zinc-300);
+  --tool-privacy-soft: var(--color-zinc-950);
+  --tool-privacy-border: var(--color-zinc-300);
   color-scheme: dark;
 }
 
 html {
   background: var(--paper);
+  scroll-padding-bottom: var(--cookie-banner-height, 0px);
+}
+
+#cookie-banner {
+  max-height: 45dvh;
+  overflow-y: auto;
 }
 body {
   min-width: 0;

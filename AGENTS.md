@@ -39,3 +39,7 @@ Never run GIT or deploy. The user will review changes before deploying.
 ## Security & Deployment
 
 Conversions must remain browser-only; never transmit user input. `codec64.com` deploys as static content through GitHub Pages, which controls response headers and CDN caching. Preserve `public/CNAME`, `.nojekyll`, and security exceptions documented in `zap.conf`.
+
+## Cookie Consent & Analytics
+
+Google Analytics only loads after the visitor accepts the cookie banner; rejecting or leaving it undecided keeps the site tracker-free. The consent decision is stored in `localStorage` under `codec-bench-consent-v1` (`ui/src/lib/consent.ts`) and re-asked after 6 months. The **Cookie settings** link in the footer reopens the banner from any page; the policy lives at `/privacy`.

@@ -35,7 +35,7 @@ workspaces:
       # --------- dev servers -------------------
       - label: dev_servers
         panes:
-          - command: m m start-dev
+          - command: m start-dev
 
 
 # This is similar to tmux commands:

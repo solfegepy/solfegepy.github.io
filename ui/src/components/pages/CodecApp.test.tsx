@@ -2,8 +2,15 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { CONSENT_STORAGE_KEY } from "../../lib/consent";
 import type { WebMcpTool } from "../../lib/webmcp";
 import { CodecApp } from "./CodecApp";
+
+vi.mock("../../lib/analytics", () => ({
+  GA_MEASUREMENT_ID: "G-J0WPVDJ942",
+  loadAnalytics: vi.fn(),
+  disableAnalytics: vi.fn(),
+}));
 
 function installModelContext(registerTool = vi.fn()): typeof registerTool {
   Object.defineProperty(document, "modelContext", { configurable: true, value: { registerTool } });
@@ -11,6 +18,7 @@ function installModelContext(registerTool = vi.fn()): typeof registerTool {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
   Reflect.deleteProperty(document, "modelContext");
   sessionStorage.clear();
   localStorage.clear();
@@ -1279,5 +1287,110 @@ describe("CodecApp", () => {
     }
     expect(screen.getByTestId("jwt-actions")).toBeInTheDocument();
     expect(screen.getByTestId("jwt-guidance")).toBeInTheDocument();
+  });
+});
+
+describe("cookie consent", () => {
+  it("shows the banner on a first visit with no analytics loaded", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    render(<CodecApp toolId="base64" />);
+
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+    expect(loadAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("hides the banner and skips loading analytics for a fresh denied record", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({ status: "denied", decidedAt: Date.now() }));
+    render(<CodecApp toolId="base64" />);
+    await Promise.resolve();
+
+    expect(screen.getByTestId("cookie-banner")).not.toBeVisible();
+    expect(loadAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("hides the banner and loads analytics for a fresh granted record", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({ status: "granted", decidedAt: Date.now() }));
+    render(<CodecApp toolId="base64" />);
+
+    await waitFor(() => expect(loadAnalytics).toHaveBeenCalledOnce());
+    expect(screen.getByTestId("cookie-banner")).not.toBeVisible();
+  });
+
+  it("re-shows the banner for a stale record", async () => {
+    const decidedAt = Date.now() - 181 * 24 * 60 * 60 * 1_000;
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({ status: "granted", decidedAt }));
+    render(<CodecApp toolId="base64" />);
+
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+  });
+
+  it("treats a corrupt record as undecided and does not load analytics", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    localStorage.setItem(CONSENT_STORAGE_KEY, "not-json");
+    render(<CodecApp toolId="base64" />);
+
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+    expect(loadAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("accepts: hides banner, persists granted, and loads analytics", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+
+    await user.click(screen.getByTestId("cookie-accept"));
+
+    expect(screen.getByTestId("cookie-banner")).not.toBeVisible();
+    expect(loadAnalytics).toHaveBeenCalledOnce();
+    const stored = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) ?? "null");
+    expect(stored.status).toBe("granted");
+  });
+
+  it("rejects: hides banner, persists denied, and never loads analytics", async () => {
+    const { loadAnalytics } = await import("../../lib/analytics");
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+
+    await user.click(screen.getByTestId("cookie-reject"));
+
+    expect(screen.getByTestId("cookie-banner")).not.toBeVisible();
+    expect(loadAnalytics).not.toHaveBeenCalled();
+    const stored = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) ?? "null");
+    expect(stored.status).toBe("denied");
+  });
+
+  it("withdraws consent: reopening and rejecting after accept disables analytics and reloads", async () => {
+    const { disableAnalytics } = await import("../../lib/analytics");
+    const reload = vi.fn();
+    Object.defineProperty(window, "location", { configurable: true, value: { ...window.location, reload } });
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await waitFor(() => expect(screen.getByTestId("cookie-banner")).toBeVisible());
+
+    await user.click(screen.getByTestId("cookie-accept"));
+    await user.click(screen.getAllByTestId("cookie-settings-link")[0]!);
+    expect(screen.getByTestId("cookie-banner")).toBeVisible();
+    await user.click(screen.getByTestId("cookie-reject"));
+
+    expect(disableAnalytics).toHaveBeenCalledOnce();
+    expect(reload).toHaveBeenCalledOnce();
+    const stored = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) ?? "null");
+    expect(stored.status).toBe("denied");
+  });
+
+  it("links the footer to the privacy page and reopens the banner from cookie settings", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({ status: "denied", decidedAt: Date.now() }));
+    render(<CodecApp toolId="base64" />);
+    await Promise.resolve();
+
+    expect(screen.getAllByTestId("privacy-link")[0]).toHaveAttribute("href", "/privacy");
+    expect(screen.getByTestId("cookie-banner")).not.toBeVisible();
+    await user.click(screen.getAllByTestId("cookie-settings-link")[0]!);
+    expect(screen.getByTestId("cookie-banner")).toBeVisible();
   });
 });

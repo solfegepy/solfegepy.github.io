@@ -3,6 +3,7 @@ import {
   CircleHelpIcon,
   ClockIcon,
   CodeXmlIcon,
+  CookieIcon,
   KeyRoundIcon,
   LinkIcon,
   type LucideIcon,
@@ -10,7 +11,7 @@ import {
 
 import type { ToolId } from "./tools";
 
-export type PresentationId = ToolId | "faq";
+export type PresentationId = ToolId | "faq" | "privacy";
 
 interface ToolPresentation {
   Icon: LucideIcon;
@@ -32,4 +33,8 @@ export const TOOL_PRESENTATION = {
     accentClasses: "border-tool-timestamp-border bg-tool-timestamp-soft text-tool-timestamp",
   },
   faq: { Icon: CircleHelpIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
+  privacy: {
+    Icon: CookieIcon,
+    accentClasses: "border-tool-privacy-border bg-tool-privacy-soft text-tool-privacy",
+  },
 } as const satisfies Record<PresentationId, ToolPresentation>;

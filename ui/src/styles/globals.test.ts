@@ -43,6 +43,9 @@ const SEMANTIC_COLORS = [
   "tool-faq",
   "tool-faq-soft",
   "tool-faq-border",
+  "tool-privacy",
+  "tool-privacy-soft",
+  "tool-privacy-border",
 ] as const;
 const APPROVED_COLORS = /^oklch\([\d.]+% [\d.]+ [\d.]+\)$/;
 const TEST_ID_SURFACES = ["section", "header", "footer", "main", "nav", "article", "button", "a", "input", "textarea"];
