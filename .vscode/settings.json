@@ -1,0 +1,10 @@
+{
+  "search.exclude": {
+    "**/test-results": true,
+    "**/.astro": true,
+    "**/.pnpm-store": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.venv": true
+  }
+}
