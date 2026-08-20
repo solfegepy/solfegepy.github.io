@@ -7,7 +7,7 @@ interface CookieBannerProps {
 }
 
 const BUTTON_CLASSES =
-  "min-h-11 flex-1 rounded-control border px-4 py-2 text-center font-mono text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:flex-none";
+  "min-h-11 flex-1 rounded-control border px-4 py-2 text-center font-mono text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:flex-none";
 
 const HEIGHT_VAR = "--cookie-banner-height";
 
@@ -45,7 +45,7 @@ export function CookieBanner({ visible, onAccept, onReject }: CookieBannerProps)
         hidden={!visible}
         className="border-line bg-panel fixed inset-x-0 bottom-0 z-40 border-t p-4 shadow-lg"
       >
-        <div className="mx-auto flex max-w-3xl flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-3xl flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
           <p className="text-muted max-w-prose min-w-0 text-sm leading-6">
             We use Google Analytics to understand how the site is used — this only runs if you accept.{" "}
             <a
@@ -57,7 +57,7 @@ export function CookieBanner({ visible, onAccept, onReject }: CookieBannerProps)
             </a>
             .
           </p>
-          <div className="flex w-full shrink-0 gap-2 sm:w-auto">
+          <div className="flex w-full shrink-0 gap-2 md:w-auto">
             <button
               data-testid="cookie-reject"
               type="button"
