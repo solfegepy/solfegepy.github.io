@@ -1,4 +1,4 @@
-.PHONY: start-dev stop clean build format format-check typecheck eslint lint test test-e2e test-e2e-slow test-e2e-step-by-step outdated upgrade zap lighthouse
+.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug test-report outdated upgrade zap lighthouse
 
 include .devcontainer/.env
 export
@@ -42,6 +42,7 @@ lint: ui/node_modules
 	cd ui && pnpm run typecheck
 	cd ui && pnpm exec eslint .
 	cd ui && semgrep scan --error --config auto .
+	~/.local/bin/assert_ui_breakpoint.sh ui/src
 
 test: ui/node_modules
 	cd ui && pnpm test -- --bail=1
@@ -49,11 +50,17 @@ test: ui/node_modules
 test-e2e: ui/node_modules
 	cd ui && pnpm exec playwright test --max-failures=1
 
+test-e2e-headed: ui/node_modules
+	cd ui && pnpm exec playwright test --headed --max-failures=1
+
 test-e2e-slow: ui/node_modules
 	cd ui && PLAYWRIGHT_SLOW_MO=1000 pnpm exec playwright test --headed --max-failures=1
 
-test-e2e-step-by-step: ui/node_modules
-	cd ui && pnpm exec playwright test --debug
+test-e2e-debug: ui/node_modules
+	cd ui && DEBUG='pw:api,pw:browser*' pnpm exec playwright test --debug
+
+test-report: ui/node_modules
+	cd ui && pnpm exec playwright show-report --host 0.0.0.0 test-results/playwright/report
 
 outdated: ui/node_modules
 	cd ui && pnpm outdated

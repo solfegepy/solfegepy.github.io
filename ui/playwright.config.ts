@@ -26,8 +26,9 @@ export default defineConfig({
   use: {
     baseURL: testUrl,
     viewport: { width: 1920, height: 1080 },
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
     actionTimeout: 10_000,
     navigationTimeout: 20_000,
   },
