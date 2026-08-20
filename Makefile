@@ -1,4 +1,4 @@
-.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug test-report outdated upgrade zap lighthouse
+.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug test-report outdated upgrade zap lighthouse audit
 
 include .devcontainer/.env
 export
@@ -64,6 +64,11 @@ test-report: ui/node_modules
 
 outdated: ui/node_modules
 	cd ui && pnpm outdated
+
+# ponytail: pnpm audit only checks JS/TS dependency advisories, not container images or IaC.
+# This repo ships neither today. If either is added later, replace with a Trivy scan (fs + image/config).
+audit: ui/node_modules
+	cd ui && pnpm audit --audit-level high
 
 upgrade: ui/node_modules
 	cd ui && pnpm update
