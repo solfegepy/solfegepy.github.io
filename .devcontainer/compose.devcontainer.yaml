@@ -1,34 +1,17 @@
-# Created on: 2026-08-20
-
 services:
   devcontainer:
     build:
-      context: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/docker
-      dockerfile: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/docker/Dockerfile
-    image: saicli  # common image name for all projects
-    container_name: saicli__ai_codec64  # for now allow only 1 per project
-    hostname: saicli__ai_codec64
+      context: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/docker
+      # additional_contexts:
+      #   skills: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/skills/dist  # allow COPY --from=skills
+    container_name: saicli--ai-codec64  # for now allow only 1 per project
+    hostname: saicli--ai-codec64
+    network_mode: bridge  # Remove when adding a 2nd service (requiring DNS by service name)
     ports:
       - "${UI_EXT_PORT}:${UI_INT_PORT}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    init: true  # wrapper because 'sleep' does not handle SIGTERM
+    #   - "${API_EXT_PORT}:${API_INT_PORT}"
     environment:
       - ENV=development
-      - WAYLAND_DISPLAY=/tmp/host-wayland # for clipboard copy
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
       - ..:/workspaces/project  # modify .. if dockerComposeFile[0] changes
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - home:/home/admin
-      - ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:/tmp/host-wayland # for clipboard copy
-      - ~/.local/share/saicli/_data/common_auth/codex_auth.json:/home/admin/.codex/auth.json
-      - ~/.local/share/saicli/_data/common_auth/claude_auth.json:/home/admin/.claude/.credentials.json
-      # - ~/.local/share/saicli/_data/common_auth/copilot_auth.json:/home/admin/.copilot/_config_auth_backup.json
-      # - ~/.local/share/saicli/_data/common_auth/cursor_auth.json:/home/admin/.config/cursor/auth.json
-      # - ~/.local/share/saicli/_data/common_auth/antigravity_auth.json:/home/admin/.gemini/antigravity-cli/antigravity-oauth-token
-    tmpfs:
-      - /tmp
-
-volumes:
-  home:
+      - /media/IDATA_LINUX/GIT/LOCAL/ai_cli/skills/dist:/home/admin/.agents/skills:ro

@@ -4,8 +4,9 @@
   "dockerComposeFile": [
     // "../compose.yaml",  // if uncommenting: replace .. with . in ./compose.devcontainer.yaml
     "./compose.devcontainer.yaml",
-    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.gui.yaml"
-    // "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/app/src/compose.audio.yaml",
+    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/src/compose.common.yaml",
+    "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/src/compose.gui.yaml"
+    // "/media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/src/compose.audio.yaml",
   ],
   "service": "devcontainer", // devcontainer service to work on
   "runServices": ["devcontainer"], // services to start ([] = start all defined in dockerComposeFile)

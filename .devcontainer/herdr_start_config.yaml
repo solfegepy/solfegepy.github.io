@@ -1,36 +1,16 @@
+cwd: ..  # or ../subproject1 . '.' is relative to 1st config file (probably this file)
 workspaces:
-  - name: w1
-    cwd: ..  # relative from this file
+  - name: Shells
     tabs:
-      # --------- codex -------------------------
-      - label: sol_high
-        panes:
-          - kind: codex
-            command: -p high
-      - label: sol_medium
-        panes:
-          - kind: codex
-
-      # --------- claude ------------------------
-      - label: claude_opus
-        panes:
-          - kind: claude
-            command: --model claude-opus-5
-      - label: claude_medium
-        panes:
-          - kind: claude
-            command: --model claude-sonnet-5
-
-      # --------- copilot -----------------------
-      # - label: copilot_medium
-      #   panes:
-      #     - kind: copilot --model gpt-5.6-terra
-
       # --------- shell commands ----------------
-      - label: shells
+      - label: misc
         panes:
-          - command: m test
-            lf: false
+          - command: ll
+      # - label: make
+      #   panes:
+      #     - command: make test
+      #       lf: false
+      #       split: down
 
       # --------- dev servers -------------------
       - label: dev_servers
