@@ -251,17 +251,6 @@ code {
   }
 }
 
-.conversion-node {
-  display: inline-flex;
-  width: 2.75rem;
-  height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: var(--primary);
-  color: var(--paper);
-}
-
 kbd {
   min-width: 1.75rem;
   border: 1px solid var(--line);

@@ -1,4 +1,4 @@
-import { ArrowRightIcon, ArrowRightLeftIcon, CopyIcon, EraserIcon, PlayIcon } from "lucide-react";
+import { ArrowRightLeftIcon, CopyIcon, EraserIcon, PlayIcon } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useState } from "react";
 
 import type { ConversionResult } from "../../lib/types";
@@ -235,9 +235,6 @@ export function CodecWorkspace({
           role="group"
           aria-label="Conversion actions"
         >
-          <span className="conversion-node" aria-hidden="true">
-            <ArrowRightIcon size={18} strokeWidth={2} />
-          </span>
           <button
             data-testid="codec-workspace-swap"
             type="button"
