@@ -118,11 +118,10 @@ export function CodecWorkspace({
   const [bottomFormat, setBottomFormat] = useState<ChannelFormat>(formats[1].value);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
-  const [needsConversion, setNeedsConversion] = useState(false);
+  const needsConversion = input.length > 0;
 
   const changeInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
-    setNeedsConversion(true);
   };
 
   // ponytail: main-thread conversion targets ≤1 MB; use Web Workers if larger inputs become necessary.
@@ -135,7 +134,6 @@ export function CodecWorkspace({
     setError(result.ok ? "" : result.error);
     setOutput(result.ok ? result.value : "");
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const copy = async () => {
@@ -154,7 +152,6 @@ export function CodecWorkspace({
     setOutput("");
     setError("");
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const swap = () => {
@@ -164,7 +161,6 @@ export function CodecWorkspace({
     setBottomFormat(topFormat);
     setError("");
     setStatus("");
-    setNeedsConversion(false);
   };
 
   const changeTopFormat = (format: ChannelFormat) => {
@@ -176,7 +172,6 @@ export function CodecWorkspace({
     else if (bottomFormat === formats[0].value) setBottomFormat(formats[1].value);
     setError("");
     setStatus("");
-    setNeedsConversion(true);
   };
 
   const changeBottomFormat = (format: ChannelFormat) => {
@@ -188,7 +183,6 @@ export function CodecWorkspace({
     else if (topFormat === formats[0].value) setTopFormat(formats[1].value);
     setError("");
     setStatus("");
-    setNeedsConversion(true);
   };
 
   const handleShortcut = (event: KeyboardEvent<HTMLElement>) => {
