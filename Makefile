@@ -21,8 +21,8 @@ lighthouse:
 		--output-path=./test-results/lighthouse --output=html --output=json
 
 deploy:
-	docker exec -it saicli__ai_codec64 make build
-	echo "You can now 'git push' and check status: https://github.com/solfegepy/solfegepy.github.io/actions"
+	docker exec -it saicli--ai-codec64 make build
+	echo "You can now 'git commit' and 'git push' and check status: https://github.com/solfegepy/solfegepy.github.io/actions"
 
 # ------------ run from devcontainer (with node) ----------
 start-dev:
