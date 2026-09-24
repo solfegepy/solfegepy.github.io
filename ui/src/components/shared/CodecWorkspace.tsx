@@ -65,7 +65,10 @@ function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectP
   if (formats.length < 3) {
     const label = formats.find((format) => format.value === value)?.label ?? value;
     return (
-      <span data-testid={`${name}-${channel.toLowerCase()}-format`} className="text-ink font-mono text-sm font-semibold">
+      <span
+        data-testid={`${name}-${channel.toLowerCase()}-format`}
+        className="text-ink font-mono text-sm font-semibold"
+      >
         {label}
       </span>
     );
@@ -258,7 +261,7 @@ export function CodecWorkspace({
         </div>
         <div
           data-testid={`${name}-bottom-channel`}
-          className="border-line bg-panel-ro rounded-surface grid min-w-0 overflow-hidden border transition-colors"
+          className="border-line bg-panel-target rounded-surface grid min-w-0 overflow-hidden border transition-colors"
           role="group"
           aria-label="Target"
         >
@@ -281,7 +284,7 @@ export function CodecWorkspace({
               placeholder="Conversion appears here"
               disabled
               testId={`${name}-output`}
-              className="disabled:bg-panel-ro pr-16"
+              className="disabled:bg-panel-target pr-16"
               variant="editor"
             />
             <button

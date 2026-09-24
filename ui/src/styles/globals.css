@@ -4,7 +4,7 @@
 @theme static {
   --color-paper: var(--paper);
   --color-panel: var(--panel);
-  --color-panel-ro: var(--panel-ro);
+  --color-panel-target: var(--panel-target);
   --color-field: var(--field);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
@@ -60,7 +60,7 @@
 :root {
   --paper: var(--color-stone-50);
   --panel: var(--color-neutral-50);
-  --panel-ro: var(--color-neutral-200);
+  --panel-target: var(--color-neutral-200);
   --field: var(--color-white);
   --ink: var(--color-slate-900);
   --muted: var(--color-slate-600);
@@ -106,7 +106,7 @@
 :root[data-theme="dark"] {
   --paper: var(--color-slate-950);
   --panel: var(--color-slate-900);
-  --panel-ro: var(--color-slate-900);
+  --panel-target: var(--color-slate-900);
   --field: var(--color-slate-800);
   --ink: var(--color-slate-50);
   --muted: var(--color-slate-400);

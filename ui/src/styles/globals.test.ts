@@ -7,7 +7,7 @@ const SOURCE_ROOT = join(process.cwd(), "src");
 const SEMANTIC_COLORS = [
   "paper",
   "panel",
-  "panel-ro",
+  "panel-target",
   "field",
   "ink",
   "muted",
