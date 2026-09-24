@@ -824,8 +824,8 @@ describe("CodecApp", () => {
     const copyButton = screen.getByRole("button", { name: "Copy output" });
     expect(channels.children[1]).toBe(actions);
     expect([...actions.querySelectorAll("button")]).toEqual([
-      swapButton,
       screen.getByRole("button", { name: "Convert" }),
+      swapButton,
       screen.getByRole("button", { name: "Clear" }),
     ]);
     expect(copyButton).toHaveAttribute("data-testid", "codec-workspace-copy");
