@@ -185,7 +185,7 @@ describe("CodecApp", () => {
   it.each([
     ["base64", "Base64 Decode and Encode", "base64-workspace"],
     ["url", "URL Encode and Decode", "url-workspace"],
-    ["query", "Query Parameter Parser and Builder", "query-workspace"],
+    ["query", "Query Parameter Editor", "query-workspace"],
     ["jwt", "JWT Decoder", "jwt-tool"],
     ["python", "Python Literal to JSON Converter", "python-workspace"],
     ["timestamp", "Z Time and Unix Timestamp Converter", "timestamp-workspace"],
@@ -345,7 +345,7 @@ describe("CodecApp", () => {
   it.each([
     ["base64", "/", "Base64", "Base64 Decode and Encode"],
     ["url", "/url", "URL", "URL Encode and Decode"],
-    ["query", "/query", "Query Params", "Query Parameter Parser and Builder"],
+    ["query", "/query", "Query Params", "Query Parameter Editor"],
     ["jwt", "/jwt", "JWT", "JWT Decoder"],
     ["python", "/python-json", "Python → JSON", "Python Literal to JSON Converter"],
     ["timestamp", "/timestamp", "Timestamp", "Z Time and Unix Timestamp Converter"],
