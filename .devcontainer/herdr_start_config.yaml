@@ -2,7 +2,12 @@ cwd: ..  # or ../subproject1 . '.' is relative to 1st config file (probably this
 workspaces:
   - name: Shells
     tabs:
-      # --------- shell commands ----------------
+      # ======== dev servers ========
+      - label: dev_servers
+        panes:
+          - command: m start-dev
+
+      # ======== shell commands ========
       - label: misc
         panes:
           - command: ll
@@ -11,18 +16,3 @@ workspaces:
       #     - command: make test
       #       lf: false
       #       split: down
-
-      # --------- dev servers -------------------
-      - label: dev_servers
-        panes:
-          - command: m start-dev
-
-
-# This is similar to tmux commands:
-# tmux new-session \; \
-#   send-keys 'codex' \; \
-#   split-window -v \; \
-#   send-keys 'codex -p high' \; \
-#   split-window -v \; \
-#   send-keys 'll' C-m \; \
-#   select-pane -t 1

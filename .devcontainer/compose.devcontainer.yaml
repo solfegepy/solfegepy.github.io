@@ -2,8 +2,6 @@ services:
   devcontainer:
     build:
       context: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/devcontainer/docker
-      # additional_contexts:
-      #   skills: /media/IDATA_LINUX/GIT/LOCAL/ai_cli/skills/dist  # allow COPY --from=skills
     container_name: saicli--ai-codec64  # for now allow only 1 per project
     hostname: saicli--ai-codec64
     network_mode: bridge  # Remove when adding a 2nd service (requiring DNS by service name)
