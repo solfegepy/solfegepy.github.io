@@ -56,7 +56,6 @@ const CHANNEL_HEADER_CLASSES =
   "border-line flex flex-col gap-2 border-b p-3 md:flex-row md:items-center md:justify-between";
 const CHANNEL_HEADING_GROUP_CLASSES = "flex items-center gap-2";
 const CHANNEL_HEADING_CLASSES = "text-ink text-base font-bold";
-const CHANNEL_STATE_CLASSES = "border-line bg-panel text-muted rounded-full border px-2 py-0.5 font-mono text-xs";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
@@ -219,7 +218,6 @@ export function CodecWorkspace({
           <div className={CHANNEL_HEADER_CLASSES}>
             <div className={CHANNEL_HEADING_GROUP_CLASSES}>
               <h2 className={CHANNEL_HEADING_CLASSES}>Source</h2>
-              <span className={CHANNEL_STATE_CLASSES}>Editable</span>
             </div>
             <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
           </div>
@@ -260,14 +258,13 @@ export function CodecWorkspace({
         </div>
         <div
           data-testid={`${name}-bottom-channel`}
-          className="border-line bg-field rounded-surface grid min-w-0 overflow-hidden border transition-colors"
+          className="border-line bg-panel-ro rounded-surface grid min-w-0 overflow-hidden border transition-colors"
           role="group"
           aria-label="Target"
         >
           <div className={CHANNEL_HEADER_CLASSES}>
             <div className={CHANNEL_HEADING_GROUP_CLASSES}>
               <h2 className={CHANNEL_HEADING_CLASSES}>Target</h2>
-              <span className={CHANNEL_STATE_CLASSES}>Read only</span>
             </div>
             <FormatSelect
               channel="Bottom"
@@ -284,7 +281,7 @@ export function CodecWorkspace({
               placeholder="Conversion appears here"
               disabled
               testId={`${name}-output`}
-              className="disabled:bg-field pr-16"
+              className="disabled:bg-panel-ro pr-16"
               variant="editor"
             />
             <button
