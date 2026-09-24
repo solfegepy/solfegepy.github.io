@@ -52,10 +52,7 @@ interface FormatSelectProps {
 
 const SELECT_CLASSES =
   "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-sm font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
-const CHANNEL_HEADER_CLASSES =
-  "border-line flex flex-col gap-2 border-b p-3 md:flex-row md:items-center md:justify-between";
-const CHANNEL_HEADING_GROUP_CLASSES = "flex items-center gap-2";
-const CHANNEL_HEADING_CLASSES = "text-ink text-base font-bold";
+const CHANNEL_HEADER_CLASSES = "border-line flex items-center justify-end border-b p-3";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
@@ -219,9 +216,6 @@ export function CodecWorkspace({
           aria-label="Source"
         >
           <div className={CHANNEL_HEADER_CLASSES}>
-            <div className={CHANNEL_HEADING_GROUP_CLASSES}>
-              <h2 className={CHANNEL_HEADING_CLASSES}>Source</h2>
-            </div>
             <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
           </div>
           <TextareaField
@@ -266,9 +260,6 @@ export function CodecWorkspace({
           aria-label="Target"
         >
           <div className={CHANNEL_HEADER_CLASSES}>
-            <div className={CHANNEL_HEADING_GROUP_CLASSES}>
-              <h2 className={CHANNEL_HEADING_CLASSES}>Target</h2>
-            </div>
             <FormatSelect
               channel="Bottom"
               formats={formats}
