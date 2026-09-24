@@ -638,7 +638,7 @@ test("new browser context starts with example workspace", async ({ browser }) =>
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
   await codec.open("/query");
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
   await codec.open("/python-json");
   await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
@@ -716,6 +716,20 @@ test("Query formats convert, swap, validate, and stay private", async ({ page })
   await codec.fill("query-input", "[]");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("JSON must be an object.");
+  await codec.swap();
+  await codec.fill("query-input", "https://www.hoseasons.co.uk/search?adult=2&nights=7");
+  await codec.act("Convert");
+  await codec.swap();
+  await codec.fill("query-input", '{"adult":"4","nights":"7"}');
+  await codec.act("Convert");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=4&nights=7");
+  await codec.fill("query-input", "[]");
+  await codec.act("Convert");
+  await expect(codec.alert()).toHaveText("JSON must be an object.");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=4&nights=7");
+  await codec.fill("query-input", '{"adult":"1"}');
+  await codec.act("Convert");
+  await expect(codec.output("query-output")).toHaveValue("https://www.hoseasons.co.uk/search?adult=1");
   expect(requests.every((url) => !url.includes("private-query-value"))).toBe(true);
   expect(page.url()).not.toContain("private-query-value");
 });
@@ -749,7 +763,7 @@ test("page reload resets DATA workspace", async ({ page }) => {
   await codec.swap();
   await codec.act("Clear");
   await page.reload();
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
   await expect(codec.format("query", "top")).toHaveText("Query string");
 });
@@ -795,7 +809,7 @@ test("URL modes convert, preserve, swap, validate, copy, clear, and stay private
   await codec.fill("url-input", "%ZZ");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("Enter valid percent-encoded text.");
-  await expect(codec.output("url-output")).toHaveValue("");
+  await expect(codec.output("url-output")).toHaveValue("a b+c");
   await codec.act("Clear");
   await expect(codec.input("url-input")).toHaveValue("");
   await expect(codec.output("url-output")).toHaveValue("");

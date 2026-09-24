@@ -419,7 +419,14 @@ function isQueryValue(value: unknown): value is QueryValue {
   return typeof value === "string" || (Array.isArray(value) && value.every((item) => typeof item === "string"));
 }
 
-export function serializeQuery(input: string): ConversionResult {
+/** Returns the URL or path before a query string, or "" when the target is bare params. */
+function queryBase(target: string): string {
+  const beforeFragment = target.includes("#") ? target.slice(0, target.indexOf("#")) : target;
+  if (beforeFragment.includes("?")) return beforeFragment.slice(0, beforeFragment.indexOf("?"));
+  return /^([A-Za-z][A-Za-z\d+.-]*:\/\/|\/)/.test(beforeFragment) ? beforeFragment : "";
+}
+
+export function serializeQuery(input: string, target = ""): ConversionResult {
   let source: unknown;
   try {
     source = JSON.parse(input);
@@ -433,5 +440,7 @@ export function serializeQuery(input: string): ConversionResult {
   for (const [key, value] of Object.entries(source)) {
     for (const item of Array.isArray(value) ? value : [value]) parameters.append(key, item);
   }
-  return pass(parameters.toString());
+  const query = parameters.toString();
+  const base = queryBase(target);
+  return pass(base && query ? `${base}?${query}` : base || query);
 }

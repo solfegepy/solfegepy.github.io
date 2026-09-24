@@ -140,7 +140,8 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         answer: (
           <>
             Use a JSON object whose values are strings or arrays of strings, choose JSON as the source, and convert. The
-            result omits the leading <code className={CODE_CLASSES}>?</code>, ready to append after one.
+            result keeps a base URL or path already in the target pane, and <code className={CODE_CLASSES}>?</code>{" "}
+            appears only between that base and the params.
           </>
         ),
       },
@@ -159,8 +160,8 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         answer: (
           <>
             No. Codec Bench accepts <code className={CODE_CLASSES}>name=Ada</code>,{" "}
-            <code className={CODE_CLASSES}>?name=Ada</code>, or a full URL. Built query output intentionally excludes
-            the leading question mark.
+            <code className={CODE_CLASSES}>?name=Ada</code>, or a full URL. Built output never starts or ends with{" "}
+            <code className={CODE_CLASSES}>?</code>; it appears only between a kept base and the params.
           </>
         ),
       },

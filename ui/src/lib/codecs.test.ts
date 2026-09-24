@@ -334,6 +334,19 @@ describe("query serialization", () => {
     expect(serializeQuery(input)).toEqual({ ok: true, value });
   });
 
+  it.each([
+    ['{"a":"4"}', "https://www.hoseasons.co.uk/search?adult=2&nights=7", "https://www.hoseasons.co.uk/search?a=4"],
+    ["{}", "https://x.test/p?a=1", "https://x.test/p"],
+    ['{"b":"2"}', "/search?a=1#top", "/search?b=2"],
+    ['{"b":"2"}', "https://x.test/p#frag", "https://x.test/p?b=2"],
+    ['{"b":"2"}', "https://x.test/p", "https://x.test/p?b=2"],
+    ['{"b":"2"}', "?a=1", "b=2"],
+    ['{"b":"2"}', "a=1", "b=2"],
+    ["{}", "", ""],
+  ])("serializes %s against target %s", (input, target, value) => {
+    expect(serializeQuery(input, target)).toEqual({ ok: true, value });
+  });
+
   it.each(["nope", "[]", "null", '{"x":1}', '{"x":true}', '{"x":null}', '{"x":{}}', '{"x":[["a"]]}'])(
     "rejects unsupported JSON %s",
     (input) => {

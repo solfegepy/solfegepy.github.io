@@ -121,9 +121,9 @@ const APPROVED_ANSWER_TEXT = [
   "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec Bench's Full URI and RFC 3986 component modes provide those respective behaviors.",
   "Common causes include incomplete % escapes, non-hex escape characters, invalid UTF-8, or choosing form decoding for a value that uses a different convention. Confirm whether input is a full URI, component, or form value.",
   "Paste a full URL, a query beginning with ?, or the query text alone. Choose Query string as the source and JSON as the target, then select Convert.",
-  "Use a JSON object whose values are strings or arrays of strings, choose JSON as the source, and convert. The result omits the leading ?, ready to append after one.",
+  "Use a JSON object whose values are strings or arrays of strings, choose JSON as the source, and convert. The result keeps a base URL or path already in the target pane, and ? appears only between that base and the params.",
   'Repeated names become arrays in encounter order. For example, tag=one&tag=two becomes { "tag": ["one", "two"] }.',
-  "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built query output intentionally excludes the leading question mark.",
+  "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built output never starts or ends with ?; it appears only between a kept base and the params.",
   "Query parsing follows form-style URL rules: + decodes to a space and %2B decodes to a literal plus. Building a query writes spaces as + and literal plus signs as %2B.",
   "Yes, when it is a signed three-part JWT with readable Base64url header and payload. A key is required to verify its signature, not to inspect those encoded fields.",
   "No. Codec Bench displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
@@ -634,9 +634,10 @@ describe("CodecApp", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Copied");
     await user.clear(input);
     await user.type(input, "2026-01-31T12:34:56+00:00");
+    const previousOutput = (screen.getByTestId("timestamp-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter a valid UTC Z time from 1970 through 9999.");
-    expect(screen.getByTestId("timestamp-output")).toHaveValue("");
+    expect(screen.getByTestId("timestamp-output")).toHaveValue(previousOutput);
 
     await user.clear(input);
     await user.type(input, "1969-12-31T23:59:59.999Z");
@@ -842,9 +843,10 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("base64-output")).toHaveValue("café 🎵");
     await user.clear(input);
     await user.type(input, "***");
+    const previousOutput = (screen.getByTestId("base64-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid Base64.");
-    expect(screen.getByTestId("base64-output")).toHaveValue("");
+    expect(screen.getByTestId("base64-output")).toHaveValue(previousOutput);
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(input).toHaveValue("");
     expect(screen.getByTestId("base64-output")).toHaveValue("");
@@ -911,7 +913,7 @@ describe("CodecApp", () => {
       JSON.stringify({ version: 1, state: { input: "?saved=yes", output: "saved", mode: "parse" } }),
     );
     const query = render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     query.unmount();
 
@@ -1003,11 +1005,11 @@ describe("CodecApp", () => {
     await user.type(screen.getByTestId("url-input"), "%ZZ");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid percent-encoded text.");
-    expect(screen.getByTestId("url-output")).toHaveValue("");
+    expect(screen.getByTestId("url-output")).toHaveValue("a b+c");
     expect(screen.getByTestId("url-input")).toHaveValue("%ZZ");
     expect(screen.getByTestId("url-top-format")).toHaveValue("form");
     expect(screen.getByTestId("url-bottom-format")).toHaveValue("decoded");
-    expect(screen.getByRole("button", { name: "Copy output" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Copy output" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(screen.getByTestId("url-input")).toHaveValue("");
     expect(screen.getByTestId("url-output")).toHaveValue("");
@@ -1018,7 +1020,7 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="query" />);
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
     expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("JSON");
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-input")).toBeEnabled();
     expect(screen.getByTestId("query-output")).toBeDisabled();
@@ -1046,7 +1048,7 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="query" />);
     await user.click(screen.getByTestId("codec-workspace-swap"));
     expect(screen.getByTestId("query-input")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.getByTestId("query-output")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-output")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("JSON");
     expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("Query string");
   });
@@ -1068,9 +1070,10 @@ describe("CodecApp", () => {
     await user.clear(input);
     await user.click(input);
     await user.paste("[]");
+    const previousOutput = (screen.getByTestId("query-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("JSON must be an object.");
-    expect(screen.getByTestId("query-output")).toHaveValue("");
+    expect(screen.getByTestId("query-output")).toHaveValue(previousOutput);
   });
 
   it("converts Python in either direction and reports invalid JSON", async () => {
@@ -1090,9 +1093,10 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("python-output")).toHaveValue("{'items': [True, None]}");
     await user.clear(input);
     await user.type(input, "nope");
+    const previousOutput = (screen.getByTestId("python-output") as HTMLTextAreaElement).value;
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid JSON.");
-    expect(screen.getByTestId("python-output")).toHaveValue("");
+    expect(screen.getByTestId("python-output")).toHaveValue(previousOutput);
   });
 
   it("resets cleared DATA state after remount", async () => {
@@ -1103,7 +1107,7 @@ describe("CodecApp", () => {
     expect(sessionStorage.length).toBe(0);
     first.unmount();
     render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
   });

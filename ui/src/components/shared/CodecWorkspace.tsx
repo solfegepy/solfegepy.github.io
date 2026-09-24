@@ -11,7 +11,7 @@ interface CodecWorkspaceProps {
   inputPlaceholder: string;
   formats: FormatOptions;
   forward: (input: string) => ConversionResult;
-  reverse: (input: string) => ConversionResult;
+  reverse: (input: string, target: string) => ConversionResult;
   convertFormats?: (input: string, source: ChannelFormat, target: ChannelFormat) => ConversionResult;
   allowAnyPair?: boolean;
   examples: {
@@ -139,9 +139,9 @@ export function CodecWorkspace({
       ? convertFormats(input, topFormat, bottomFormat)
       : topFormat === formats[0].value
         ? forward(input)
-        : reverse(input);
+        : reverse(input, output);
     setError(result.ok ? "" : result.error);
-    setOutput(result.ok ? result.value : "");
+    if (result.ok) setOutput(result.value);
     setStatus("");
   };
 
