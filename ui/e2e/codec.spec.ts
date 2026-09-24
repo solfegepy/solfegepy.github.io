@@ -697,25 +697,18 @@ test("format selectors preserve text and swap exchanges channels", async ({ page
   await expect(codec.format("base64", "top")).toHaveValue("base64");
 });
 
-test("Query formats convert, preserve, swap, validate, and stay private", async ({ page }) => {
+test("Query formats convert, swap, validate, and stay private", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   const codec = new CodecPage(page);
   await codec.open("/query");
-  await expect(codec.format("query", "top")).toHaveValue("query");
-  await expect(codec.format("query", "bottom")).toHaveValue("json");
-  await expect(codec.format("query", "top").getByRole("option", { name: "Query string" })).toHaveCount(1);
-  await expect(codec.format("query", "top").getByRole("option", { name: "JSON" })).toHaveCount(1);
-  await codec.chooseTopFormat("query", "json");
-  await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
-  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  await expect(codec.format("query", "bottom")).toHaveValue("query");
-  await codec.chooseBottomFormat("query", "json");
+  await expect(codec.format("query", "top")).toHaveText("Query string");
+  await expect(codec.format("query", "bottom")).toHaveText("JSON");
   await codec.fill("query-input", "?private-query-value=1&private-query-value=2");
   await codec.act("Convert");
   await expect(codec.output("query-output")).toHaveValue('{\n  "private-query-value": [\n    "1",\n    "2"\n  ]\n}');
   await codec.swap();
-  await expect(codec.format("query", "top")).toHaveValue("json");
+  await expect(codec.format("query", "top")).toHaveText("JSON");
   await expect(codec.output("query-output")).toHaveValue("?private-query-value=1&private-query-value=2");
   await codec.fill("query-input", '{"message":"hello world"}');
   await codec.act("Convert");
@@ -730,24 +723,21 @@ test("Query formats convert, preserve, swap, validate, and stay private", async 
 test("Python formats convert both directions and reject invalid JSON", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open("/python-json");
-  await expect(codec.format("python", "top")).toHaveValue("python");
-  await expect(codec.format("python", "bottom")).toHaveValue("json");
-  await expect(codec.format("python", "top").getByRole("option", { name: "Python literal" })).toHaveCount(1);
-  await expect(codec.format("python", "top").getByRole("option", { name: "JSON" })).toHaveCount(1);
-  await codec.chooseTopFormat("python", "json");
-  await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
-  await expect(codec.output("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
+  await expect(codec.format("python", "top")).toHaveText("Python literal");
+  await expect(codec.format("python", "bottom")).toHaveText("JSON");
+  await codec.swap();
+  await expect(codec.format("python", "top")).toHaveText("JSON");
   await codec.fill("python-input", '{"items":[true,null,{"name":"Ada"}]}');
   await codec.act("Convert");
   await expect(codec.output("python-output")).toHaveValue("{'items': [True, None, {'name': 'Ada'}]}");
   await codec.swap();
-  await expect(codec.format("python", "top")).toHaveValue("python");
+  await expect(codec.format("python", "top")).toHaveText("Python literal");
   await codec.fill("python-input", "{'items': [True, None, {'name': 'Ada'}] }");
   await codec.act("Convert");
   await expect(codec.output("python-output")).toHaveValue(
     '{\n  "items": [\n    true,\n    null,\n    {\n      "name": "Ada"\n    }\n  ]\n}',
   );
-  await codec.chooseTopFormat("python", "json");
+  await codec.swap();
   await codec.fill("python-input", "nope");
   await codec.act("Convert");
   await expect(codec.alert()).toHaveText("Enter valid JSON.");
@@ -756,12 +746,12 @@ test("Python formats convert both directions and reject invalid JSON", async ({ 
 test("page reload resets DATA workspace", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open("/query");
-  await codec.chooseTopFormat("query", "json");
+  await codec.swap();
   await codec.act("Clear");
   await page.reload();
   await expect(codec.input("query-input")).toHaveValue("?name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  await expect(codec.format("query", "top")).toHaveValue("query");
+  await expect(codec.format("query", "top")).toHaveText("Query string");
 });
 
 test("URL modes convert, preserve, swap, validate, copy, clear, and stay private", async ({ page, context }) => {

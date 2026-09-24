@@ -62,6 +62,16 @@ const isChannelFormat = (value: unknown, formats: FormatOptions): value is Chann
   formats.some((format) => format.value === value);
 
 function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectProps) {
+  // With fewer than 3 formats, the swap button already covers switching between them.
+  if (formats.length < 3) {
+    const label = formats.find((format) => format.value === value)?.label ?? value;
+    return (
+      <span data-testid={`${name}-${channel.toLowerCase()}-format`} className="text-ink font-mono text-sm font-semibold">
+        {label}
+      </span>
+    );
+  }
+
   return (
     <select
       data-testid={`${name}-${channel.toLowerCase()}-format`}

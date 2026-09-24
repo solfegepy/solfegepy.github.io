@@ -1016,12 +1016,8 @@ describe("CodecApp", () => {
 
   it("loads Query defaults with complementary formats and no example controls", () => {
     render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("query-top-format")).toHaveAccessibleName("Source format");
-    expect(screen.getByTestId("query-bottom-format")).toHaveAccessibleName("Target format");
-    expect(screen.getAllByRole("option", { name: "Query string" })).toHaveLength(2);
-    expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
+    expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("JSON");
     expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-input")).toBeEnabled();
@@ -1034,12 +1030,8 @@ describe("CodecApp", () => {
 
   it("loads Python defaults with complementary formats and no example controls", () => {
     render(<CodecApp toolId="python" />);
-    expect(screen.getByTestId("python-top-format")).toHaveValue("python");
-    expect(screen.getByTestId("python-bottom-format")).toHaveValue("json");
-    expect(screen.getByTestId("python-top-format")).toHaveAccessibleName("Source format");
-    expect(screen.getByTestId("python-bottom-format")).toHaveAccessibleName("Target format");
-    expect(screen.getAllByRole("option", { name: "Python literal" })).toHaveLength(2);
-    expect(screen.getAllByRole("option", { name: "JSON" })).toHaveLength(2);
+    expect(screen.getByTestId("python-top-format")).toHaveTextContent("Python literal");
+    expect(screen.getByTestId("python-bottom-format")).toHaveTextContent("JSON");
     expect(screen.getByTestId("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
     expect(screen.getByTestId("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
     expect(screen.getByTestId("python-input")).toBeEnabled();
@@ -1049,32 +1041,14 @@ describe("CodecApp", () => {
     expect(screen.queryByRole("button", { name: /Try .* example/ })).not.toBeInTheDocument();
   });
 
-  it("changes either Query format without changing values or converting", async () => {
-    const user = userEvent.setup();
-    render(<CodecApp toolId="query" />);
-    const input = screen.getByTestId("query-input");
-    const output = screen.getByTestId("query-output");
-    await user.click(screen.getByRole("button", { name: "Copy output" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Copied");
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("query");
-    expect(input).toHaveValue("?name=Ada&active=true");
-    expect(output).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    await user.selectOptions(screen.getByTestId("query-bottom-format"), "json");
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
-    expect(input).toHaveValue("?name=Ada&active=true");
-    expect(output).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  });
-
   it("swaps Query values and formats without converting", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="query" />);
     await user.click(screen.getByTestId("codec-workspace-swap"));
     expect(screen.getByTestId("query-input")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-output")).toHaveValue("?name=Ada&active=true");
-    expect(screen.getByTestId("query-top-format")).toHaveValue("json");
-    expect(screen.getByTestId("query-bottom-format")).toHaveValue("query");
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("JSON");
+    expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("Query string");
   });
 
   it("converts Query in either direction and reports errors", async () => {
@@ -1085,7 +1059,7 @@ describe("CodecApp", () => {
     await user.type(input, "?a=1&a=2");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "a": [\n    "1",\n    "2"\n  ]\n}');
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.clear(input);
     await user.click(input);
     await user.paste('{"message":"hello world"}');
@@ -1108,7 +1082,7 @@ describe("CodecApp", () => {
     await user.paste("{'active': True}");
     await user.click(screen.getByRole("button", { name: "Convert" }));
     expect(screen.getByTestId("python-output")).toHaveValue('{\n  "active": true\n}');
-    await user.selectOptions(screen.getByTestId("python-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.clear(input);
     await user.click(input);
     await user.paste('{"items":[true,null]}');
@@ -1124,14 +1098,14 @@ describe("CodecApp", () => {
   it("resets cleared DATA state after remount", async () => {
     const user = userEvent.setup();
     const first = render(<CodecApp toolId="query" />);
-    await user.selectOptions(screen.getByTestId("query-top-format"), "json");
+    await user.click(screen.getByTestId("codec-workspace-swap"));
     await user.click(screen.getByRole("button", { name: "Clear" }));
     expect(sessionStorage.length).toBe(0);
     first.unmount();
     render(<CodecApp toolId="query" />);
     expect(screen.getByTestId("query-input")).toHaveValue("?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.getByTestId("query-top-format")).toHaveValue("query");
+    expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
   });
 
   it("keeps DATA copy safe when clipboard is unavailable", async () => {
