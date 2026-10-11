@@ -175,7 +175,7 @@ export class CodecPage {
     await this.page.getByTestId(`tool-link-${ids[name]}`).first().click();
   }
   async openFaq(): Promise<void> {
-    await this.open("/faq");
+    await this.open("/faq/");
   }
   async chooseFaq(): Promise<void> {
     const drawer = this.page.getByTestId("mobile-drawer");

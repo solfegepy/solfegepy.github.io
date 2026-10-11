@@ -9,7 +9,7 @@ const GA_COOKIE_EXPIRES_SECONDS = 395 * 24 * 60 * 60;
 
 const ANALYTICS_CATEGORY = "analytics";
 const ADVERTISING_CATEGORY = "advertising";
-const PRIVACY_PATH = "/privacy";
+const PRIVACY_PATH = "/privacy/";
 
 declare global {
   interface Window {

@@ -70,7 +70,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
         <a
           data-testid="faq-link"
           data-accent="faq"
-          href="/faq"
+          href="/faq/"
           aria-current={faqCurrent ? "page" : undefined}
           className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
@@ -85,7 +85,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
         <a
           data-testid="about-link"
           data-accent="about"
-          href="/about"
+          href="/about/"
           aria-current={aboutCurrent ? "page" : undefined}
           className={`${NAV_LINK_CLASSES} ${aboutCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
@@ -111,7 +111,7 @@ function openCookieSettings(): void {
 function FooterLegalLinks() {
   return (
     <div className="flex flex-col items-start gap-1">
-      <a data-testid="privacy-link" href="/privacy" className={FOOTER_LINK_CLASSES}>
+      <a data-testid="privacy-link" href="/privacy/" className={FOOTER_LINK_CLASSES}>
         Privacy &amp; cookies
       </a>
       <button
@@ -145,7 +145,7 @@ const INFO_PAGES = {
         Our{" "}
         <a
           data-testid="about-privacy-link"
-          href="/privacy"
+          href="/privacy/"
           className="text-primary font-semibold underline underline-offset-2"
         >
           privacy &amp; cookies policy

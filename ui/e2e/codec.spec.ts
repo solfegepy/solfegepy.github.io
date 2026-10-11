@@ -26,7 +26,7 @@ test("visual contract: JWT desktop light", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.setViewport(1440, 900);
   await codec.useTheme("light");
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
 
   await expect(page).toHaveScreenshot("jwt-desktop-light.png", { animations: "disabled", fullPage: true });
@@ -69,7 +69,7 @@ test("font traffic uses approved origins and excludes converter input", async ({
   expect(await codec.waitForWebFonts()).toEqual({ sans: true, mono: true });
   await codec.fill("base64-input", marker);
   await codec.act("Convert");
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await codec.enterJwt(token);
   await codec.decodeJwt();
 
@@ -127,7 +127,7 @@ test("WebMCP decoding tools are route-local and return exact contracts", async (
     variant: "url-safe",
   });
 
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
   expect(await codec.invokeWebMcpTool("decode_jwt", { value: "eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZ2VudCJ9." })).toEqual({
     ok: true,
@@ -141,7 +141,7 @@ test("WebMCP decoding tools are route-local and return exact contracts", async (
     error: "JWT must contain three segments.",
   });
 
-  for (const route of ["/url", "/query", "/python-json", "/timestamp"]) {
+  for (const route of ["/url/", "/query/", "/python-json/", "/timestamp/"]) {
     await codec.open(route);
     expect(await codec.webMcpToolNames(), route).toEqual([]);
   }
@@ -168,7 +168,7 @@ test("WebMCP invocation leaves browser and UI state private and unchanged", asyn
   expect(await codec.browserState()).toEqual(browserBefore);
   expect(await codec.clipboardText()).toBe("clipboard-sentinel");
 
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await expect.poll(() => codec.webMcpToolNames()).toEqual(["decode_jwt"]);
   const jwtMarker = "JWT_WEBMCP_PRIVATE_MARKER";
   const payload = Buffer.from(JSON.stringify({ private: jwtMarker })).toString("base64url");
@@ -201,7 +201,7 @@ test("unsupported and rejected WebMCP registration preserve human flows", async 
   await expect(codec.output("base64-output")).toHaveValue("aHVtYW4=");
 
   await codec.installWebMcpMock(true);
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   expect(await codec.webMcpToolNames()).toEqual([]);
   await codec.enterJwt("bad");
   await codec.decodeJwt();
@@ -211,13 +211,13 @@ test("unsupported and rejected WebMCP registration preserve human flows", async 
 test("FAQ navigation, static disclosures, route isolation, and converter links", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.installWebMcpMock();
-  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]) {
+  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]) {
     await codec.open(route);
-    await expect(codec.faqNavigation(), route).toHaveAttribute("href", "/faq");
+    await expect(codec.faqNavigation(), route).toHaveAttribute("href", "/faq/");
   }
 
   await codec.chooseFaq();
-  await expect(page).toHaveURL(/\/faq$/);
+  await expect(page).toHaveURL(/\/faq\/$/);
   await expect(codec.activeFaq()).toHaveText("FAQ");
   await expect(codec.activeTool()).toHaveCount(0);
   await expect(codec.primaryHeading()).toHaveText("Encoding and Conversion FAQ");
@@ -254,7 +254,7 @@ test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", asyn
   await codec.open();
   await codec.openDrawer();
   await codec.chooseFaq();
-  await expect(page).toHaveURL(/\/faq$/);
+  await expect(page).toHaveURL(/\/faq\/$/);
   await expect(codec.drawer()).toBeHidden();
   await codec.useLargeText();
   expect(await codec.hasHorizontalOverflow()).toBe(false);
@@ -292,7 +292,7 @@ test("publishes route metadata and navigates with browser history", async ({ pag
   await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/");
   await expect(codec.staticSection("Base64 FAQ")).toHaveCount(0);
   await codec.chooseTool("URL");
-  await expect(page).toHaveURL(/\/url$/);
+  await expect(page).toHaveURL(/\/url\/$/);
   await expect(codec.activeTool()).toHaveText("URL");
   await page.goBack();
   await expect(codec.activeTool()).toHaveText("Base64");
@@ -345,7 +345,7 @@ test("every route hydrates default dark without browser errors", async ({ page }
   const codec = new CodecPage(page);
   const errors = codec.trackBrowserErrors();
   await page.emulateMedia({ colorScheme: "light" });
-  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq"]) {
+  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/"]) {
     await codec.open(route);
     await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
     await expect(codec.app()).not.toHaveAttribute("inert");
@@ -388,7 +388,7 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
 
 test("every route fits 320px at 200 percent text", async ({ page }) => {
   const codec = new CodecPage(page);
-  for (const route of ["/", "/url", "/query", "/jwt", "/python-json", "/timestamp", "/faq", "/missing"]) {
+  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/missing"]) {
     await codec.open(route);
     await page.addStyleTag({ content: "html { font-size: 200%; }" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);
@@ -471,7 +471,7 @@ test("light and dark workbench states keep readable contrast and visible reduced
     await codec.fill("base64-input", "***");
     await codec.act("Convert");
     expect(await contrast(codec.alert()), `${theme} danger`).toBeGreaterThanOrEqual(4.5);
-    await codec.open("/jwt");
+    await codec.open("/jwt/");
     expect(await contrast(page.getByTestId("jwt-guidance")), `${theme} warning`).toBeGreaterThanOrEqual(4.5);
     await codec.open();
     await codec.themeControl().focus();
@@ -535,7 +535,7 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await expect(codec.format("base64", "top")).toHaveValue("base64");
   await codec.openDrawer();
   await page.getByTestId("mobile-drawer").getByTestId("tool-link-query").click();
-  await expect(page).toHaveURL(/\/query$/);
+  await expect(page).toHaveURL(/\/query\/$/);
   await expect(codec.drawer()).toBeHidden();
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await codec.format("query", "top").focus();
@@ -554,7 +554,7 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
         .map((node) => `${node.tagName}.${node.className}:${Math.round(node.getBoundingClientRect().right)}`),
     ),
   ).toEqual([]);
-  await codec.open("/url");
+  await codec.open("/url/");
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await expect(page.getByTestId("url-mode-comparison")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -589,10 +589,10 @@ test("new browser context starts with example workspace", async ({ browser }) =>
   await codec.open();
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
-  await codec.open("/query");
+  await codec.open("/query/");
   await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-  await codec.open("/python-json");
+  await codec.open("/python-json/");
   await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
   await expect(codec.output("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
   await context.close();
@@ -653,7 +653,7 @@ test("Query formats convert, swap, validate, and stay private", async ({ page })
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   const codec = new CodecPage(page);
-  await codec.open("/query");
+  await codec.open("/query/");
   await expect(codec.format("query", "top")).toHaveText("Query string");
   await expect(codec.format("query", "bottom")).toHaveText("JSON");
   await codec.fill("query-input", "?private-query-value=1&private-query-value=2");
@@ -688,7 +688,7 @@ test("Query formats convert, swap, validate, and stay private", async ({ page })
 
 test("Python formats convert both directions and reject invalid JSON", async ({ page }) => {
   const codec = new CodecPage(page);
-  await codec.open("/python-json");
+  await codec.open("/python-json/");
   await expect(codec.format("python", "top")).toHaveText("Python literal");
   await expect(codec.format("python", "bottom")).toHaveText("JSON");
   await codec.swap();
@@ -711,7 +711,7 @@ test("Python formats convert both directions and reject invalid JSON", async ({ 
 
 test("page reload resets DATA workspace", async ({ page }) => {
   const codec = new CodecPage(page);
-  await codec.open("/query");
+  await codec.open("/query/");
   await codec.swap();
   await codec.act("Clear");
   await page.reload();
@@ -725,7 +725,7 @@ test("URL modes convert, preserve, swap, validate, copy, clear, and stay private
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   const codec = new CodecPage(page);
-  await codec.open("/url");
+  await codec.open("/url/");
   await expect(codec.format("url", "top")).toHaveValue("decoded");
   await expect(codec.format("url", "bottom")).toHaveValue("rfc3986");
   for (const option of ["Plain text", "RFC 3986 component", "Full URI", "Form URL encoded"]) {
@@ -786,7 +786,7 @@ test("Timestamp converts every format privately and remains accessible", async (
   const beforeLoad = Math.floor(Date.now() / 1_000);
   await codec.chooseTool("Timestamp");
   const afterLoad = Math.floor(Date.now() / 1_000);
-  await expect(page).toHaveURL(/\/timestamp$/);
+  await expect(page).toHaveURL(/\/timestamp\/$/);
   await expect(codec.activeTool()).toHaveText("Timestamp");
   await expect(codec.format("timestamp", "top")).toHaveValue("ztime");
   await expect(codec.format("timestamp", "bottom")).toHaveValue("timestamp-seconds");
@@ -857,10 +857,10 @@ test("JWT route, navigation, history, and synthetic fixture", async ({ page }) =
   const codec = new CodecPage(page);
   await codec.open();
   await codec.chooseTool("JWT");
-  await expect(page).toHaveURL(/\/jwt$/);
+  await expect(page).toHaveURL(/\/jwt\/$/);
   await expect(codec.activeTool()).toHaveText("JWT");
   await expect(codec.primaryHeading()).toHaveText("JWT Decoder");
-  await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/jwt");
+  await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/jwt/");
   await expect(codec.jwtToken()).toHaveValue(SYNTHETIC_JWT);
   await expect(codec.jwtOutput("Header")).toHaveValue('{\n  "alg": "HS256",\n  "typ": "JWT"\n}');
   await expect(codec.jwtOutput("Payload")).toHaveValue(
@@ -878,7 +878,7 @@ test("JWT route, navigation, history, and synthetic fixture", async ({ page }) =
 test("JWT decodes, copies every segment, clears failures, and reloads fresh", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   const codec = new CodecPage(page);
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await codec.enterJwt("eyJhbGciOiJub25lIn0.eyJzdWIiOiJuZXcifQ.");
   await codec.decodeJwt();
   await expect(codec.jwtOutput("Header")).toHaveValue('{\n  "alg": "none"\n}');
@@ -919,7 +919,7 @@ test("JWT private marker never enters request, URL, or browser storage", async (
   const marker = "JWT_PRIVATE_MARKER_7f3";
   const payload = Buffer.from(JSON.stringify({ private: marker })).toString("base64url");
   const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.c2ln`;
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await codec.enterJwt(token);
   await codec.decodeJwt();
   await expect(codec.jwtOutput("Payload")).toContainText(marker);
@@ -952,7 +952,7 @@ test("JWT stays stacked, keyboard accessible, and overflow-safe at 320px and 200
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.setViewportSize({ width: 320, height: 812 });
   const codec = new CodecPage(page);
-  await codec.open("/jwt");
+  await codec.open("/jwt/");
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await codec.enterJwt("bad");
   await codec.jwtToken().focus();

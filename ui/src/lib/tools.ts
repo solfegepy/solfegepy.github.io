@@ -6,7 +6,7 @@ export interface ToolDefinition {
   id: ToolId;
   group: ToolGroup;
   label: string;
-  route: "/" | "/url" | "/query" | "/jwt" | "/python-json" | "/timestamp";
+  route: "/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/";
   title: string;
   description: readonly [summary: string, ...details: string[]];
 }
@@ -28,7 +28,7 @@ export const TOOLS = [
     id: "url",
     group: "Encoding",
     label: "URL",
-    route: "/url",
+    route: "/url/",
     title: "URL Encode and Decode",
     description: [
       "Encode or decode URL values:",
@@ -41,7 +41,7 @@ export const TOOLS = [
     id: "query",
     group: "Encoding",
     label: "Query Params",
-    route: "/query",
+    route: "/query/",
     title: "Query Parameter Editor",
     description: ["Convert URL query parameters to JSON or build a query string from JSON."],
   },
@@ -49,7 +49,7 @@ export const TOOLS = [
     id: "jwt",
     group: "Encoding",
     label: "JWT",
-    route: "/jwt",
+    route: "/jwt/",
     title: "JWT Decoder",
     description: ["Decode JWT headers and payloads without signature verification."],
   },
@@ -57,7 +57,7 @@ export const TOOLS = [
     id: "python",
     group: "Conversion",
     label: "Python → JSON",
-    route: "/python-json",
+    route: "/python-json/",
     title: "Python Literal to JSON Converter",
     description: ["Convert dictionaries from Python PDB or print output into JSON."],
   },
@@ -65,7 +65,7 @@ export const TOOLS = [
     id: "timestamp",
     group: "Conversion",
     label: "Timestamp",
-    route: "/timestamp",
+    route: "/timestamp/",
     title: "Z Time and Unix Timestamp Converter",
     description: ["Convert strict UTC Z time, Unix seconds, and Unix milliseconds."],
   },

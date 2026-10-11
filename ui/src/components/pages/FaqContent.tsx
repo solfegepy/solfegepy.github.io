@@ -70,7 +70,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
   },
   {
     heading: "URL encoding",
-    route: "/url",
+    route: "/url/",
     linkLabel: "Open URL encoder and decoder",
     items: [
       {
@@ -123,7 +123,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
   },
   {
     heading: "Query parameters",
-    route: "/query",
+    route: "/query/",
     linkLabel: "Open query parameter parser and builder",
     items: [
       {
@@ -179,7 +179,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
   },
   {
     heading: "JWT",
-    route: "/jwt",
+    route: "/jwt/",
     linkLabel: "Open JWT decoder",
     items: [
       {
@@ -216,7 +216,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
   },
   {
     heading: "Python and JSON",
-    route: "/python-json",
+    route: "/python-json/",
     linkLabel: "Open Python literal to JSON converter",
     items: [
       {
@@ -271,7 +271,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
   },
   {
     heading: "Unix timestamps and Z time",
-    route: "/timestamp",
+    route: "/timestamp/",
     linkLabel: "Open Unix timestamp and Z time converter",
     items: [
       {

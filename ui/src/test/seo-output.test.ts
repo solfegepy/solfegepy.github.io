@@ -53,6 +53,25 @@ function notFoundDocument(): Document {
 const FONT_PRELOAD_COUNT = 2 * 6;
 
 describe("production homepage SEO", () => {
+  it("uses GitHub Pages directory URLs in metadata and internal links", () => {
+    const routes = ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/privacy/", "/about/"];
+
+    for (const route of routes) {
+      const html = readFileSync(resolve(import.meta.dirname, "../../../docs", `.${route}index.html`), "utf8");
+      const document = new DOMParser().parseFromString(html, "text/html");
+      const canonical = `https://codec64.com${route}`;
+
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href"), route).toBe(canonical);
+      expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content"), route).toBe(canonical);
+      const schema = document.querySelector('script[type="application/ld+json"]');
+      if (schema) expect(JSON.parse(schema.textContent ?? "")).toMatchObject({ url: canonical });
+
+      for (const link of document.querySelectorAll('a[href^="/"]')) {
+        expect(routes, `${route}: ${link.getAttribute("href")}`).toContain(link.getAttribute("href"));
+      }
+    }
+  });
+
   it("serves web fonts from the site's own origin", () => {
     const pages = ["", "url/", "query/", "jwt/", "python-json/", "timestamp/", "faq/", "privacy/", "about/"];
     const builtPages = [...pages.map((page) => `${page}index.html`), "404.html"].map((page) =>
@@ -81,7 +100,7 @@ describe("production homepage SEO", () => {
 
   it("renders every registered route with unique metadata and one heading", () => {
     for (const tool of TOOLS) {
-      const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}/index.html`;
+      const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}index.html`;
       const html = readFileSync(resolve(import.meta.dirname, `../../../docs/${output}`), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
       expect(document.title).toBe(`${tool.title} | Codec Bench`);
@@ -128,7 +147,7 @@ describe("production homepage SEO", () => {
     const document = productionDocument();
 
     expect(document.querySelector('script[src*="googletagmanager.com/gtag/js"]')).toBeNull();
-    expect(document.querySelector('[data-testid="privacy-link"]')?.getAttribute("href")).toBe("/privacy");
+    expect(document.querySelector('[data-testid="privacy-link"]')?.getAttribute("href")).toBe("/privacy/");
     expect(document.querySelector('[data-testid="cookie-settings-button"]')?.textContent).toBe("Cookie settings");
   });
 
@@ -156,7 +175,7 @@ describe("production homepage SEO", () => {
       "Encode or decode URL values: RFC 3986 components: encode reserved characters Full URI: preserves URI structure Form URL encoded: uses + for spaces";
 
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe("https://codec64.com/url");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe("https://codec64.com/url/");
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("URL Encode and Decode");
     expect(document.body.textContent).toContain("Choose URL encoding mode");
     expect(document.body.textContent).toContain("RFC 3986 component");
@@ -175,7 +194,7 @@ describe("production homepage SEO", () => {
 
   it("renders Timestamp metadata, JSON-LD, and guidance in static HTML", () => {
     const document = timestampDocument();
-    const canonical = "https://codec64.com/timestamp";
+    const canonical = "https://codec64.com/timestamp/";
 
     expect(document.title).toBe("Z Time and Unix Timestamp Converter | Codec Bench");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toContain(
@@ -198,7 +217,7 @@ describe("production homepage SEO", () => {
 
   it("renders JWT canonical metadata, warning, guidance, privacy, and one schema object", () => {
     const document = jwtDocument();
-    const canonical = "https://codec64.com/jwt";
+    const canonical = "https://codec64.com/jwt/";
 
     expect(document.title).toBe("JWT Decoder | Codec Bench");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
@@ -227,7 +246,7 @@ describe("production FAQ SEO", () => {
     const document = faqDocument();
     const description =
       "Answers about Base64, URL encoding, query strings, JWT decoding, Python-to-JSON conversion, and Unix timestamps.";
-    const canonical = "https://codec64.com/faq";
+    const canonical = "https://codec64.com/faq/";
 
     expect(document.title).toBe("Encoding and Conversion FAQ | Codec Bench");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
@@ -256,7 +275,7 @@ describe("production FAQ SEO", () => {
     expect(document.body.textContent).toContain("precision below one millisecond is truncated");
     expect(
       [...document.querySelectorAll('[data-testid="faq-tool-link"]')].map((link) => link.getAttribute("href")),
-    ).toEqual(["/", "/url", "/query", "/jwt", "/python-json", "/timestamp"]);
+    ).toEqual(["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]);
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
     expect(document.documentElement.innerHTML).not.toMatch(/FAQPage|QAPage/);
   });
@@ -265,7 +284,7 @@ describe("production FAQ SEO", () => {
 describe("production Privacy SEO", () => {
   it("renders the policy, cookie table, and vendor name in static HTML", () => {
     const document = privacyDocument();
-    const canonical = "https://codec64.com/privacy";
+    const canonical = "https://codec64.com/privacy/";
 
     expect(document.title).toBe("Privacy & Cookies Policy | Codec Bench");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
@@ -286,14 +305,14 @@ describe("production Privacy SEO", () => {
 describe("production About SEO", () => {
   it("renders metadata and a lead linking the privacy policy in static HTML", () => {
     const document = aboutDocument();
-    const canonical = "https://codec64.com/about";
+    const canonical = "https://codec64.com/about/";
 
     expect(document.title).toBe("About Codec Bench");
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
     expect(document.querySelectorAll("h1")).toHaveLength(1);
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("About Codec Bench");
-    expect(document.querySelector('[data-testid="about-lead"] a')?.getAttribute("href")).toBe("/privacy");
+    expect(document.querySelector('[data-testid="about-lead"] a')?.getAttribute("href")).toBe("/privacy/");
   });
 });
 

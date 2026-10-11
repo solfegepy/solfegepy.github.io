@@ -44,7 +44,7 @@ const FAQ_SECTIONS = [
   },
   {
     heading: "URL encoding",
-    route: "/url",
+    route: "/url/",
     link: "Open URL encoder and decoder",
     questions: [
       "What is URL encoding or percent-encoding?",
@@ -56,7 +56,7 @@ const FAQ_SECTIONS = [
   },
   {
     heading: "Query parameters",
-    route: "/query",
+    route: "/query/",
     link: "Open query parameter parser and builder",
     questions: [
       "How do I parse URL query parameters into JSON?",
@@ -68,7 +68,7 @@ const FAQ_SECTIONS = [
   },
   {
     heading: "JWT",
-    route: "/jwt",
+    route: "/jwt/",
     link: "Open JWT decoder",
     questions: [
       "Can I decode a JWT without a secret key?",
@@ -80,7 +80,7 @@ const FAQ_SECTIONS = [
   },
   {
     heading: "Python and JSON",
-    route: "/python-json",
+    route: "/python-json/",
     link: "Open Python literal to JSON converter",
     questions: [
       "How do I convert a Python dictionary to JSON?",
@@ -92,7 +92,7 @@ const FAQ_SECTIONS = [
   },
   {
     heading: "Unix timestamps and Z time",
-    route: "/timestamp",
+    route: "/timestamp/",
     link: "Open Unix timestamp and Z time converter",
     questions: [
       "How do I convert a Unix timestamp to a UTC date?",
@@ -326,7 +326,7 @@ describe("CodecApp", () => {
     for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
       const view = render(<CodecApp toolId={toolId} />);
       const faqLink = screen.getByTestId("faq-link");
-      expect(faqLink).toHaveAttribute("href", "/faq");
+      expect(faqLink).toHaveAttribute("href", "/faq/");
       expect(faqLink).not.toHaveAttribute("aria-current");
       expect(faqLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
       expect(screen.getByTestId(`tool-link-${toolId}`)).toHaveAttribute("aria-current", "page");
@@ -336,11 +336,11 @@ describe("CodecApp", () => {
 
   it.each([
     ["base64", "/", "Base64", "Base64 Decode and Encode"],
-    ["url", "/url", "URL", "URL Encode and Decode"],
-    ["query", "/query", "Query Params", "Query Parameter Editor"],
-    ["jwt", "/jwt", "JWT", "JWT Decoder"],
-    ["python", "/python-json", "Python → JSON", "Python Literal to JSON Converter"],
-    ["timestamp", "/timestamp", "Timestamp", "Z Time and Unix Timestamp Converter"],
+    ["url", "/url/", "URL", "URL Encode and Decode"],
+    ["query", "/query/", "Query Params", "Query Parameter Editor"],
+    ["jwt", "/jwt/", "JWT", "JWT Decoder"],
+    ["python", "/python-json/", "Python → JSON", "Python Literal to JSON Converter"],
+    ["timestamp", "/timestamp/", "Timestamp", "Z Time and Unix Timestamp Converter"],
   ] as const)("preserves %s route identity and accented navigation", (toolId, route, label, heading) => {
     render(<CodecApp toolId={toolId} />);
     const active = screen.getByTestId(`tool-link-${toolId}`);
@@ -416,7 +416,7 @@ describe("CodecApp", () => {
     await user.click(screen.getByTestId("menu-button"));
     const drawer = screen.getByTestId("mobile-drawer");
     const faqLink = within(drawer).getByTestId("faq-link");
-    expect(faqLink).toHaveAttribute("href", "/faq");
+    expect(faqLink).toHaveAttribute("href", "/faq/");
     await user.click(faqLink);
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
   });
@@ -1227,7 +1227,7 @@ describe("cookie settings", () => {
     const user = userEvent.setup();
     render(page === "privacy" ? <CodecApp page="privacy" /> : <CodecApp toolId={page} />);
 
-    expect(screen.getByTestId("privacy-link")).toHaveAttribute("href", "/privacy");
+    expect(screen.getByTestId("privacy-link")).toHaveAttribute("href", "/privacy/");
     await user.click(screen.getByTestId("cookie-settings-button"));
 
     await waitFor(() => expect(showCookieSettings).toHaveBeenCalledOnce());

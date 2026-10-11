@@ -30,7 +30,7 @@ describe("tool registry", () => {
       id: "jwt",
       group: "Encoding",
       label: "JWT",
-      route: "/jwt",
+      route: "/jwt/",
       title: "JWT Decoder",
       description: ["Decode JWT headers and payloads without signature verification."],
     });

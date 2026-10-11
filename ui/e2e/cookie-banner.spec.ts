@@ -35,7 +35,7 @@ test("cookie settings on the privacy page allow analytics without advertising", 
   const codec = new CodecPage(page);
   const cookies = new CookieBanner(page);
   await cookies.install();
-  await codec.open("/privacy");
+  await codec.open("/privacy/");
   await cookies.rejectAll();
 
   await cookies.openSettingsFromPrivacyPage();
@@ -50,7 +50,7 @@ test("withdrawing consent deletes the analytics cookies and reloads the page", a
   const codec = new CodecPage(page);
   const cookies = new CookieBanner(page);
   await cookies.install();
-  await codec.open("/privacy");
+  await codec.open("/privacy/");
   await cookies.acceptAll();
   // The stubbed gtag.js sets nothing, so plant the cookie the real one would set.
   await page.context().addCookies([{ name: "_ga", value: "GA1.1.1.1", url: page.url() }]);
@@ -81,7 +81,7 @@ test("the banner links to a policy naming every tracker and cookie", async ({ pa
 
   await cookies.followPolicyLink();
 
-  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page).toHaveURL(/\/privacy\/$/);
   const policy = page.getByTestId("privacy-content");
   await expect(policy).toContainText("Google Analytics");
   for (const cookie of ["cc_cookie", "_ga", "_ga_J0WPVDJ942", "_gcl_*"])
@@ -91,9 +91,9 @@ test("the banner links to a policy naming every tracker and cookie", async ({ pa
 
 test("the about page opens with a link to the privacy policy", async ({ page }) => {
   const codec = new CodecPage(page);
-  await codec.open("/about");
+  await codec.open("/about/");
 
   const lead = page.getByTestId("about-lead");
   await expect(lead).toBeVisible();
-  await expect(lead.getByRole("link").first()).toHaveAttribute("href", "/privacy");
+  await expect(lead.getByRole("link").first()).toHaveAttribute("href", "/privacy/");
 });
