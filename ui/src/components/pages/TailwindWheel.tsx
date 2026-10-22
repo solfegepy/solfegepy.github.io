@@ -144,6 +144,7 @@ export function TailwindAnchorSwatches({
               type="button"
               data-testid={`tailwind-${family}-swatch`}
               aria-label={`Select ${family}`}
+              title={`Select ${family}`}
               aria-pressed={isSelected}
               onClick={() => onSelect(entry)}
               className={`${ANCHOR_BUTTON_CLASSES} ${isSelected ? "ring-primary ring-2 ring-offset-2" : ""}`}

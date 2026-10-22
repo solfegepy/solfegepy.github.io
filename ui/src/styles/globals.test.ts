@@ -48,7 +48,7 @@ const SEMANTIC_COLORS = [
   "tool-privacy-soft",
   "tool-privacy-border",
 ] as const;
-const APPROVED_COLORS = /^oklch\([\d.]+% [\d.]+ [\d.]+\)$/;
+const APPROVED_COLOR_TOKENS = /^var\(--color-[\w-]+\)$/;
 const TEST_ID_SURFACES = ["section", "header", "footer", "main", "nav", "article", "button", "a", "input", "textarea"];
 
 function sourceFiles(directory: string): string[] {
@@ -76,13 +76,13 @@ describe("Tailwind theme contract", () => {
     for (const color of SEMANTIC_COLORS) expect(css).toContain(`--color-${color}: var(--${color});`);
   });
 
-  it("maps theme colors only to approved OKLCH tokens", () => {
-    const declarations = [...css.matchAll(/^\s+--([\w-]+): (oklch\(.+\));$/gm)].filter(([, name]) =>
+  it("maps theme colors only to Tailwind palette tokens", () => {
+    const declarations = [...css.matchAll(/^\s+--([\w-]+): (var\(--color-[\w-]+\));$/gm)].filter(([, name]) =>
       SEMANTIC_COLORS.includes(name as (typeof SEMANTIC_COLORS)[number]),
     );
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
-    for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLORS);
+    for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLOR_TOKENS);
     expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i);
   });
 

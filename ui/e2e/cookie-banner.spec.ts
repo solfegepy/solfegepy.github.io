@@ -53,7 +53,7 @@ test("withdrawing consent deletes the analytics cookies and reloads the page", a
   await codec.open("/privacy/");
   await cookies.acceptAll();
   // The stubbed gtag.js sets nothing, so plant the cookie the real one would set.
-  await page.context().addCookies([{ name: "_ga", value: "GA1.1.1.1", url: page.url() }]);
+  await page.context().addCookies([{ name: "_ga", value: "GA1.1.1.1", url: new URL("/", page.url()).href }]);
 
   await cookies.openSettingsFromPrivacyPage();
   await Promise.all([page.waitForEvent("load"), cookies.rejectAllInSettings()]);

@@ -28,7 +28,7 @@ export default defineConfig({
     viewport: { width: 1920, height: 1080 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: process.env.PLAYWRIGHT_VIDEO === "off" ? "off" : "retain-on-failure",
     actionTimeout: 10_000,
     navigationTimeout: 20_000,
   },
@@ -38,6 +38,9 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         launchOptions: {
+          ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+            ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+            : {}),
           args: ["--disable-dev-shm-usage", "--disable-gpu", "--no-sandbox"],
           ...(process.env.PLAYWRIGHT_SLOW_MO ? { slowMo: Number(process.env.PLAYWRIGHT_SLOW_MO) } : {}),
         },

@@ -538,15 +538,14 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await expect(page).toHaveURL(/\/query\/$/);
   await expect(codec.drawer()).toBeHidden();
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
-  await codec.format("query", "top").focus();
-  await page.keyboard.press("ArrowDown");
-  await expect(codec.format("query", "top")).toHaveValue("json");
-  await page.keyboard.press("Tab");
-  await expect(codec.input("query-input")).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(page.getByTestId("codec-workspace-swap")).toBeFocused();
+  await expect(codec.format("query", "top")).toHaveText("Query string");
+  await codec.input("query-input").focus();
+  await page.keyboard.press("End");
+  await page.keyboard.type("&lang=en");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Convert" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByTestId("codec-workspace-swap")).toBeFocused();
   expect(
     await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('[data-testid="query-workspace"] *')]
@@ -845,6 +844,7 @@ test("Timestamp converts every format privately and remains accessible", async (
 
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await codec.setViewport(1920, 1080);
   await codec.chooseOppositeTheme();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(darkBackground);

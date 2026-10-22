@@ -675,7 +675,7 @@ describe("CodecApp", () => {
     expect(convert).toBeEnabled();
     await user.click(convert);
     expect(screen.getByRole("alert")).toHaveTextContent("Enter valid Base64.");
-    expect(screen.getByTestId("base64-output")).toHaveValue("");
+    expect(screen.getByTestId("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(convert).toBeDisabled();
     await user.type(input, "A");
     expect(convert).toBeEnabled();

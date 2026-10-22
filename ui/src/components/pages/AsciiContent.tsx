@@ -16,14 +16,14 @@ export function AsciiContent() {
 
   return (
     <div className="min-w-0" data-testid="ascii-content">
-      <header className="mb-6 space-y-3">
+      <header data-testid="ascii-description" className="mb-6 space-y-3">
         <p className="text-muted max-w-prose">
           ASCII covers U+0000–U+007F. The remaining entries are Unicode Latin characters, not one universal extended
           ASCII encoding. Code values identify Unicode code points; URL values show each character encoded as UTF-8.
         </p>
       </header>
 
-      <section aria-label="Search character codes" className="space-y-4">
+      <section data-testid="ascii-reference" aria-label="Search character codes" className="space-y-4">
         <div className="max-w-2xl">
           <label htmlFor="ascii-search" className="text-ink mb-1 block font-semibold">
             Search characters or codes
@@ -44,6 +44,7 @@ export function AsciiContent() {
                 type="button"
                 data-testid="ascii-clear-search"
                 aria-label="Clear search"
+                title="Clear search"
                 onClick={() => setQuery("")}
                 className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:ring-primary rounded-control min-h-11 min-w-11 border px-3 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               >
