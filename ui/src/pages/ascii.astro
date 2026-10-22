@@ -1,0 +1,12 @@
+---
+import { CodecApp } from "../components/pages/CodecApp";
+import Layout from "../layouts/Layout.astro";
+
+const title = "ASCII & Latin Codes | Codec Bench";
+const description = "Search ASCII and Unicode Latin characters by letter, decimal, hexadecimal, or UTF-8 URL code.";
+const canonical = "https://codec64.com/ascii/";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec Bench">
+  <CodecApp page="ascii" client:load />
+</Layout>

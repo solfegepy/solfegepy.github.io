@@ -6,6 +6,7 @@ import { applyTheme, readTheme, writeTheme, type Theme } from "../../lib/theme";
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
 import { ThemeControl } from "../ui/ThemeControl";
 import { AboutContent } from "./AboutContent";
+import { AsciiContent } from "./AsciiContent";
 import { Base64Tool } from "./Base64Tool";
 import { FaqContent } from "./FaqContent";
 import { JwtTool } from "./JwtTool";
@@ -23,7 +24,7 @@ const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 font-mono text-xs font-sem
 const BRAND_SLASH_CLASSES = "text-accent";
 const ICON_BUTTON_CLASSES = "icon-button";
 
-type InfoPage = "faq" | "privacy" | "about";
+type InfoPage = "faq" | "privacy" | "about" | "ascii";
 
 interface ToolNavigationProps {
   activeTool: ToolId | undefined;
@@ -34,6 +35,7 @@ interface ToolNavigationProps {
 function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationProps) {
   const faqCurrent = currentPage === "faq";
   const aboutCurrent = currentPage === "about";
+  const asciiCurrent = currentPage === "ascii";
   return (
     <nav data-testid="tool-navigation" aria-label="Tools and help" className="flex flex-1 flex-col py-5">
       {TOOL_GROUPS.map((group) => (
@@ -62,6 +64,23 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
                 </a>
               );
             })}
+            {group === "Encoding" && (
+              <a
+                data-testid="ascii-link"
+                data-accent="ascii"
+                href="/ascii/"
+                aria-current={asciiCurrent ? "page" : undefined}
+                className={`${NAV_LINK_CLASSES} ${asciiCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+                onClick={onNavigate}
+              >
+                <span
+                  className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.ascii.accentClasses}`}
+                >
+                  <TOOL_PRESENTATION.ascii.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
+                </span>
+                ASCII &amp; Latin Codes
+              </a>
+            )}
           </div>
         </section>
       ))}
@@ -154,6 +173,11 @@ const INFO_PAGES = {
       </>
     ),
     content: <AboutContent />,
+  },
+  ascii: {
+    heading: "ASCII & Latin Codes",
+    lead: "Find a character by its hexadecimal or URL-encoded value, or browse accented Latin letter families.",
+    content: <AsciiContent />,
   },
 } as const satisfies Record<InfoPage, { heading: string; lead: ReactNode; content: ReactNode }>;
 

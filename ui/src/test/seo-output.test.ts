@@ -44,6 +44,11 @@ function aboutDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function asciiDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/ascii/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function notFoundDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/404.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
@@ -54,7 +59,18 @@ const FONT_PRELOAD_COUNT = 2 * 6;
 
 describe("production homepage SEO", () => {
   it("uses GitHub Pages directory URLs in metadata and internal links", () => {
-    const routes = ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/privacy/", "/about/"];
+    const routes = [
+      "/",
+      "/url/",
+      "/query/",
+      "/jwt/",
+      "/python-json/",
+      "/timestamp/",
+      "/faq/",
+      "/privacy/",
+      "/about/",
+      "/ascii/",
+    ];
 
     for (const route of routes) {
       const html = readFileSync(resolve(import.meta.dirname, "../../../docs", `.${route}index.html`), "utf8");
@@ -73,7 +89,7 @@ describe("production homepage SEO", () => {
   });
 
   it("serves web fonts from the site's own origin", () => {
-    const pages = ["", "url/", "query/", "jwt/", "python-json/", "timestamp/", "faq/", "privacy/", "about/"];
+    const pages = ["", "url/", "query/", "jwt/", "python-json/", "timestamp/", "faq/", "privacy/", "about/", "ascii/"];
     const builtPages = [...pages.map((page) => `${page}index.html`), "404.html"].map((page) =>
       new DOMParser().parseFromString(
         readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8"),
@@ -313,6 +329,24 @@ describe("production About SEO", () => {
     expect(document.querySelectorAll("h1")).toHaveLength(1);
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("About Codec Bench");
     expect(document.querySelector('[data-testid="about-lead"] a')?.getAttribute("href")).toBe("/privacy/");
+  });
+});
+
+describe("production ASCII reference SEO", () => {
+  it("renders the searchable reference and metadata in static HTML without converter structured data", () => {
+    const document = asciiDocument();
+    const canonical = "https://codec64.com/ascii/";
+
+    expect(document.title).toBe("ASCII & Latin Codes | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
+      "Search ASCII and Unicode Latin characters by letter, decimal, hexadecimal, or UTF-8 URL code.",
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("ASCII & Latin Codes");
+    expect(document.body.textContent).toContain("ASCII covers U+0000–U+007F");
+    expect(document.querySelectorAll('[data-testid="ascii-table"] tbody tr')).toHaveLength(848);
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
   });
 });
 

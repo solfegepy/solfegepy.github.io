@@ -1,5 +1,6 @@
 import {
   BracesIcon,
+  BinaryIcon,
   CircleHelpIcon,
   ClockIcon,
   CodeXmlIcon,
@@ -12,7 +13,7 @@ import {
 
 import type { ToolId } from "./tools";
 
-export type PresentationId = ToolId | "faq" | "privacy" | "about";
+export type PresentationId = ToolId | "faq" | "privacy" | "about" | "ascii";
 
 interface ToolPresentation {
   Icon: LucideIcon;
@@ -40,4 +41,5 @@ export const TOOL_PRESENTATION = {
   },
   // About shares the Help group's accent with the FAQ.
   about: { Icon: InfoIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
+  ascii: { Icon: BinaryIcon, accentClasses: "border-tool-url-border bg-tool-url-soft text-tool-url" },
 } as const satisfies Record<PresentationId, ToolPresentation>;

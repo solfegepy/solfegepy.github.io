@@ -359,6 +359,32 @@ describe("CodecApp", () => {
       expect(screen.getByTestId(`tool-link-${toolId}`)).not.toHaveAttribute("aria-current");
   });
 
+  it("renders the ASCII reference from Encoding navigation without converter controls", async () => {
+    const registerTool = installModelContext();
+    render(<CodecApp page="ascii" />);
+
+    const encodingLinks = screen.getAllByTestId("ascii-link");
+    expect(encodingLinks).toHaveLength(1);
+    for (const link of encodingLinks) {
+      expect(link).toHaveAttribute("href", "/ascii/");
+      expect(link).toHaveAttribute("aria-current", "page");
+    }
+    expect(screen.getByRole("heading", { level: 1, name: "ASCII & Latin Codes" })).toBeInTheDocument();
+    expect(screen.getByTestId("ascii-table")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole("searchbox", { name: "Search characters or codes" })).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
+    expect(registerTool).not.toHaveBeenCalled();
+
+    await userEvent.setup().click(screen.getByTestId("menu-button"));
+    expect(screen.getAllByTestId("ascii-link")).toHaveLength(2);
+    expect(screen.getAllByTestId("ascii-link").every((link) => link.getAttribute("aria-current") === "page")).toBe(
+      true,
+    );
+  });
+
   it("gives tool and FAQ headings visible decorative accent identities", () => {
     const view = render(<CodecApp toolId="base64" />);
     const toolHeader = screen.getByTestId("tool-header");
