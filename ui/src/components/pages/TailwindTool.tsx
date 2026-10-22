@@ -93,7 +93,7 @@ export function TailwindTool() {
               className={FIELD_CLASSES}
             />
             <p id="tailwind-hex-help" className="text-muted text-sm">
-              Enter a three- or six-digit hex color, with or without #.
+              A three or six digit hex color.
             </p>
           </div>
 
@@ -156,7 +156,7 @@ export function TailwindTool() {
               role="alert"
               className="text-danger rounded-control border-danger bg-danger-soft border p-3 text-sm"
             >
-              Enter a three- or six-digit hex color, with or without #.
+              A three or six digit hex color.
             </p>
           ) : (
             <section
