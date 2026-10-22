@@ -94,7 +94,18 @@ export function TailwindTool() {
             <p id="tailwind-hex-help" className="text-muted text-sm">
               Enter a three- or six-digit hex color, with or without #.
             </p>
-            <p className="text-muted font-mono text-sm">Colors from Tailwind CSS {TAILWIND_VERSION}</p>
+            <p className="text-muted font-mono text-sm">
+              Colors from{" "}
+              <a
+                data-testid="tailwind-version-link"
+                href={`https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary font-semibold underline underline-offset-2"
+              >
+                Tailwind CSS {TAILWIND_VERSION}
+              </a>
+            </p>
           </div>
 
           <fieldset className="space-y-3">

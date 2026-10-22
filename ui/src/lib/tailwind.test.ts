@@ -4,7 +4,7 @@ import { matchTailwindColor, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwi
 
 describe("Tailwind palette", () => {
   it("exposes all default fixed-color tokens in wheel order", () => {
-    expect(TAILWIND_VERSION).toBe("4.3.3");
+    expect(TAILWIND_VERSION).toBe("4.2.0");
     expect(TAILWIND_PALETTE).toHaveLength(288);
     expect(TAILWIND_PALETTE[0]).toEqual({ token: "red-50", family: "red", shade: 50, hex: "#fef2f2" });
     expect(TAILWIND_PALETTE.find(({ token }) => token === "blue-500")?.hex).toBe("#2b7fff");

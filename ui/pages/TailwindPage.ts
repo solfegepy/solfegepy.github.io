@@ -200,6 +200,6 @@ export class TailwindPage {
   }
 
   versionLabel(): Locator {
-    return this.page.getByText("Colors from Tailwind CSS 4.3.3", { exact: true });
+    return this.page.getByRole("link", { name: "Tailwind CSS 4.2.0" });
   }
 }

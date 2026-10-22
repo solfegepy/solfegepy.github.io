@@ -1,5 +1,4 @@
 import colors from "tailwindcss/colors";
-import tailwindPackage from "tailwindcss/package.json" with { type: "json" };
 
 const CHROMATIC_FAMILIES = [
   "red",
@@ -47,7 +46,9 @@ export type TailwindMatchResult =
       match: "exact" | "closest";
     }>;
 
-export const TAILWIND_VERSION = tailwindPackage.version;
+// Release that last changed the default palette, not the installed version: later releases reuse these colors.
+// Bump it when a Tailwind upgrade changes the palette.
+export const TAILWIND_VERSION = "4.2.0";
 
 function oklchToHex(value: string): string {
   const components = value.match(/^oklch\(([^%]+)%\s+([^\s]+)\s+([^\s)]+)\)$/);
