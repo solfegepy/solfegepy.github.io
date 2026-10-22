@@ -20,6 +20,7 @@ const INITIAL_SHADE = 500;
 const FIELD_CLASSES =
   "border-line bg-field text-ink focus-visible:ring-primary min-h-11 w-full rounded-control border font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 const SELECT_CLASSES = `${FIELD_CLASSES} px-3`;
+const PREVIEW_CLASSES = "rounded-control border-line bg-paper h-16 border";
 const GROUP_LABEL_CLASSES = "text-ink mb-2 block font-semibold";
 const FIELD_LABEL_CLASSES = "text-muted mb-1 block text-sm";
 
@@ -87,26 +88,19 @@ export function TailwindTool() {
               <label htmlFor="tailwind-hex" className={GROUP_LABEL_CLASSES}>
                 Hex color
               </label>
-              <div className="relative">
-                <span
-                  aria-hidden="true"
-                  className="border-line bg-paper absolute top-1/2 left-2 size-7 -translate-y-1/2 rounded-sm border"
-                  style={result.status === "matched" ? { backgroundColor: result.inputHex } : undefined}
-                />
-                <input
-                  id="tailwind-hex"
-                  data-testid="tailwind-hex-input"
-                  type="text"
-                  inputMode="text"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={input}
-                  onChange={(event) => updateInput(event.currentTarget.value)}
-                  aria-describedby="tailwind-hex-help"
-                  placeholder="#3b82f6"
-                  className={`${FIELD_CLASSES} pr-3 pl-11`}
-                />
-              </div>
+              <input
+                id="tailwind-hex"
+                data-testid="tailwind-hex-input"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                spellCheck={false}
+                value={input}
+                onChange={(event) => updateInput(event.currentTarget.value)}
+                aria-describedby="tailwind-hex-help"
+                placeholder="#3b82f6"
+                className={`${FIELD_CLASSES} px-3`}
+              />
               <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
                 <p id="tailwind-hex-help" className="text-muted">
                   A three or six digit hex color.
@@ -166,6 +160,12 @@ export function TailwindTool() {
                 </div>
               </div>
             </fieldset>
+            <div
+              aria-hidden="true"
+              data-testid="tailwind-input-swatch"
+              className={PREVIEW_CLASSES}
+              style={result.status === "matched" ? { backgroundColor: result.inputHex } : undefined}
+            />
           </section>
 
           {result.status === "empty" ? (
@@ -193,11 +193,7 @@ export function TailwindTool() {
                 <p data-testid="tailwind-match-kind" className="text-muted text-sm">
                   {result.match === "exact" ? "Exact match" : "Closest match"}
                 </p>
-                <div
-                  aria-hidden="true"
-                  className="rounded-control border-line h-16 border"
-                  style={{ backgroundColor: result.entry.hex }}
-                />
+                <div aria-hidden="true" className={PREVIEW_CLASSES} style={{ backgroundColor: result.entry.hex }} />
               </div>
               <dl className="divide-line divide-y">
                 <ResultRow
