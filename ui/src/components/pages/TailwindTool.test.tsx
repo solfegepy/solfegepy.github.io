@@ -10,7 +10,7 @@ describe("TailwindTool", () => {
 
     expect(screen.getByRole("textbox", { name: "Hex color" })).toHaveValue("");
     expect(screen.getByText(/select a tailwind color or enter a hex value/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Copy token" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy tailwind color token" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Copy hex" })).not.toBeInTheDocument();
   });
 
@@ -133,7 +133,7 @@ describe("TailwindTool", () => {
       render(<TailwindTool />);
       fireEvent.change(screen.getByRole("textbox", { name: "Hex color" }), { target: { value: "#000" } });
 
-      fireEvent.click(screen.getByRole("button", { name: "Copy token" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy tailwind color token" }));
       expect(await screen.findByRole("status")).toHaveTextContent("Token copied");
       expect(writeText).toHaveBeenLastCalledWith("black");
 
@@ -151,7 +151,7 @@ describe("TailwindTool", () => {
       render(<TailwindTool />);
       fireEvent.change(screen.getByRole("textbox", { name: "Hex color" }), { target: { value: "#000" } });
 
-      fireEvent.click(screen.getByRole("button", { name: "Copy token" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy tailwind color token" }));
 
       expect(await screen.findByRole("alert")).toHaveTextContent(/clipboard.*unavailable/i);
       expect(screen.getByTestId("tailwind-token")).toHaveTextContent("black");
@@ -185,7 +185,7 @@ describe("TailwindTool", () => {
       render(<TailwindTool />);
       const input = screen.getByRole("textbox", { name: "Hex color" });
       fireEvent.change(input, { target: { value: "#000" } });
-      fireEvent.click(screen.getByRole("button", { name: "Copy token" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy tailwind color token" }));
       expect(await screen.findByRole("status")).toHaveTextContent("Token copied");
 
       fireEvent.change(input, { target: { value: "#fff" } });
@@ -205,7 +205,7 @@ describe("TailwindTool", () => {
       render(<TailwindTool />);
       const input = screen.getByRole("textbox", { name: "Hex color" });
       fireEvent.change(input, { target: { value: "#000" } });
-      fireEvent.click(screen.getByRole("button", { name: "Copy token" }));
+      fireEvent.click(screen.getByRole("button", { name: "Copy tailwind color token" }));
       expect(writeText).toHaveBeenCalledWith("black");
 
       fireEvent.change(input, { target: { value: "#fff" } });

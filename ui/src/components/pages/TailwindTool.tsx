@@ -195,7 +195,7 @@ export function TailwindTool() {
                   data-testid="tailwind-copy-token"
                   onClick={() => void copyValue(result.entry.token, "Token")}
                 >
-                  Copy token
+                  Copy tailwind color token
                 </ActionButton>
                 <ActionButton data-testid="tailwind-copy-hex" onClick={() => void copyValue(result.entry.hex, "Hex")}>
                   Copy hex
