@@ -325,6 +325,13 @@ describe("query parsing", () => {
 });
 
 describe("query serialization", () => {
+  it("serializes booleans as text and null as empty values, including array values", () => {
+    expect(serializeQuery('{"active":true,"disabled":false,"missing":null,"values":["Ada",true,false,null]}')).toEqual({
+      ok: true,
+      value: "active=true&disabled=false&missing=&values=Ada&values=true&values=false&values=",
+    });
+  });
+
   it.each([
     ['{"a":["1","2"],"message":"hello world"}', "a=1&a=2&message=hello+world"],
     ["{}", ""],
@@ -347,12 +354,9 @@ describe("query serialization", () => {
     expect(serializeQuery(input, target)).toEqual({ ok: true, value });
   });
 
-  it.each(["nope", "[]", "null", '{"x":1}', '{"x":true}', '{"x":null}', '{"x":{}}', '{"x":[["a"]]}'])(
-    "rejects unsupported JSON %s",
-    (input) => {
-      expect(serializeQuery(input).ok).toBe(false);
-    },
-  );
+  it.each(["nope", "[]", "null", '{"x":1}', '{"x":{}}', '{"x":[["a"]]}'])("rejects unsupported JSON %s", (input) => {
+    expect(serializeQuery(input).ok).toBe(false);
+  });
 
   it("round trips supported values", () => {
     const source = '{"a":["1","2"],"message":"hello world"}';

@@ -1,4 +1,4 @@
-import type { ConversionResult, JwtDecodeResult, QueryObject, QueryValue } from "./types";
+import type { ConversionResult, JwtDecodeResult, QueryObject } from "./types";
 
 export type Base64Variant = "standard" | "url-safe";
 export type UrlEncodingVariant = "rfc3986" | "uri" | "form";
@@ -415,8 +415,12 @@ export function parseQuery(input: string): ConversionResult {
   }
 }
 
-function isQueryValue(value: unknown): value is QueryValue {
-  return typeof value === "string" || (Array.isArray(value) && value.every((item) => typeof item === "string"));
+function isQueryScalar(value: unknown): value is string | boolean | null {
+  return value === null || typeof value === "string" || typeof value === "boolean";
+}
+
+function isQueryValue(value: unknown): boolean {
+  return isQueryScalar(value) || (Array.isArray(value) && value.every(isQueryScalar));
 }
 
 /** Returns the URL or path before a query string, or "" when the target is bare params. */
@@ -434,11 +438,15 @@ export function serializeQuery(input: string, target = ""): ConversionResult {
     return fail("Enter a valid JSON object.");
   }
   if (source === null || Array.isArray(source) || typeof source !== "object") return fail("JSON must be an object.");
-  if (!Object.values(source).every(isQueryValue)) return fail("Values must be strings or arrays of strings.");
+  // Reject nested objects and unsupported values before query serialization loses their structure.
+  if (!Object.values(source).every(isQueryValue)) {
+    return fail("Values must be strings, booleans, null, or arrays of these values.");
+  }
 
   const parameters = new URLSearchParams();
   for (const [key, value] of Object.entries(source)) {
-    for (const item of Array.isArray(value) ? value : [value]) parameters.append(key, item);
+    for (const item of Array.isArray(value) ? value : [value])
+      parameters.append(key, item === null ? "" : String(item));
   }
   const query = parameters.toString();
   const base = queryBase(target);
