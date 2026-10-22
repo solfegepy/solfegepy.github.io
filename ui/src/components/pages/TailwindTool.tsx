@@ -75,76 +75,84 @@ export function TailwindTool() {
     <section data-testid="tailwind-tool" aria-label="Tailwind color converter" className="min-w-0 space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="w-36 shrink-0 space-y-2">
-              <label htmlFor="tailwind-hex" className="text-ink block font-semibold">
-                Hex color
-              </label>
-              <input
-                id="tailwind-hex"
-                data-testid="tailwind-hex-input"
-                type="text"
-                inputMode="text"
-                autoComplete="off"
-                spellCheck={false}
-                value={input}
-                onChange={(event) => updateInput(event.currentTarget.value)}
-                aria-describedby="tailwind-hex-help"
-                placeholder="#3b82f6"
-                className={FIELD_CLASSES}
-              />
-              <p id="tailwind-hex-help" className="text-muted text-sm">
-                A three or six digit hex color.
-              </p>
+          <section
+            aria-label="Color input"
+            data-testid="tailwind-input"
+            className="rounded-surface border-line bg-panel space-y-6 border p-4"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-36 shrink-0 space-y-2">
+                <label htmlFor="tailwind-hex" className="text-ink block font-semibold">
+                  Hex color
+                </label>
+                <input
+                  id="tailwind-hex"
+                  data-testid="tailwind-hex-input"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={input}
+                  onChange={(event) => updateInput(event.currentTarget.value)}
+                  aria-describedby="tailwind-hex-help"
+                  placeholder="#3b82f6"
+                  className={FIELD_CLASSES}
+                />
+                <p id="tailwind-hex-help" className="text-muted text-sm">
+                  A three or six digit hex color.
+                </p>
+              </div>
+              {result.status === "matched" && <ColorPreview hex={result.inputHex} />}
             </div>
-            {result.status === "matched" && <ColorPreview hex={result.inputHex} />}
-          </div>
 
-          <fieldset className="space-y-3">
-            <legend className="text-ink font-semibold">Select a Tailwind color</legend>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
-                <label htmlFor="tailwind-family" className="text-muted mb-1 block text-sm">
-                  Family
-                </label>
-                <select
-                  id="tailwind-family"
-                  data-testid="tailwind-family-select"
-                  className={FIELD_CLASSES}
-                  value={family}
-                  onChange={(event) => {
-                    const nextFamily = event.currentTarget.value as TailwindFamily;
-                    selectEntry(entryFor(nextFamily, nextFamily === "black" || nextFamily === "white" ? null : shade));
-                  }}
-                >
-                  {FAMILIES.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+            <fieldset className="space-y-3">
+              <legend className="text-ink font-semibold">Select a Tailwind color</legend>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label htmlFor="tailwind-family" className="text-muted mb-1 block text-sm">
+                    Family
+                  </label>
+                  <select
+                    id="tailwind-family"
+                    data-testid="tailwind-family-select"
+                    className={FIELD_CLASSES}
+                    value={family}
+                    onChange={(event) => {
+                      const nextFamily = event.currentTarget.value as TailwindFamily;
+                      selectEntry(
+                        entryFor(nextFamily, nextFamily === "black" || nextFamily === "white" ? null : shade),
+                      );
+                    }}
+                  >
+                    {FAMILIES.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="tailwind-shade" className="text-muted mb-1 block text-sm">
+                    Shade
+                  </label>
+                  <select
+                    id="tailwind-shade"
+                    data-testid="tailwind-shade-select"
+                    className={FIELD_CLASSES}
+                    value={shade ?? ""}
+                    disabled={!numberedFamily}
+                    onChange={(event) => selectEntry(entryFor(family, Number(event.currentTarget.value)))}
+                  >
+                    {SHADES.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label htmlFor="tailwind-shade" className="text-muted mb-1 block text-sm">
-                  Shade
-                </label>
-                <select
-                  id="tailwind-shade"
-                  data-testid="tailwind-shade-select"
-                  className={FIELD_CLASSES}
-                  value={shade ?? ""}
-                  disabled={!numberedFamily}
-                  onChange={(event) => selectEntry(entryFor(family, Number(event.currentTarget.value)))}
-                >
-                  {SHADES.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </fieldset>
+            </fieldset>
+          </section>
 
           {result.status === "empty" ? (
             <p
