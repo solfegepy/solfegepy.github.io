@@ -22,17 +22,16 @@ const CHROMATIC_FAMILIES = [
   "rose",
 ] as const satisfies readonly TailwindFamily[];
 
-// Ordered by hue (warm to cool), starting from untinted neutral so the wheel closes without a jump.
 const NEUTRAL_FAMILIES = [
-  "neutral",
-  "taupe",
-  "stone",
-  "olive",
-  "mist",
   "slate",
   "gray",
   "zinc",
+  "neutral",
+  "stone",
+  "taupe",
   "mauve",
+  "olive",
+  "mist",
 ] as const satisfies readonly TailwindFamily[];
 const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 const CANVAS_INSET = 8;
