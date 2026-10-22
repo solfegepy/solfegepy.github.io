@@ -317,7 +317,7 @@ describe("CodecApp", () => {
     expect(screen.getAllByTestId("tool-navigation-group")[0]).toHaveTextContent("Base64URLJWT");
     expect(screen.getAllByTestId("tool-navigation-group")[0]).not.toHaveTextContent("Query Params");
     expect(screen.getAllByTestId("tool-navigation-group")[1]).toHaveTextContent(
-      "Query ParamsPython → JSONTimestampTailwind",
+      "Query ParamsPython → JSONTimestampTailwind colors",
     );
     expect(screen.getAllByTestId("tool-link-base64")[0]).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Base64 Decode");
@@ -343,7 +343,7 @@ describe("CodecApp", () => {
     ["jwt", "/jwt/", "JWT", "JWT Decoder"],
     ["python", "/python-json/", "Python → JSON", "Python Literal to JSON Converter"],
     ["timestamp", "/timestamp/", "Timestamp", "Z Time and Unix Timestamp Converter"],
-    ["tailwind", "/tailwind/", "Tailwind", "Tailwind Color Converter"],
+    ["tailwind", "/tailwind/", "Tailwind colors", "Tailwind Color Converter"],
   ] as const)("preserves %s route identity and accented navigation", (toolId, route, label, heading) => {
     render(<CodecApp toolId={toolId} />);
     const active = screen.getByTestId(`tool-link-${toolId}`);

@@ -72,7 +72,7 @@ export const TOOLS = [
   {
     id: "tailwind",
     group: "Conversion",
-    label: "Tailwind",
+    label: "Tailwind colors",
     route: "/tailwind/",
     title: "Tailwind Color Converter",
     description: ["Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token."],

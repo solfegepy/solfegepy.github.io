@@ -22,7 +22,7 @@ describe("tool registry", () => {
       ["Encoding", "JWT"],
       ["Conversion", "Python → JSON"],
       ["Conversion", "Timestamp"],
-      ["Conversion", "Tailwind"],
+      ["Conversion", "Tailwind colors"],
     ]);
   });
 
