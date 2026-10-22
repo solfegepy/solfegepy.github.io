@@ -41,7 +41,7 @@ describe("TailwindTool", () => {
 
     fireEvent.change(input, { target: { value: "#000" } });
     fireEvent.change(input, { target: { value: "#abcd" } });
-    expect(screen.getByRole("alert")).toHaveTextContent(/three- or six-digit hex/i);
+    expect(screen.getByRole("alert")).toHaveTextContent("A three or six digit hex color.");
     expect(screen.queryByTestId("tailwind-result")).not.toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: "" } });
