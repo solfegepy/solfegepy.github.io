@@ -1,12 +1,12 @@
 export const TOOL_GROUPS = ["Encoding", "Conversion"] as const;
 export type ToolGroup = (typeof TOOL_GROUPS)[number];
-export type ToolId = "base64" | "url" | "query" | "jwt" | "python" | "timestamp";
+export type ToolId = "base64" | "url" | "query" | "jwt" | "python" | "timestamp" | "tailwind";
 
 export interface ToolDefinition {
   id: ToolId;
   group: ToolGroup;
   label: string;
-  route: "/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/";
+  route: "/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/" | "/tailwind/";
   title: string;
   description: readonly [summary: string, ...details: string[]];
 }
@@ -68,6 +68,16 @@ export const TOOLS = [
     route: "/timestamp/",
     title: "Z Time and Unix Timestamp Converter",
     description: ["Convert strict UTC Z time, Unix seconds, and Unix milliseconds."],
+  },
+  {
+    id: "tailwind",
+    group: "Conversion",
+    label: "Tailwind",
+    route: "/tailwind/",
+    title: "Tailwind Color Converter",
+    description: [
+      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token using OKLab distance.",
+    ],
   },
 ] as const satisfies readonly ToolDefinition[];
 

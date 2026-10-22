@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 import { getToolDescription, TOOLS } from "../lib/tools";
+import { TAILWIND_VERSION } from "../lib/tailwind";
 
 const TITLE = "Base64 Decode and Encode | Codec Bench";
 const DESCRIPTION =
@@ -49,6 +50,11 @@ function asciiDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function tailwindDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/tailwind/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function notFoundDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/404.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
@@ -66,6 +72,7 @@ describe("production homepage SEO", () => {
       "/jwt/",
       "/python-json/",
       "/timestamp/",
+      "/tailwind/",
       "/faq/",
       "/privacy/",
       "/about/",
@@ -89,7 +96,19 @@ describe("production homepage SEO", () => {
   });
 
   it("serves web fonts from the site's own origin", () => {
-    const pages = ["", "url/", "query/", "jwt/", "python-json/", "timestamp/", "faq/", "privacy/", "about/", "ascii/"];
+    const pages = [
+      "",
+      "url/",
+      "query/",
+      "jwt/",
+      "python-json/",
+      "timestamp/",
+      "tailwind/",
+      "faq/",
+      "privacy/",
+      "about/",
+      "ascii/",
+    ];
     const builtPages = [...pages.map((page) => `${page}index.html`), "404.html"].map((page) =>
       new DOMParser().parseFromString(
         readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8"),
@@ -254,6 +273,29 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="jwt-how-to"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="jwt-verification"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="jwt-privacy"]')).toBeNull();
+  });
+
+  it("renders Tailwind discovery content, metadata, and one WebApplication schema before hydration", () => {
+    const document = tailwindDocument();
+    const canonical = "https://codec64.com/tailwind/";
+
+    expect(document.title).toBe("Tailwind Color Converter | Codec Bench");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
+      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token using OKLab distance.",
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(1);
+    const schema: unknown = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.textContent ?? "");
+    expect(schema).toMatchObject({ "@type": "WebApplication", url: canonical });
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("Tailwind Color Converter");
+    expect(document.body.textContent).toContain(`Colors from Tailwind CSS ${TAILWIND_VERSION}`);
+    expect(document.body.textContent).toContain("Closest colors are selected using OKLab distance");
+    expect(document.body.textContent).toContain("Hex values are sRGB approximations of Tailwind's OKLCH colors.");
+    expect(document.querySelector('[data-testid="tailwind-hex-input"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="tailwind-family-select"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="tailwind-shade-select"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated")).toBe("false");
   });
 });
 

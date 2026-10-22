@@ -8,6 +8,7 @@ import {
   InfoIcon,
   KeyRoundIcon,
   LinkIcon,
+  PaletteIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,10 @@ export const TOOL_PRESENTATION = {
   timestamp: {
     Icon: ClockIcon,
     accentClasses: "border-tool-timestamp-border bg-tool-timestamp-soft text-tool-timestamp",
+  },
+  tailwind: {
+    Icon: PaletteIcon,
+    accentClasses: "border-tool-query-border bg-tool-query-soft text-tool-query",
   },
   faq: { Icon: CircleHelpIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
   privacy: {

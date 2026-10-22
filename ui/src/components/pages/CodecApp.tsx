@@ -14,6 +14,7 @@ import { PrivacyContent } from "./PrivacyContent";
 import { PythonTool } from "./PythonTool";
 import { QueryTool } from "./QueryTool";
 import { TimestampTool } from "./TimestampTool";
+import { TailwindTool } from "./TailwindTool";
 import { UrlTool } from "./UrlTool";
 
 const NAV_LINK_CLASSES =
@@ -240,6 +241,7 @@ export function CodecApp(props: CodecAppProps) {
     jwt: <JwtTool />,
     python: <PythonTool />,
     timestamp: <TimestampTool />,
+    tailwind: <TailwindTool />,
   };
   const pagePresentation = TOOL_PRESENTATION[props.page ?? props.toolId];
   const PageIcon = pagePresentation.Icon;

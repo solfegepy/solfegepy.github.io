@@ -10,6 +10,7 @@ Browser-only encoding and conversion tools. Input never leaves the browser.
 - **JWT** — decode JWT headers and payloads without signature verification.
 - **Python → JSON** — convert Python literals and JSON in either direction.
 - **Timestamp** — convert Z time, Unix seconds, and Unix milliseconds.
+- **Tailwind** — browse Tailwind CSS colors and match hex values to the closest token.
 
 ## Local development
 

@@ -316,7 +316,9 @@ describe("CodecApp", () => {
     expect(screen.getAllByText("Conversion")).toHaveLength(1);
     expect(screen.getAllByTestId("tool-navigation-group")[0]).toHaveTextContent("Base64URLJWT");
     expect(screen.getAllByTestId("tool-navigation-group")[0]).not.toHaveTextContent("Query Params");
-    expect(screen.getAllByTestId("tool-navigation-group")[1]).toHaveTextContent("Query ParamsPython → JSONTimestamp");
+    expect(screen.getAllByTestId("tool-navigation-group")[1]).toHaveTextContent(
+      "Query ParamsPython → JSONTimestampTailwind",
+    );
     expect(screen.getAllByTestId("tool-link-base64")[0]).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Base64 Decode");
     expect(screen.getByTestId("sidebar-footer")).not.toHaveTextContent(/local only|no uploads/i);
@@ -341,6 +343,7 @@ describe("CodecApp", () => {
     ["jwt", "/jwt/", "JWT", "JWT Decoder"],
     ["python", "/python-json/", "Python → JSON", "Python Literal to JSON Converter"],
     ["timestamp", "/timestamp/", "Timestamp", "Z Time and Unix Timestamp Converter"],
+    ["tailwind", "/tailwind/", "Tailwind", "Tailwind Color Converter"],
   ] as const)("preserves %s route identity and accented navigation", (toolId, route, label, heading) => {
     render(<CodecApp toolId={toolId} />);
     const active = screen.getByTestId(`tool-link-${toolId}`);
@@ -350,6 +353,18 @@ describe("CodecApp", () => {
     expect(active).toHaveAttribute("data-accent", toolId);
     expect(active.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+  });
+
+  it("renders the Tailwind converter under Conversion without a text workspace", () => {
+    render(<CodecApp toolId="tailwind" />);
+
+    const link = screen.getByTestId("tool-link-tailwind");
+    expect(link.closest("section")).toHaveTextContent("Conversion");
+    expect(link).toHaveAttribute("href", "/tailwind/");
+    expect(link).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("heading", { level: 1, name: "Tailwind Color Converter" })).toBeInTheDocument();
+    expect(screen.getByTestId("tailwind-hex-input")).toBeInTheDocument();
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
   });
 
   it("marks only Help/FAQ current on FAQ identity", () => {

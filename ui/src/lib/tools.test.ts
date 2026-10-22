@@ -8,7 +8,7 @@ const README = readFileSync("../README.md", "utf8");
 
 describe("tool registry", () => {
   it("defines every tool once with unique IDs and routes", () => {
-    expect(TOOLS.map(({ id }) => id)).toEqual(["base64", "url", "query", "jwt", "python", "timestamp"]);
+    expect(TOOLS.map(({ id }) => id)).toEqual(["base64", "url", "query", "jwt", "python", "timestamp", "tailwind"]);
     expect(new Set(TOOLS.map(({ id }) => id)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map(({ route }) => route)).size).toBe(TOOLS.length);
   });
@@ -22,6 +22,7 @@ describe("tool registry", () => {
       ["Encoding", "JWT"],
       ["Conversion", "Python → JSON"],
       ["Conversion", "Timestamp"],
+      ["Conversion", "Tailwind"],
     ]);
   });
 
