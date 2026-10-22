@@ -406,8 +406,14 @@ export function parseQuery(input: string): ConversionResult {
   try {
     const result: QueryObject = {};
     for (const [key, value] of new URLSearchParams(queryText(input))) {
+      const parsedValue = value === "" ? null : value;
       const current = result[key];
-      result[key] = current === undefined ? value : Array.isArray(current) ? [...current, value] : [current, value];
+      result[key] =
+        current === undefined
+          ? parsedValue
+          : Array.isArray(current)
+            ? [...current, parsedValue]
+            : [current, parsedValue];
     }
     return pass(JSON.stringify(result, null, 2));
   } catch {

@@ -116,7 +116,7 @@ const APPROVED_ANSWER_TEXT = [
   "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec Bench's Full URI and RFC 3986 component modes provide those respective behaviors.",
   "Common causes include incomplete % escapes, non-hex escape characters, invalid UTF-8, or choosing form decoding for a value that uses a different convention. Confirm whether input is a full URI, component, or form value.",
   "Paste a full URL, a query beginning with ?, or the query text alone. Choose Query string as the source and JSON as the target, then select Convert.",
-  "Use a JSON object whose values are strings, booleans, null, or arrays of these values, choose JSON as the source, and convert. Null becomes an empty query value. The result keeps a base URL or path already in the target pane, and ? appears only between that base and the params.",
+  "Use a JSON object whose values are strings, booleans, null, or arrays of these values, choose JSON as the source, and convert. Null becomes an empty query value, and empty query values become JSON null. The result keeps a base URL or path already in the target pane, and ? appears only between that base and the params.",
   'Repeated names become arrays in encounter order. For example, tag=one&tag=two becomes { "tag": ["one", "two"] }.',
   "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built output never starts or ends with ?; it appears only between a kept base and the params.",
   "Query parsing follows form-style URL rules: + decodes to a space and %2B decodes to a literal plus. Building a query writes spaces as + and literal plus signs as %2B.",

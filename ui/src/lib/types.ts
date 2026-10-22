@@ -1,4 +1,4 @@
-export type QueryValue = string | string[];
+export type QueryValue = string | null | (string | null)[];
 
 export type QueryObject = Record<string, QueryValue>;
 

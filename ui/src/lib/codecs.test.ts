@@ -306,16 +306,24 @@ describe("URL component codec", () => {
 });
 
 describe("query parsing", () => {
+  it("parses empty parameter values as null, including repeated parameters", () => {
+    expect(parseQuery("active=&tag=one&tag=&tag=two&empty=&empty=")).toEqual({
+      ok: true,
+      value:
+        '{\n  "active": null,\n  "tag": [\n    "one",\n    null,\n    "two"\n  ],\n  "empty": [\n    null,\n    null\n  ]\n}',
+    });
+  });
+
   it.each([
     [
       "https://example.test/path?a=1&a=2&message=hello+world&empty=",
-      { a: ["1", "2"], message: "hello world", empty: "" },
+      { a: ["1", "2"], message: "hello world", empty: null },
     ],
     ["?plus=%2B&encoded=a%26b", { plus: "+", encoded: "a&b" }],
     ["name=Ada", { name: "Ada" }],
     ["https://example.test/path", {}],
     ["", {}],
-    ["=blank&x=", { "": "blank", x: "" }],
+    ["=blank&x=", { "": "blank", x: null }],
   ])("parses %s", (input, value) => {
     expect(parseQuery(input)).toEqual({
       ok: true,
