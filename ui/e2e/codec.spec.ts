@@ -590,7 +590,7 @@ test("new browser context starts with example workspace", async ({ browser }) =>
   await expect(codec.input("base64-input")).toHaveValue("Hello, world!");
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
   await codec.open("/query/");
-  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
   await codec.open("/python-json/");
   await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
@@ -715,7 +715,7 @@ test("page reload resets DATA workspace", async ({ page }) => {
   await codec.swap();
   await codec.act("Clear");
   await page.reload();
-  await expect(codec.input("query-input")).toHaveValue("name=Ada&active=true");
+  await expect(codec.input("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
   await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
   await expect(codec.format("query", "top")).toHaveText("Query string");
 });

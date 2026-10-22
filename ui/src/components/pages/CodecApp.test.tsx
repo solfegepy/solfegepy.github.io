@@ -876,7 +876,7 @@ describe("CodecApp", () => {
       JSON.stringify({ version: 1, state: { input: "?saved=yes", output: "saved", mode: "parse" } }),
     );
     const query = render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     query.unmount();
 
@@ -983,7 +983,7 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="query" />);
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
     expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("JSON");
-    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-input")).toBeEnabled();
     expect(screen.getByTestId("query-output")).toBeDisabled();
@@ -1011,7 +1011,7 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="query" />);
     await user.click(screen.getByTestId("codec-workspace-swap"));
     expect(screen.getByTestId("query-input")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
-    expect(screen.getByTestId("query-output")).toHaveValue("name=Ada&active=true");
+    expect(screen.getByTestId("query-output")).toHaveValue("https://example.com/?name=Ada&active=true");
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("JSON");
     expect(screen.getByTestId("query-bottom-format")).toHaveTextContent("Query string");
   });
@@ -1070,7 +1070,7 @@ describe("CodecApp", () => {
     expect(sessionStorage.length).toBe(0);
     first.unmount();
     render(<CodecApp toolId="query" />);
-    expect(screen.getByTestId("query-input")).toHaveValue("name=Ada&active=true");
+    expect(screen.getByTestId("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-top-format")).toHaveTextContent("Query string");
   });
