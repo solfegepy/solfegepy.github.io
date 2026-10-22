@@ -1,4 +1,4 @@
-import { useEffect, useRef, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 import { TAILWIND_PALETTE, type TailwindFamily, type TailwindPaletteEntry } from "../../lib/tailwind";
 
@@ -54,6 +54,7 @@ type TailwindWheelProps = {
 /** Draws a family-and-shade wheel while leaving selection state with its parent. */
 export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [hovered, setHovered] = useState<TailwindPaletteEntry | null>(null);
   const families = kind === "chromatic" ? CHROMATIC_FAMILIES : NEUTRAL_FAMILIES;
   const title = kind === "chromatic" ? "Chromatic wheel" : "Neutral wheel";
   const wheelSelection = selected !== null && new Set<TailwindFamily>(families).has(selected.family) ? selected : null;
@@ -76,9 +77,9 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
     };
   }, [families, wheelSelection?.token]);
 
-  function selectAtPointer(event: PointerEvent<HTMLCanvasElement>) {
+  function entryAtPointer(event: MouseEvent<HTMLCanvasElement>): TailwindPaletteEntry | null {
     const canvas = canvasRef.current;
-    if (canvas === null) return;
+    if (canvas === null) return null;
 
     const bounds = canvas.getBoundingClientRect();
     const x = event.clientX - bounds.left;
@@ -87,25 +88,24 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
     const dx = x - center;
     const dy = y - center;
     const radius = Math.hypot(dx, dy) / (center - CANVAS_INSET);
-    if (radius <= INNER_RADIUS || radius >= OUTER_RADIUS) return;
+    if (radius <= INNER_RADIUS || radius >= OUTER_RADIUS) return null;
 
     const rawAngle = Math.atan2(dy, dx) + Math.PI / 2;
     const angle = (rawAngle + Math.PI * 2) % (Math.PI * 2);
     const sectorSize = (Math.PI * 2) / families.length;
     const sectorOffset = angle / sectorSize;
     const sectorRemainder = sectorOffset - Math.floor(sectorOffset);
-    if (sectorRemainder < SECTOR_GAP / 2 / sectorSize || sectorRemainder > 1 - SECTOR_GAP / 2 / sectorSize) return;
+    if (sectorRemainder < SECTOR_GAP / 2 / sectorSize || sectorRemainder > 1 - SECTOR_GAP / 2 / sectorSize) return null;
 
     const ringOffset = ((radius - INNER_RADIUS) / (OUTER_RADIUS - INNER_RADIUS)) * SHADES.length;
     const ring = Math.floor(ringOffset);
     const ringRemainder = ringOffset - ring;
-    if (ringRemainder < RING_GAP || ringRemainder > 1 - RING_GAP || ring < 0 || ring >= SHADES.length) return;
+    if (ringRemainder < RING_GAP || ringRemainder > 1 - RING_GAP || ring < 0 || ring >= SHADES.length) return null;
 
     const family = families[Math.floor(sectorOffset)];
     const shade = SHADES[ring];
-    if (family === undefined || shade === undefined) return;
-    const entry = TAILWIND_PALETTE.find((candidate) => candidate.family === family && candidate.shade === shade);
-    if (entry !== undefined) onSelect(entry);
+    if (family === undefined || shade === undefined) return null;
+    return TAILWIND_PALETTE.find((candidate) => candidate.family === family && candidate.shade === shade) ?? null;
   }
 
   return (
@@ -116,7 +116,13 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
         data-testid={`tailwind-${kind}-canvas`}
         role="img"
         aria-label={`${title}. Shades radiate from 50 inside to 950 outside. ${wheelSelection === null ? "No token selected on this wheel" : `Selected ${wheelSelection.token}, ${wheelSelection.hex}`}.`}
-        onPointerUp={selectAtPointer}
+        title={hovered?.token}
+        onPointerUp={(event) => {
+          const entry = entryAtPointer(event);
+          if (entry !== null) onSelect(entry);
+        }}
+        onMouseMove={(event) => setHovered(entryAtPointer(event))}
+        onMouseLeave={() => setHovered(null)}
         className={CANVAS_CLASSES}
       />
       <p className="text-muted mt-2 text-xs leading-relaxed">{families.join(" · ")}</p>
@@ -145,7 +151,7 @@ export function TailwindAnchorSwatches({
               type="button"
               data-testid={`tailwind-${family}-swatch`}
               aria-label={`Select ${family}`}
-              title={`Select ${family}`}
+              title={entry.token}
               aria-pressed={isSelected}
               onClick={() => onSelect(entry)}
               className={`${ANCHOR_BUTTON_CLASSES} ${isSelected ? "ring-primary ring-2 ring-offset-2" : ""}`}

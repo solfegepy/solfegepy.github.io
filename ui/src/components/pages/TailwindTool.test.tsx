@@ -88,6 +88,24 @@ describe("TailwindTool", () => {
     expect(chromaticCanvas.getAttribute("aria-label")).toMatch(/chromatic wheel.*no token selected/i);
   });
 
+  it("shows the hovered wheel token as a tooltip", () => {
+    render(<TailwindTool />);
+    const canvas = screen.getByTestId("tailwind-chromatic-canvas");
+    canvas.getBoundingClientRect = () => DOMRect.fromRect({ x: 0, y: 0, width: 200, height: 200 });
+
+    // Just right of top centre, innermost ring: first family, lightest shade.
+    fireEvent.mouseMove(canvas, { clientX: 102, clientY: 80 });
+    expect(canvas).toHaveAttribute("title", "red-50");
+
+    fireEvent.mouseLeave(canvas);
+    expect(canvas).not.toHaveAttribute("title");
+  });
+
+  it.each(["black", "white"] as const)("shows the %s token as a tooltip", (anchor) => {
+    render(<TailwindTool />);
+    expect(screen.getByTestId(`tailwind-${anchor}-swatch`)).toHaveAttribute("title", anchor);
+  });
+
   it.each(["black", "white"] as const)("selects the %s anchor without a shade", (anchor) => {
     render(<TailwindTool />);
 
