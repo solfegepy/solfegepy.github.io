@@ -139,10 +139,10 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         question: "How do I convert JSON into a URL query string?",
         answer: (
           <>
-            Use a JSON object whose values are strings, booleans, null, or arrays of these values, choose JSON as the
-            source, and convert. Null becomes an empty query value, and empty query values become JSON null. The result
-            keeps a base URL or path already in the target pane, and <code className={CODE_CLASSES}>?</code> appears
-            only between that base and the params.
+            Use a JSON object whose values are strings, numbers, booleans, null, or arrays of these values, choose JSON
+            as the source, and convert. Numbers become query text and parse back as JSON strings. Null becomes an empty
+            query value, and empty query values become JSON null. The result keeps a base URL or path already in the
+            target pane, and <code className={CODE_CLASSES}>?</code> appears only between that base and the params.
           </>
         ),
       },

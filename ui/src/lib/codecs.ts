@@ -421,8 +421,8 @@ export function parseQuery(input: string): ConversionResult {
   }
 }
 
-function isQueryScalar(value: unknown): value is string | boolean | null {
-  return value === null || typeof value === "string" || typeof value === "boolean";
+function isQueryScalar(value: unknown): value is string | number | boolean | null {
+  return value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 }
 
 function isQueryValue(value: unknown): boolean {
@@ -446,7 +446,7 @@ export function serializeQuery(input: string, target = ""): ConversionResult {
   if (source === null || Array.isArray(source) || typeof source !== "object") return fail("JSON must be an object.");
   // Reject nested objects and unsupported values before query serialization loses their structure.
   if (!Object.values(source).every(isQueryValue)) {
-    return fail("Values must be strings, booleans, null, or arrays of these values.");
+    return fail("Values must be strings, numbers, booleans, null, or arrays of these values.");
   }
 
   const parameters = new URLSearchParams();

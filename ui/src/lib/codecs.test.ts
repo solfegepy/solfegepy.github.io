@@ -333,6 +333,15 @@ describe("query parsing", () => {
 });
 
 describe("query serialization", () => {
+  it("serializes JSON numbers and parses them back as strings", () => {
+    const serialized = serializeQuery('{"count":42,"price":-1.5,"values":[0,2.5]}');
+    expect(serialized).toEqual({ ok: true, value: "count=42&price=-1.5&values=0&values=2.5" });
+    expect(serialized.ok && parseQuery(serialized.value)).toEqual({
+      ok: true,
+      value: '{\n  "count": "42",\n  "price": "-1.5",\n  "values": [\n    "0",\n    "2.5"\n  ]\n}',
+    });
+  });
+
   it("serializes booleans as text and null as empty values, including array values", () => {
     expect(serializeQuery('{"active":true,"disabled":false,"missing":null,"values":["Ada",true,false,null]}')).toEqual({
       ok: true,
@@ -362,7 +371,7 @@ describe("query serialization", () => {
     expect(serializeQuery(input, target)).toEqual({ ok: true, value });
   });
 
-  it.each(["nope", "[]", "null", '{"x":1}', '{"x":{}}', '{"x":[["a"]]}'])("rejects unsupported JSON %s", (input) => {
+  it.each(["nope", "[]", "null", '{"x":{}}', '{"x":[["a"]]}'])("rejects unsupported JSON %s", (input) => {
     expect(serializeQuery(input).ok).toBe(false);
   });
 
