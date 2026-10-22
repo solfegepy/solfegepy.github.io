@@ -39,7 +39,7 @@ export const TOOLS = [
   },
   {
     id: "query",
-    group: "Encoding",
+    group: "Conversion",
     label: "Query Params",
     route: "/query/",
     title: "Query Parameter Editor",

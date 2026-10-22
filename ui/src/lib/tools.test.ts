@@ -18,7 +18,7 @@ describe("tool registry", () => {
     expect(TOOLS.map(({ group, label }) => [group, label])).toEqual([
       ["Encoding", "Base64"],
       ["Encoding", "URL"],
-      ["Encoding", "Query Params"],
+      ["Conversion", "Query Params"],
       ["Encoding", "JWT"],
       ["Conversion", "Python → JSON"],
       ["Conversion", "Timestamp"],
