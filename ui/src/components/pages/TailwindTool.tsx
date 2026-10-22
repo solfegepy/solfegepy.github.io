@@ -54,7 +54,7 @@ export function TailwindTool() {
     setCopyError("");
   }
 
-  async function copyValue(value: string, label: "Token" | "Hex") {
+  async function copyValue(value: string, label: "Token" | "Hex" | "HSL") {
     const request = ++copyRequest.current;
     setCopyStatus("");
     setCopyError("");
@@ -97,7 +97,7 @@ export function TailwindTool() {
                 A three or six digit hex color.
               </p>
             </div>
-            {result.status === "matched" && <ColorPreview hex={result.inputHex} showHex={false} />}
+            {result.status === "matched" && <ColorPreview hex={result.inputHex} />}
           </div>
 
           <fieldset className="space-y-3">
@@ -171,28 +171,35 @@ export function TailwindTool() {
                 <p data-testid="tailwind-match-kind" className="text-muted text-sm">
                   {result.match === "exact" ? "Exact match" : "Closest match"}
                 </p>
-                <ColorPreview hex={result.entry.hex} />
-                <div className="flex items-center gap-1">
-                  <span data-testid="tailwind-token" className="text-ink font-mono text-lg font-semibold">
-                    {result.entry.token}
-                  </span>
-                  <CopyButton
-                    testId="tailwind-copy-token"
-                    label="Copy tailwind color token"
-                    onClick={() => void copyValue(result.entry.token, "Token")}
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <span data-testid="tailwind-hex" className="text-ink font-mono text-sm">
-                    {result.entry.hex}
-                  </span>
-                  <CopyButton
-                    testId="tailwind-copy-hex"
-                    label="Copy hex"
-                    onClick={() => void copyValue(result.entry.hex, "Hex")}
-                  />
-                </div>
+                <div
+                  aria-hidden="true"
+                  className="rounded-control border-line h-16 border"
+                  style={{ backgroundColor: result.entry.hex }}
+                />
               </div>
+              <dl className="divide-line divide-y">
+                <ResultRow
+                  id="token"
+                  label="Token"
+                  value={result.entry.token}
+                  copyLabel="Copy tailwind color token"
+                  onCopy={() => void copyValue(result.entry.token, "Token")}
+                />
+                <ResultRow
+                  id="hex"
+                  label="Hex"
+                  value={result.entry.hex}
+                  copyLabel="Copy hex"
+                  onCopy={() => void copyValue(result.entry.hex, "Hex")}
+                />
+                <ResultRow
+                  id="hsl"
+                  label="HSL"
+                  value={formatHsl(result.entry.hex)}
+                  copyLabel="Copy HSL"
+                  onCopy={() => void copyValue(formatHsl(result.entry.hex), "HSL")}
+                />
+              </dl>
               <InlineStatus error={copyError} status={copyStatus} />
             </section>
           )}
@@ -230,12 +237,31 @@ export function TailwindTool() {
   );
 }
 
-function ColorPreview({ hex, showHex = true }: { hex: string; showHex?: boolean }) {
+function ColorPreview({ hex }: { hex: string }) {
   return (
     <div data-testid="tailwind-color-preview" className="min-w-0 space-y-2">
       <div aria-hidden="true" className="rounded-control border-line h-16 border" style={{ backgroundColor: hex }} />
-      {showHex && <p className="text-ink font-mono text-sm break-all">{hex}</p>}
       <p className="text-muted font-mono text-sm break-all">{formatHsl(hex)}</p>
+    </div>
+  );
+}
+
+interface ResultRowProps {
+  id: string;
+  label: string;
+  value: string;
+  copyLabel: string;
+  onCopy: () => void;
+}
+
+function ResultRow({ id, label, value, copyLabel, onCopy }: ResultRowProps) {
+  return (
+    <div className="flex items-center gap-3">
+      <dt className="text-muted w-14 shrink-0 text-sm">{label}</dt>
+      <dd data-testid={`tailwind-${id}`} className="text-ink min-w-0 flex-1 font-mono text-sm break-all">
+        {value}
+      </dd>
+      <CopyButton testId={`tailwind-copy-${id}`} label={copyLabel} onClick={onCopy} />
     </div>
   );
 }

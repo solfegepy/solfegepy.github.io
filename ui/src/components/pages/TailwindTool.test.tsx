@@ -142,7 +142,7 @@ describe("TailwindTool", () => {
     ).toBe(true);
   });
 
-  it("copies only the requested token or hex and announces success", async () => {
+  it("copies only the requested token, hex, or HSL and announces success", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     const restoreClipboard = stubClipboard({ writeText });
     try {
@@ -156,6 +156,10 @@ describe("TailwindTool", () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy hex" }));
       expect(await screen.findByRole("status")).toHaveTextContent("Hex copied");
       expect(writeText).toHaveBeenLastCalledWith("#000000");
+
+      fireEvent.click(screen.getByRole("button", { name: "Copy HSL" }));
+      expect(await screen.findByRole("status")).toHaveTextContent("HSL copied");
+      expect(writeText).toHaveBeenLastCalledWith("hsl(0 0% 0%)");
     } finally {
       restoreClipboard();
     }
