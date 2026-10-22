@@ -75,9 +75,7 @@ export const TOOLS = [
     label: "Tailwind",
     route: "/tailwind/",
     title: "Tailwind Color Converter",
-    description: [
-      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token using OKLab distance.",
-    ],
+    description: ["Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token."],
   },
 ] as const satisfies readonly ToolDefinition[];
 

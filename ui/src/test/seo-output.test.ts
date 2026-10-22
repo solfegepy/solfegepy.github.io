@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
-import { getToolDescription, TOOLS } from "../lib/tools";
 import { TAILWIND_VERSION } from "../lib/tailwind";
+import { getToolDescription, TOOLS } from "../lib/tools";
 
 const TITLE = "Base64 Decode and Encode | Codec Bench";
 const DESCRIPTION =
@@ -281,7 +281,7 @@ describe("production homepage SEO", () => {
 
     expect(document.title).toBe("Tailwind Color Converter | Codec Bench");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token using OKLab distance.",
+      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token.",
     );
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);

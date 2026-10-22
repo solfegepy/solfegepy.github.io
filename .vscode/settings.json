@@ -1,5 +1,7 @@
 {
   "search.exclude": {
+    "**/docs": true,
+
     "**/test-results": true,
     "**/.astro": true,
     "**/.pnpm-store": true,

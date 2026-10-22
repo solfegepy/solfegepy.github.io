@@ -95,18 +95,6 @@ export function TailwindTool() {
             <p id="tailwind-hex-help" className="text-muted text-sm">
               Enter a three- or six-digit hex color, with or without #.
             </p>
-            <p className="text-muted font-mono text-sm">
-              Colors from{" "}
-              <a
-                data-testid="tailwind-version-link"
-                href={`https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary font-semibold underline underline-offset-2"
-              >
-                Tailwind CSS {TAILWIND_VERSION}
-              </a>
-            </p>
           </div>
 
           <fieldset className="space-y-3">
@@ -222,6 +210,18 @@ export function TailwindTool() {
       <p className="text-muted max-w-prose text-sm">
         Closest colors are selected using OKLab distance, which estimates perceived color difference. Hex values are
         sRGB approximations of Tailwind&apos;s OKLCH colors.
+      </p>
+      <p className="text-muted text-sm">
+        Colors from{" "}
+        <a
+          data-testid="tailwind-version-link"
+          href={`https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary font-semibold underline underline-offset-2"
+        >
+          Tailwind CSS {TAILWIND_VERSION}
+        </a>
       </p>
     </section>
   );
