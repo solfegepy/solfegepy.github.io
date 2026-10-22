@@ -5,6 +5,7 @@ import { InlineStatus } from "../ui/InlineStatus";
 import { TailwindAnchorSwatches, TailwindWheel } from "./TailwindWheel";
 
 import {
+  formatHsl,
   matchTailwindColor,
   TAILWIND_PALETTE,
   TAILWIND_VERSION,
@@ -232,6 +233,7 @@ function ColorPreview({ label, hex }: { label: string; hex: string }) {
       <p className="text-muted text-sm">{label}</p>
       <div aria-hidden="true" className="rounded-control border-line h-16 border" style={{ backgroundColor: hex }} />
       <p className="text-ink font-mono text-sm break-all">{hex}</p>
+      <p className="text-muted font-mono text-sm break-all">{formatHsl(hex)}</p>
     </div>
   );
 }

@@ -159,3 +159,25 @@ export function matchTailwindColor(input: string): TailwindMatchResult {
     match: exactEntry === undefined ? "closest" : "exact",
   };
 }
+
+/** Format a normalized `#rrggbb` hex as a CSS `hsl()` value with rounded components. */
+export function formatHsl(hex: string): string {
+  const [red, green, blue] = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255) as [
+    number,
+    number,
+    number,
+  ];
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const chroma = max - min;
+  const lightness = (max + min) / 2;
+  const saturation = chroma === 0 ? 0 : chroma / (1 - Math.abs(2 * lightness - 1));
+  let hue = 0;
+  if (chroma !== 0) {
+    if (max === red) hue = ((green - blue) / chroma) % 6;
+    else if (max === green) hue = (blue - red) / chroma + 2;
+    else hue = (red - green) / chroma + 4;
+  }
+
+  return `hsl(${Math.round((hue * 60 + 360) % 360)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%)`;
+}

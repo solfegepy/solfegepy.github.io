@@ -23,6 +23,7 @@ describe("TailwindTool", () => {
     expect(screen.getByText("Input color")).toBeInTheDocument();
     expect(screen.getByText("Matched color")).toBeInTheDocument();
     expect(screen.getByTestId("tailwind-token")).toHaveTextContent(/.+/);
+    expect(screen.getAllByTestId("tailwind-color-preview")[0]).toHaveTextContent("hsl(210 65% 20%)");
   });
 
   it("shows canonical input, token, hex, and exact status for a palette color", () => {

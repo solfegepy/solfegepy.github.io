@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { matchTailwindColor, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
+import { formatHsl, matchTailwindColor, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
 
 describe("Tailwind palette", () => {
   it("exposes all default fixed-color tokens in wheel order", () => {
@@ -100,5 +100,13 @@ describe("matchTailwindColor input boundary", () => {
       entry: { token: "zinc-50", hex: "#fafafa" },
       match: "exact",
     });
+  });
+});
+
+describe("formatHsl", () => {
+  it("formats hex as CSS hsl() with rounded hue, saturation and lightness", () => {
+    expect(formatHsl("#3f3f46")).toBe("hsl(240 5% 26%)");
+    expect(formatHsl("#2b7fff")).toBe("hsl(216 100% 58%)");
+    expect(formatHsl("#ffffff")).toBe("hsl(0 0% 100%)");
   });
 });
