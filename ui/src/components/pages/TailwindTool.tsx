@@ -1,6 +1,6 @@
+import { CopyIcon } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { ActionButton } from "../ui/ActionButton";
 import { InlineStatus } from "../ui/InlineStatus";
 import { TailwindAnchorSwatches, TailwindWheel } from "./TailwindWheel";
 
@@ -75,26 +75,29 @@ export function TailwindTool() {
     <section data-testid="tailwind-tool" aria-label="Tailwind color converter" className="min-w-0 space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="tailwind-hex" className="text-ink block font-semibold">
-              Hex color
-            </label>
-            <input
-              id="tailwind-hex"
-              data-testid="tailwind-hex-input"
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              spellCheck={false}
-              value={input}
-              onChange={(event) => updateInput(event.currentTarget.value)}
-              aria-describedby="tailwind-hex-help"
-              placeholder="#3b82f6"
-              className={FIELD_CLASSES}
-            />
-            <p id="tailwind-hex-help" className="text-muted text-sm">
-              A three or six digit hex color.
-            </p>
+          <div className="flex items-start gap-4">
+            <div className="w-36 shrink-0 space-y-2">
+              <label htmlFor="tailwind-hex" className="text-ink block font-semibold">
+                Hex color
+              </label>
+              <input
+                id="tailwind-hex"
+                data-testid="tailwind-hex-input"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                spellCheck={false}
+                value={input}
+                onChange={(event) => updateInput(event.currentTarget.value)}
+                aria-describedby="tailwind-hex-help"
+                placeholder="#3b82f6"
+                className={FIELD_CLASSES}
+              />
+              <p id="tailwind-hex-help" className="text-muted text-sm">
+                A three or six digit hex color.
+              </p>
+            </div>
+            {result.status === "matched" && <ColorPreview hex={result.inputHex} showHex={false} />}
           </div>
 
           <fieldset className="space-y-3">
@@ -164,31 +167,31 @@ export function TailwindTool() {
               data-testid="tailwind-result"
               className="rounded-surface border-line bg-panel space-y-4 border p-4"
             >
-              <div className="grid grid-cols-2 gap-3">
-                <ColorPreview label="Input color" hex={result.inputHex} />
-                <ColorPreview label="Matched color" hex={result.entry.hex} />
-              </div>
-              <div aria-live="polite" className="space-y-1">
+              <div aria-live="polite" className="space-y-2">
                 <p data-testid="tailwind-match-kind" className="text-muted text-sm">
                   {result.match === "exact" ? "Exact match" : "Closest match"}
                 </p>
-                <p data-testid="tailwind-token" className="text-ink font-mono text-lg font-semibold">
-                  {result.entry.token}
-                </p>
-                <p data-testid="tailwind-hex" className="text-ink font-mono text-sm">
-                  {result.entry.hex}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <ActionButton
-                  data-testid="tailwind-copy-token"
-                  onClick={() => void copyValue(result.entry.token, "Token")}
-                >
-                  Copy tailwind color token
-                </ActionButton>
-                <ActionButton data-testid="tailwind-copy-hex" onClick={() => void copyValue(result.entry.hex, "Hex")}>
-                  Copy hex
-                </ActionButton>
+                <ColorPreview hex={result.entry.hex} />
+                <div className="flex items-center gap-1">
+                  <span data-testid="tailwind-token" className="text-ink font-mono text-lg font-semibold">
+                    {result.entry.token}
+                  </span>
+                  <CopyButton
+                    testId="tailwind-copy-token"
+                    label="Copy tailwind color token"
+                    onClick={() => void copyValue(result.entry.token, "Token")}
+                  />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span data-testid="tailwind-hex" className="text-ink font-mono text-sm">
+                    {result.entry.hex}
+                  </span>
+                  <CopyButton
+                    testId="tailwind-copy-hex"
+                    label="Copy hex"
+                    onClick={() => void copyValue(result.entry.hex, "Hex")}
+                  />
+                </div>
               </div>
               <InlineStatus error={copyError} status={copyStatus} />
             </section>
@@ -227,13 +230,27 @@ export function TailwindTool() {
   );
 }
 
-function ColorPreview({ label, hex }: { label: string; hex: string }) {
+function ColorPreview({ hex, showHex = true }: { hex: string; showHex?: boolean }) {
   return (
     <div data-testid="tailwind-color-preview" className="min-w-0 space-y-2">
-      <p className="text-muted text-sm">{label}</p>
       <div aria-hidden="true" className="rounded-control border-line h-16 border" style={{ backgroundColor: hex }} />
-      <p className="text-ink font-mono text-sm break-all">{hex}</p>
+      {showHex && <p className="text-ink font-mono text-sm break-all">{hex}</p>}
       <p className="text-muted font-mono text-sm break-all">{formatHsl(hex)}</p>
     </div>
+  );
+}
+
+function CopyButton({ testId, label, onClick }: { testId: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      data-testid={testId}
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="text-muted hover:text-primary focus-visible:outline-primary rounded-control inline-flex min-h-11 min-w-11 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+    >
+      <CopyIcon aria-hidden="true" size={17} />
+    </button>
   );
 }

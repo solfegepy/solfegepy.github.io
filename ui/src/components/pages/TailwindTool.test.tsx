@@ -20,8 +20,6 @@ describe("TailwindTool", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Hex color" }), { target: { value: "#123456" } });
 
     expect(screen.getByText("Closest match")).toBeInTheDocument();
-    expect(screen.getByText("Input color")).toBeInTheDocument();
-    expect(screen.getByText("Matched color")).toBeInTheDocument();
     expect(screen.getByTestId("tailwind-token")).toHaveTextContent(/.+/);
     expect(screen.getAllByTestId("tailwind-color-preview")[0]).toHaveTextContent("hsl(210 65% 20%)");
   });
@@ -35,7 +33,6 @@ describe("TailwindTool", () => {
     expect(screen.getByTestId("tailwind-match-kind")).toHaveTextContent("Exact match");
     expect(screen.getByTestId("tailwind-token")).toHaveTextContent("black");
     expect(screen.getByTestId("tailwind-hex")).toHaveTextContent("#000000");
-    expect(screen.getAllByText("#000000", { selector: "p" })).toHaveLength(3);
   });
 
   it("clears stale results on invalid input, resets on empty input, and matches after correction", () => {
