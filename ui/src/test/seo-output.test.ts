@@ -289,7 +289,7 @@ describe("production homepage SEO", () => {
     const schema: unknown = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.textContent ?? "");
     expect(schema).toMatchObject({ "@type": "WebApplication", url: canonical });
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("Tailwind Color Converter");
-    expect(document.body.textContent).toContain("Includes colors introduced in Tailwind CSS 4.2 on Feb 2026");
+    expect(document.body.textContent).toContain("Includes colors introduced in Tailwind CSS 4.2 on Feb 2026.");
     expect(
       document.querySelector(`a[href="https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}"]`)
         ?.textContent,

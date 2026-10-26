@@ -265,7 +265,7 @@ export function TailwindTool() {
         >
           Tailwind CSS 4.2
         </a>{" "}
-        on Feb 2026
+        on Feb 2026.
       </p>
     </section>
   );
