@@ -79,7 +79,7 @@ export function runCookieConsent(): Promise<void> {
             title: "We value your privacy",
             description:
               "With your permission, we and Google use cookies and process data such as your IP address and " +
-              "browser information to measure how Codec Bench is used, and to personalise the advertising you " +
+              "browser information to measure how Codec64 is used, and to personalise the advertising you " +
               "see, including our ads on other sites. Nothing you enter in the tools is ever included. You can " +
               "change or withdraw your consent at any time with <strong>Cookie settings</strong> in the site " +
               `menu or on our <a href="${PRIVACY_PATH}">privacy page</a>.`,

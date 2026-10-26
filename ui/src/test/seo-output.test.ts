@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { TAILWIND_VERSION } from "../lib/tailwind";
 import { getToolDescription, TOOLS } from "../lib/tools";
 
-const TITLE = "Base64 Decode and Encode | Codec Bench";
+const TITLE = "Base64 Decode and Encode | Codec64";
 const DESCRIPTION =
   "Convert plain text, Base64, or Base64url: Base64: uses +, /, and = padding Base64url: uses - and _ without padding.";
 const URL = "https://codec64.com/";
@@ -86,6 +86,7 @@ describe("production homepage SEO", () => {
 
       expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href"), route).toBe(canonical);
       expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content"), route).toBe(canonical);
+      expect(document.querySelector('meta[property="og:site_name"]')?.getAttribute("content"), route).toBe("Codec64");
       const schema = document.querySelector('script[type="application/ld+json"]');
       if (schema) expect(JSON.parse(schema.textContent ?? "")).toMatchObject({ url: canonical });
 
@@ -138,7 +139,7 @@ describe("production homepage SEO", () => {
       const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}index.html`;
       const html = readFileSync(resolve(import.meta.dirname, `../../../docs/${output}`), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
-      expect(document.title).toBe(`${tool.title} | Codec Bench`);
+      expect(document.title).toBe(`${tool.title} | Codec64`);
       expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
         getToolDescription(tool),
       );
@@ -195,7 +196,7 @@ describe("production homepage SEO", () => {
     expect(schema).toEqual({
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      name: "Codec Bench Base64 Encoder and Decoder",
+      name: "Codec64 Base64 Encoder and Decoder",
       url: URL,
       description: DESCRIPTION,
       applicationCategory: "UtilitiesApplication",
@@ -231,7 +232,7 @@ describe("production homepage SEO", () => {
     const document = timestampDocument();
     const canonical = "https://codec64.com/timestamp/";
 
-    expect(document.title).toBe("Z Time and Unix Timestamp Converter | Codec Bench");
+    expect(document.title).toBe("Z Time and Unix Timestamp Converter | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toContain(
       "UTC Z time, Unix seconds, and Unix milliseconds",
     );
@@ -254,7 +255,7 @@ describe("production homepage SEO", () => {
     const document = jwtDocument();
     const canonical = "https://codec64.com/jwt/";
 
-    expect(document.title).toBe("JWT Decoder | Codec Bench");
+    expect(document.title).toBe("JWT Decoder | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
       "Decode JWT headers and payloads without signature verification.",
     );
@@ -279,7 +280,7 @@ describe("production homepage SEO", () => {
     const document = tailwindDocument();
     const canonical = "https://codec64.com/tailwind/";
 
-    expect(document.title).toBe("Tailwind Color Converter | Codec Bench");
+    expect(document.title).toBe("Tailwind Color Converter | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
       "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token.",
     );
@@ -310,7 +311,7 @@ describe("production FAQ SEO", () => {
       "Answers about Base64, URL encoding, query strings, JWT decoding, Python-to-JSON conversion, and Unix timestamps.";
     const canonical = "https://codec64.com/faq/";
 
-    expect(document.title).toBe("Encoding and Conversion FAQ | Codec Bench");
+    expect(document.title).toBe("Encoding and Conversion FAQ | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
@@ -348,9 +349,9 @@ describe("production Privacy SEO", () => {
     const document = privacyDocument();
     const canonical = "https://codec64.com/privacy/";
 
-    expect(document.title).toBe("Privacy & Cookies Policy | Codec Bench");
+    expect(document.title).toBe("Privacy & Cookies Policy | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-      "How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
+      "How Codec64 uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
     );
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
@@ -369,11 +370,11 @@ describe("production About SEO", () => {
     const document = aboutDocument();
     const canonical = "https://codec64.com/about/";
 
-    expect(document.title).toBe("About Codec Bench");
+    expect(document.title).toBe("About Codec64");
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
     expect(document.querySelectorAll("h1")).toHaveLength(1);
-    expect(document.querySelector("h1")?.textContent?.trim()).toBe("About Codec Bench");
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("About Codec64");
     expect(document.querySelector('[data-testid="about-lead"] a')?.getAttribute("href")).toBe("/privacy/");
   });
 });
@@ -383,7 +384,7 @@ describe("production ASCII reference SEO", () => {
     const document = asciiDocument();
     const canonical = "https://codec64.com/ascii/";
 
-    expect(document.title).toBe("ASCII & Latin Codes | Codec Bench");
+    expect(document.title).toBe("ASCII & Latin Codes | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
       "Search ASCII and Unicode Latin characters by letter, decimal, hexadecimal, or UTF-8 URL code.",
     );
@@ -400,17 +401,17 @@ describe("production 404", () => {
   it("generates a root fallback document", () => {
     const document = notFoundDocument();
 
-    expect(document.title).toBe("Page Not Found | Codec Bench");
+    expect(document.title).toBe("Page Not Found | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-      "The requested Codec Bench page could not be found.",
+      "The requested Codec64 page could not be found.",
     );
     expect(document.querySelector('meta[name="robots"]')?.getAttribute("content")).toBe("noindex");
     expect(document.querySelectorAll("h1")).toHaveLength(1);
     expect(document.querySelector("h1")?.textContent).toContain("404");
     expect(document.body.textContent).toContain("This page could not be found");
-    expect(document.body.textContent).toContain("Codec/Bench");
+    expect(document.body.textContent).toContain("Codec64");
     expect(
-      [...document.querySelectorAll('a[href="/"]')].some((link) => link.textContent?.includes("Back to Codec Bench")),
+      [...document.querySelectorAll('a[href="/"]')].some((link) => link.textContent?.includes("Back to Codec64")),
     ).toBe(true);
     expect(document.querySelector('link[rel="canonical"]')).toBeNull();
     expect(document.querySelector('meta[property="og:url"]')).toBeNull();

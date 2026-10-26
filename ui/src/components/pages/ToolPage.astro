@@ -10,11 +10,11 @@ const { toolId } = Astro.props;
 const tool = getTool(toolId);
 const description = getToolDescription(tool);
 const canonical = `https://codec64.com${tool.route}`;
-const title = `${tool.title} | Codec Bench`;
+const title = `${tool.title} | Codec64`;
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: toolId === "base64" ? "Codec Bench Base64 Encoder and Decoder" : `Codec Bench ${tool.label}`,
+  name: toolId === "base64" ? "Codec64 Base64 Encoder and Decoder" : `Codec64 ${tool.label}`,
   url: canonical,
   description,
   applicationCategory: "UtilitiesApplication",
@@ -26,7 +26,7 @@ const ARTICLE_CLASSES =
 const GUIDANCE_CARD_CLASSES = "border-line bg-field min-w-0 rounded-control border p-5";
 ---
 
-<Layout {title} {description} {canonical} siteName="Codec Bench" {structuredData}>
+<Layout {title} {description} {canonical} siteName="Codec64" {structuredData}>
   <noscript>Enable JavaScript to use conversions.</noscript>
   <CodecApp toolId={tool.id} client:load />
   {

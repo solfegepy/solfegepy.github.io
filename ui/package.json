@@ -1,5 +1,5 @@
 {
-  "name": "codec-bench",
+  "name": "codec64",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.10.0",

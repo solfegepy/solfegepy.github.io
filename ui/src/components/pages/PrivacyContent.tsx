@@ -65,7 +65,7 @@ export function PrivacyContent() {
     <div data-testid="privacy-content">
       <ContentSection id="who-runs-this-site" heading="Who runs this site" testId="privacy-who-runs-this-site">
         <p>
-          Codec Bench is a set of free, browser-only encoding and conversion tools, operated by Solfege Media Ltd at
+          Codec64 is a set of free, browser-only encoding and conversion tools, operated by Solfege Media Ltd at
           codec64.com. Solfege Media Ltd is the data controller for the information described here. It is registered in
           England and Wales, company number 07701812, registered office: 65 Walsworth Road, Hitchin, SG4 9FJ.
         </p>
@@ -91,8 +91,8 @@ export function PrivacyContent() {
 
       <ContentSection id="hosting" heading="Hosting and server logs" testId="privacy-hosting">
         <p>
-          Codec Bench is hosted on GitHub Pages, run by GitHub, Inc. in the United States. When you visit, GitHub logs
-          your IP address for security purposes, whether or not you accept cookies. GitHub keeps these logs under{" "}
+          Codec64 is hosted on GitHub Pages, run by GitHub, Inc. in the United States. When you visit, GitHub logs your
+          IP address for security purposes, whether or not you accept cookies. GitHub keeps these logs under{" "}
           <ExternalLink href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">
             its own privacy statement
           </ExternalLink>
@@ -141,7 +141,7 @@ export function PrivacyContent() {
         </p>
         <div className="border-line rounded-control max-w-full overflow-x-auto border">
           <table data-testid="privacy-cookie-table" className="w-full text-left text-sm">
-            <caption className="sr-only">Cookies Codec Bench sets</caption>
+            <caption className="sr-only">Cookies Codec64 sets</caption>
             <thead className="bg-field text-ink">
               <tr>
                 {["Cookie", "Party", "Lifetime", "Purpose", "Category"].map((heading) => (

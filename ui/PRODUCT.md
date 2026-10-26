@@ -14,7 +14,7 @@ Developers debugging and transforming technical data. They need fast, dependable
 
 ## Product Purpose
 
-Codec Bench lets developers paste technical data, convert or decode it in the browser, and copy the result without uploads or setup. Success means correct results through an intuitive, easy-to-understand workflow.
+Codec64 lets developers paste technical data, convert or decode it in the browser, and copy the result without uploads or setup. Success means correct results through an intuitive, easy-to-understand workflow.
 
 ## Positioning
 

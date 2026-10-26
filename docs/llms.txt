@@ -1,8 +1,8 @@
-# Codec Bench
+# Codec64
 
 > Browser-only encoding and conversion tools. User input remains in the browser and is never transmitted.
 
-Codec Bench provides free web utilities at https://codec64.com.
+Codec64 provides free web utilities at https://codec64.com.
 
 ## Tools
 
@@ -15,5 +15,5 @@ Codec Bench provides free web utilities at https://codec64.com.
 
 ## Other
 
-- [About Codec Bench](https://codec64.com/about/): Who makes Codec Bench and how to get in touch.
-- [Privacy & Cookies Policy](https://codec64.com/privacy/): How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.
+- [About Codec64](https://codec64.com/about/): Who makes Codec64 and how to get in touch.
+- [Privacy & Cookies Policy](https://codec64.com/privacy/): How Codec64 uses Google Analytics cookies, what data is collected, and how to withdraw consent.

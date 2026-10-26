@@ -22,7 +22,7 @@ const NAV_LINK_CLASSES =
 const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold text-primary";
 const NAV_GROUP_CLASSES = "mb-5";
 const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase";
-const BRAND_SLASH_CLASSES = "text-accent";
+const BRAND_SUFFIX_CLASSES = "text-accent-strong";
 const ICON_BUTTON_CLASSES = "icon-button";
 
 type InfoPage = "faq" | "privacy" | "about" | "ascii";
@@ -150,16 +150,16 @@ function FooterLegalLinks() {
 const INFO_PAGES = {
   faq: {
     heading: "Encoding and Conversion FAQ",
-    lead: "Direct answers about Codec Bench formats, limits, and browser-only conversion tools.",
+    lead: "Direct answers about Codec64 formats, limits, and browser-only conversion tools.",
     content: <FaqContent />,
   },
   privacy: {
     heading: "Privacy & Cookies Policy",
-    lead: "How Codec Bench uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
+    lead: "How Codec64 uses Google Analytics cookies, what data is collected, and how to withdraw consent.",
     content: <PrivacyContent />,
   },
   about: {
-    heading: "About Codec Bench",
+    heading: "About Codec64",
     lead: (
       <>
         Our{" "}
@@ -263,7 +263,7 @@ export function CodecApp(props: CodecAppProps) {
       >
         <a data-testid="desktop-home-link" href="/" className="border-line flex min-h-20 items-center border-b px-5">
           <span className="font-display text-xl font-extrabold tracking-tight">
-            Codec<span className={BRAND_SLASH_CLASSES}>/</span>Bench
+            Codec<span className={BRAND_SUFFIX_CLASSES}>64</span>
           </span>
         </a>
         <ToolNavigation activeTool={props.toolId} currentPage={props.page} />
@@ -286,7 +286,7 @@ export function CodecApp(props: CodecAppProps) {
           href="/"
           className="font-display inline-flex min-h-11 min-w-0 items-center text-base font-extrabold tracking-tight"
         >
-          Codec<span className={BRAND_SLASH_CLASSES}>/</span>Bench
+          Codec<span className={BRAND_SUFFIX_CLASSES}>64</span>
         </a>
         <button
           ref={menuRef}

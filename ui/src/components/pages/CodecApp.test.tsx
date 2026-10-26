@@ -113,15 +113,15 @@ const APPROVED_ANSWER_TEXT = [
   "Percent-encoding represents characters as % followed by hexadecimal byte values, such as a space written as %20. It lets text travel safely in URL components while preserving URL syntax.",
   "Use RFC 3986 component mode for one path, query, or fragment value. Use Full URI only for a complete URI whose structural characters, such as :, /, ?, and #, must remain intact.",
   "Use %20 in ordinary URL percent-encoding. + represents a space in form URL encoding; a literal plus in that format must be %2B.",
-  "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec Bench's Full URI and RFC 3986 component modes provide those respective behaviors.",
+  "encodeURI preserves delimiters belonging to a complete URI. encodeURIComponent encodes delimiters inside one value; Codec64's Full URI and RFC 3986 component modes provide those respective behaviors.",
   "Common causes include incomplete % escapes, non-hex escape characters, invalid UTF-8, or choosing form decoding for a value that uses a different convention. Confirm whether input is a full URI, component, or form value.",
   "Paste a full URL, a query beginning with ?, or the query text alone. Choose Query string as the source and JSON as the target, then select Convert.",
   "Use a JSON object whose values are strings, numbers, booleans, null, or arrays of these values, choose JSON as the source, and convert. Numbers become query text and parse back as JSON strings. Null becomes an empty query value, and empty query values become JSON null. The result keeps a base URL or path already in the target pane, and ? appears only between that base and the params.",
   'Repeated names become arrays in encounter order. For example, tag=one&tag=two becomes { "tag": ["one", "two"] }.',
-  "No. Codec Bench accepts name=Ada, ?name=Ada, or a full URL. Built output never starts or ends with ?; it appears only between a kept base and the params.",
+  "No. Codec64 accepts name=Ada, ?name=Ada, or a full URL. Built output never starts or ends with ?; it appears only between a kept base and the params.",
   "Query parsing follows form-style URL rules: + decodes to a space and %2B decodes to a literal plus. Building a query writes spaces as + and literal plus signs as %2B.",
   "Yes, when it is a signed three-part JWT with readable Base64url header and payload. A key is required to verify its signature, not to inspect those encoded fields.",
-  "No. Codec Bench displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
+  "No. Codec64 displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
   "A compact signed JWT contains a JOSE header, claims payload, and signature separated by periods. The first two parts are Base64url-encoded JSON objects.",
   "Yes. Expiry does not prevent Base64url decoding, and this decoder does not evaluate the exp claim. A decoded expired token remains expired and must not be accepted.",
   "A typical three-part signed JWT is encoded and readable, not encrypted. Encrypted JWE tokens use a different structure and are not supported by this decoder.",
@@ -131,9 +131,9 @@ const APPROVED_ANSWER_TEXT = [
   "Yes. Supported dictionaries, lists, and tuples can nest; tuples become JSON arrays. Sets, bytes, object constructors, and executable expressions are not supported.",
   "No. It parses a limited literal grammar in the browser and does not call Python or eval. Function calls, imports, comprehensions, and other executable expressions are rejected.",
   "Choose Unix seconds or Unix milliseconds as the source and Z time as the target, enter the value, then select Convert. Output uses UTC ISO 8601, such as 2026-07-21T12:00:00.000Z.",
-  "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec Bench requires explicit format selection instead of guessing.",
+  "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec64 requires explicit format selection instead of guessing.",
   "The Unix epoch is 1970-01-01T00:00:00Z. Unix timestamps count elapsed seconds or, in some systems, milliseconds from that UTC instant while ignoring leap seconds.",
-  "A trailing Z identifies zero-offset UTC, sometimes called Zulu time. Codec Bench accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.",
+  "A trailing Z identifies zero-offset UTC, sometimes called Zulu time. Codec64 accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.",
   "Check seconds vs milliseconds, remove signs or non-numeric text, and use a non-negative value within years 1970–9999. Decimal input is accepted, but precision below one millisecond is truncated and Unix output is an integer.",
 ] as const;
 
@@ -484,8 +484,9 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("skip-link")).toHaveAttribute("href", "#main-content");
     expect(screen.getByTestId("desktop-home-link")).toHaveAttribute("href", "/");
     expect(screen.getByTestId("desktop-home-link")).not.toHaveAttribute("aria-label");
-    expect(screen.getByTestId("desktop-home-link")).toHaveAccessibleName("Codec/Bench");
+    expect(screen.getByTestId("desktop-home-link")).toHaveAccessibleName("Codec64");
     expect(screen.getByTestId("mobile-home-link")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("mobile-home-link")).toHaveAccessibleName("Codec64");
     expect(menu).toHaveAttribute("title", "Open tools menu");
     await user.click(menu);
     expect(screen.getByTestId("mobile-drawer")).toBeInTheDocument();

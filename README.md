@@ -1,4 +1,4 @@
-# Codec Bench
+# Codec64
 
 Browser-only encoding and conversion tools. Input never leaves the browser.
 

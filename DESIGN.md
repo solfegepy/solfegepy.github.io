@@ -2,7 +2,7 @@
 
 ## Product Direction
 
-- **Product:** Codec Bench, browser-only text encoding and developer-data conversion tools.
+- **Product:** Codec64, browser-only text encoding and developer-data conversion tools.
 - **Audience:** Developers and technical users working quickly with Base64, URLs, query parameters, JWTs, Python
   literals, JSON, and timestamps.
 - **Primary jobs:** Paste data, choose explicit formats, convert, inspect, copy, and understand supported semantics.
@@ -17,22 +17,22 @@
 All names below are semantic utilities emitted by `ui/src/styles/globals.css`. Components use these names, never
 raw palette colors. Light and dark values are Tailwind CSS 4 default swatches.
 
-| Token                      | Light / dark                                           | Use                                             |
-| -------------------------- | ------------------------------------------------------ | ----------------------------------------------- |
-| `paper`                    | `stone-50` / `slate-950`                               | Page canvas, disabled fill                      |
-| `panel`                    | `neutral-50` / `slate-900`                             | Navigation and grouped surfaces                 |
-| `field`                    | `white` / `slate-800`                                  | Editable fields and active surfaces             |
-| `ink`                      | `slate-900` / `slate-50`                               | Primary text and headings                       |
-| `muted`                    | `slate-600` / `slate-400`                              | Supporting text and inactive controls           |
-| `line`                     | `stone-500` / `slate-500`                              | Borders, dividers, control boundaries           |
-| `primary`                  | `blue-700` / `blue-400`                                | Primary action, selection, links, focus         |
-| `primary-strong`           | `blue-800` / `blue-300`                                | Primary hover and emphasis                      |
-| `primary-soft`             | `blue-50` / `blue-950`                                 | Selected and informative backgrounds            |
-| `accent`                   | `orange-600` / `orange-400`                            | Brand slash and limited large-text context      |
-| `accent-strong`            | `orange-700` / `orange-300`                            | Normal-size accent text when contrast is needed |
-| `success` / `success-soft` | `green-700` on `green-50` / `green-300` on `green-950` | Completed operations                            |
-| `warning` / `warning-soft` | `amber-800` on `amber-50` / `amber-300` on `amber-950` | Unverified or caution states                    |
-| `danger` / `danger-soft`   | `red-700` on `red-50` / `red-300` on `red-950`         | Errors and destructive states                   |
+| Token                      | Light / dark                                           | Use                                        |
+| -------------------------- | ------------------------------------------------------ | ------------------------------------------ |
+| `paper`                    | `stone-50` / `slate-950`                               | Page canvas, disabled fill                 |
+| `panel`                    | `neutral-50` / `slate-900`                             | Navigation and grouped surfaces            |
+| `field`                    | `white` / `slate-800`                                  | Editable fields and active surfaces        |
+| `ink`                      | `slate-900` / `slate-50`                               | Primary text and headings                  |
+| `muted`                    | `slate-600` / `slate-400`                              | Supporting text and inactive controls      |
+| `line`                     | `stone-500` / `slate-500`                              | Borders, dividers, control boundaries      |
+| `primary`                  | `blue-700` / `blue-400`                                | Primary action, selection, links, focus    |
+| `primary-strong`           | `blue-800` / `blue-300`                                | Primary hover and emphasis                 |
+| `primary-soft`             | `blue-50` / `blue-950`                                 | Selected and informative backgrounds       |
+| `accent`                   | `orange-600` / `orange-400`                            | Decorative and large-text context          |
+| `accent-strong`            | `orange-700` / `orange-300`                            | Brand numerals and normal-size accent text |
+| `success` / `success-soft` | `green-700` on `green-50` / `green-300` on `green-950` | Completed operations                       |
+| `warning` / `warning-soft` | `amber-800` on `amber-50` / `amber-300` on `amber-950` | Unverified or caution states               |
+| `danger` / `danger-soft`   | `red-700` on `red-50` / `red-300` on `red-950`         | Errors and destructive states              |
 
 Tool identity uses a foreground, soft background, and matching border for each tool: Base64 `cyan-800/50` and
 `cyan-300/950`; URL `blue-700/50` and `blue-300/950`; Query `amber-800/50` and `amber-300/950`; JWT
@@ -127,7 +127,7 @@ text. Theme roles keep identical meaning in light and dark modes.
 
 ## Rationale
 
-Direction preserves Codec Bench's established Clean Room system. UI UX Pro Max developer-tool guidance supports
+Direction preserves Codec64's established Clean Room system. UI UX Pro Max developer-tool guidance supports
 minimalism, dark-mode readiness, blue focus, direct documentation, 44px targets, visible focus, nearby announced
 errors, and explicit labels. Its generic newsletter and exaggerated-editorial matches conflict with fast technical
 conversion work, so they are excluded. Tailwind default swatches replace prior custom OKLCH values for reproducible

@@ -109,8 +109,8 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         answer: (
           <>
             <code className={CODE_CLASSES}>encodeURI</code> preserves delimiters belonging to a complete URI.{" "}
-            <code className={CODE_CLASSES}>encodeURIComponent</code> encodes delimiters inside one value; Codec Bench's
-            Full URI and RFC 3986 component modes provide those respective behaviors.
+            <code className={CODE_CLASSES}>encodeURIComponent</code> encodes delimiters inside one value; Codec64's Full
+            URI and RFC 3986 component modes provide those respective behaviors.
           </>
         ),
       },
@@ -160,7 +160,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         question: "Does a query string need a leading question mark?",
         answer: (
           <>
-            No. Codec Bench accepts <code className={CODE_CLASSES}>name=Ada</code>,{" "}
+            No. Codec64 accepts <code className={CODE_CLASSES}>name=Ada</code>,{" "}
             <code className={CODE_CLASSES}>?name=Ada</code>, or a full URL. Built output never starts or ends with{" "}
             <code className={CODE_CLASSES}>?</code>; it appears only between a kept base and the params.
           </>
@@ -191,7 +191,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
       {
         question: "Does decoding a JWT verify its signature?",
         answer:
-          "No. Codec Bench displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
+          "No. Codec64 displays header, payload, and encoded signature only. Never use decoded claims for authentication or authorization until trusted server-side code verifies signature, issuer, audience, expiry, and other required claims.",
       },
       {
         question: "What are the three parts of a JWT?",
@@ -288,7 +288,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
       {
         question: "Is a Unix timestamp in seconds or milliseconds?",
         answer:
-          "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec Bench requires explicit format selection instead of guessing.",
+          "Traditional Unix time uses seconds; browsers and many APIs use milliseconds. Around current dates seconds commonly have 10 digits and milliseconds 13, but Codec64 requires explicit format selection instead of guessing.",
       },
       {
         question: "What is the Unix epoch?",
@@ -304,7 +304,7 @@ const FAQ_SECTIONS: readonly FaqSectionData[] = [
         answer: (
           <>
             A trailing <code className={CODE_CLASSES}>Z</code> identifies zero-offset UTC, sometimes called Zulu time.
-            Codec Bench accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.
+            Codec64 accepts strict UTC ISO 8601 Z time and does not convert local time-zone names or offsets.
           </>
         ),
       },
