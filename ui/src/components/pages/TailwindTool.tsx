@@ -6,6 +6,7 @@ import { TailwindAnchorSwatches, TailwindWheel } from "./TailwindWheel";
 
 import {
   formatHsl,
+  formatRgb,
   matchTailwindColor,
   TAILWIND_PALETTE,
   TAILWIND_VERSION,
@@ -58,7 +59,7 @@ export function TailwindTool() {
     setCopyError("");
   }
 
-  async function copyValue(value: string, label: "Token" | "Hex" | "HSL") {
+  async function copyValue(value: string, label: "Token" | "Hex" | "HSL" | "OKLCH" | "RGB") {
     const request = ++copyRequest.current;
     setCopyStatus("");
     setCopyError("");
@@ -211,11 +212,25 @@ export function TailwindTool() {
                   onCopy={() => void copyValue(result.entry.hex, "Hex")}
                 />
                 <ResultRow
+                  id="rgb"
+                  label="RGB"
+                  value={formatRgb(result.entry.hex)}
+                  copyLabel="Copy RGB"
+                  onCopy={() => void copyValue(formatRgb(result.entry.hex), "RGB")}
+                />
+                <ResultRow
                   id="hsl"
                   label="HSL"
                   value={formatHsl(result.entry.hex)}
                   copyLabel="Copy HSL"
                   onCopy={() => void copyValue(formatHsl(result.entry.hex), "HSL")}
+                />
+                <ResultRow
+                  id="oklch"
+                  label="OKLCH"
+                  value={result.entry.oklch}
+                  copyLabel="Copy OKLCH"
+                  onCopy={() => void copyValue(result.entry.oklch, "OKLCH")}
                 />
               </dl>
               <InlineStatus error={copyError} status={copyStatus} />

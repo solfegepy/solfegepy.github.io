@@ -35,6 +35,42 @@ describe("TailwindTool", () => {
     expect(screen.getByTestId("tailwind-hex")).toHaveTextContent("#000000");
   });
 
+  it.each([
+    ["#2b7fff", "oklch(62.3% 0.214 259.815)"],
+    ["#000", "oklch(0% 0 0)"],
+    ["#fff", "oklch(100% 0 0)"],
+  ])("displays and copies the matched OKLCH value for %s", async (hex, oklch) => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const restoreClipboard = stubClipboard({ writeText });
+    try {
+      render(<TailwindTool />);
+      fireEvent.change(screen.getByRole("textbox", { name: "Hex color" }), { target: { value: hex } });
+
+      expect(screen.getByTestId("tailwind-oklch")).toHaveTextContent(oklch);
+      fireEvent.click(screen.getByRole("button", { name: "Copy OKLCH" }));
+      expect(await screen.findByRole("status")).toHaveTextContent("OKLCH copied");
+      expect(writeText).toHaveBeenLastCalledWith(oklch);
+    } finally {
+      restoreClipboard();
+    }
+  });
+
+  it("displays and copies RGB for the matched palette color", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const restoreClipboard = stubClipboard({ writeText });
+    try {
+      render(<TailwindTool />);
+      fireEvent.change(screen.getByRole("textbox", { name: "Hex color" }), { target: { value: "#0080ff" } });
+
+      expect(screen.getByTestId("tailwind-rgb")).toHaveTextContent("rgb(43 127 255)");
+      fireEvent.click(screen.getByRole("button", { name: "Copy RGB" }));
+      expect(await screen.findByRole("status")).toHaveTextContent("RGB copied");
+      expect(writeText).toHaveBeenLastCalledWith("rgb(43 127 255)");
+    } finally {
+      restoreClipboard();
+    }
+  });
+
   it("clears stale results on invalid input, resets on empty input, and matches after correction", () => {
     render(<TailwindTool />);
     const input = screen.getByRole("textbox", { name: "Hex color" });

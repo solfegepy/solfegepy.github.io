@@ -34,6 +34,7 @@ export type TailwindPaletteEntry = Readonly<{
   family: TailwindFamily;
   shade: Shade | null;
   hex: string;
+  oklch: string;
 }>;
 
 export type TailwindMatchResult =
@@ -82,11 +83,17 @@ function oklchToHex(value: string): string {
 
 function makeEntry(family: NumberedFamily, shade: Shade): TailwindPaletteEntry {
   const token = `${family}-${shade}`;
-  return Object.freeze({ token, family, shade, hex: oklchToHex(colors[family][shade]) });
+  return Object.freeze({ token, family, shade, hex: oklchToHex(colors[family][shade]), oklch: colors[family][shade] });
 }
 
 function makeAnchor(family: "black" | "white"): TailwindPaletteEntry {
-  return Object.freeze({ token: family, family, shade: null, hex: oklchToHex(colors[family]) });
+  return Object.freeze({
+    token: family,
+    family,
+    shade: null,
+    hex: oklchToHex(colors[family]),
+    oklch: family === "black" ? "oklch(0% 0 0)" : "oklch(100% 0 0)",
+  });
 }
 
 export const TAILWIND_PALETTE: readonly TailwindPaletteEntry[] = Object.freeze([
@@ -158,6 +165,11 @@ export function matchTailwindColor(input: string): TailwindMatchResult {
     entry: exactEntry ?? closestEntry.entry,
     match: exactEntry === undefined ? "closest" : "exact",
   };
+}
+
+/** Format a normalized `#rrggbb` hex as a CSS `rgb()` value. */
+export function formatRgb(hex: string): string {
+  return `rgb(${[1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16)).join(" ")})`;
 }
 
 /** Format a normalized `#rrggbb` hex as a CSS `hsl()` value with rounded components. */

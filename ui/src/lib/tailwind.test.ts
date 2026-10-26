@@ -6,11 +6,29 @@ describe("Tailwind palette", () => {
   it("exposes all default fixed-color tokens in wheel order", () => {
     expect(TAILWIND_VERSION).toBe("4.2.0");
     expect(TAILWIND_PALETTE).toHaveLength(288);
-    expect(TAILWIND_PALETTE[0]).toEqual({ token: "red-50", family: "red", shade: 50, hex: "#fef2f2" });
+    expect(TAILWIND_PALETTE[0]).toEqual({
+      token: "red-50",
+      family: "red",
+      shade: 50,
+      hex: "#fef2f2",
+      oklch: "oklch(97.1% 0.013 17.38)",
+    });
     expect(TAILWIND_PALETTE.find(({ token }) => token === "blue-500")?.hex).toBe("#2b7fff");
     expect(TAILWIND_PALETTE.find(({ token }) => token === "gray-950")?.hex).toBe("#030712");
-    expect(TAILWIND_PALETTE.at(-2)).toEqual({ token: "black", family: "black", shade: null, hex: "#000000" });
-    expect(TAILWIND_PALETTE.at(-1)).toEqual({ token: "white", family: "white", shade: null, hex: "#ffffff" });
+    expect(TAILWIND_PALETTE.at(-2)).toEqual({
+      token: "black",
+      family: "black",
+      shade: null,
+      hex: "#000000",
+      oklch: "oklch(0% 0 0)",
+    });
+    expect(TAILWIND_PALETTE.at(-1)).toEqual({
+      token: "white",
+      family: "white",
+      shade: null,
+      hex: "#ffffff",
+      oklch: "oklch(100% 0 0)",
+    });
     expect(new Set(TAILWIND_PALETTE.map(({ token }) => token)).size).toBe(288);
     expect(TAILWIND_PALETTE.every(({ hex }) => /^#[\da-f]{6}$/.test(hex))).toBe(true);
     expect(TAILWIND_PALETTE.filter(({ shade }) => shade !== null)).toHaveLength(286);
