@@ -289,11 +289,11 @@ describe("production homepage SEO", () => {
     const schema: unknown = JSON.parse(document.querySelector('script[type="application/ld+json"]')?.textContent ?? "");
     expect(schema).toMatchObject({ "@type": "WebApplication", url: canonical });
     expect(document.querySelector("h1")?.textContent?.trim()).toBe("Tailwind Color Converter");
-    expect(document.body.textContent).toContain(`Colors from Tailwind CSS ${TAILWIND_VERSION}`);
+    expect(document.body.textContent).toContain("Includes colors introduced in Tailwind CSS 4.2 on Feb 2026");
     expect(
       document.querySelector(`a[href="https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}"]`)
         ?.textContent,
-    ).toBe(`Tailwind CSS ${TAILWIND_VERSION}`);
+    ).toBe("Tailwind CSS 4.2");
     expect(document.body.textContent).toContain("Closest colors are selected using OKLab distance");
     expect(document.body.textContent).toContain("Hex values are sRGB approximations of Tailwind's OKLCH colors.");
     expect(document.querySelector('[data-testid="tailwind-hex-input"]')).not.toBeNull();

@@ -200,6 +200,6 @@ export class TailwindPage {
   }
 
   versionLabel(): Locator {
-    return this.page.getByRole("link", { name: "Tailwind CSS 4.2.0" });
+    return this.page.getByRole("link", { name: "Tailwind CSS 4.2" });
   }
 }

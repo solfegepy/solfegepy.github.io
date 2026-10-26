@@ -255,7 +255,7 @@ export function TailwindTool() {
         sRGB approximations of Tailwind&apos;s OKLCH colors.
       </p>
       <p className="text-muted text-sm">
-        Colors from{" "}
+        Includes colors introduced in{" "}
         <a
           data-testid="tailwind-version-link"
           href={`https://github.com/tailwindlabs/tailwindcss/releases/tag/v${TAILWIND_VERSION}`}
@@ -263,8 +263,9 @@ export function TailwindTool() {
           rel="noreferrer"
           className="text-primary font-semibold underline underline-offset-2"
         >
-          Tailwind CSS {TAILWIND_VERSION}
-        </a>
+          Tailwind CSS 4.2
+        </a>{" "}
+        on Feb 2026
       </p>
     </section>
   );
