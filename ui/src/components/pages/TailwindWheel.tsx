@@ -133,7 +133,7 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
               key={family}
               className="text-muted pointer-events-none absolute leading-none whitespace-nowrap"
               style={{
-                fontSize: "clamp(0.625rem, 3cqw, 0.75rem)",
+                fontSize: "clamp(0.75rem, 3.5cqw, 0.875rem)",
                 left: `${50 + Math.cos(angle) * 47}%`,
                 top: `${50 + Math.sin(angle) * 47}%`,
                 transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
