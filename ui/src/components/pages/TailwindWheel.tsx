@@ -110,21 +110,40 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
   return (
     <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
       <figcaption className="text-ink mb-2 font-semibold">{title}</figcaption>
-      <canvas
-        ref={canvasRef}
-        data-testid={`tailwind-${kind}-canvas`}
-        role="img"
-        aria-label={`${title}. Shades radiate from 50 inside to 950 outside. ${wheelSelection === null ? "No token selected on this wheel" : `Selected ${wheelSelection.token}, ${wheelSelection.hex}`}.`}
-        title={hovered?.token}
-        onPointerUp={(event) => {
-          const entry = entryAtPointer(event);
-          if (entry !== null) onSelect(entry);
-        }}
-        onMouseMove={(event) => setHovered(entryAtPointer(event))}
-        onMouseLeave={() => setHovered(null)}
-        className={CANVAS_CLASSES}
-      />
-      <p className="text-muted mt-2 text-xs leading-relaxed">{families.join(" · ")}</p>
+      <div className="[container-type:inline-size] relative">
+        <canvas
+          ref={canvasRef}
+          data-testid={`tailwind-${kind}-canvas`}
+          role="img"
+          aria-label={`${title}. Shades radiate from 50 inside to 950 outside. ${wheelSelection === null ? "No token selected on this wheel" : `Selected ${wheelSelection.token}, ${wheelSelection.hex}`}.`}
+          title={hovered?.token}
+          onPointerUp={(event) => {
+            const entry = entryAtPointer(event);
+            if (entry !== null) onSelect(entry);
+          }}
+          onMouseMove={(event) => setHovered(entryAtPointer(event))}
+          onMouseLeave={() => setHovered(null)}
+          className={CANVAS_CLASSES}
+        />
+        {families.map((family, index) => {
+          const angle = ((index + 0.5) / families.length) * Math.PI * 2 - Math.PI / 2;
+          const rotation = (angle * 180) / Math.PI + (Math.sin(angle) > 0 ? -90 : 90);
+          return (
+            <span
+              key={family}
+              className="text-muted pointer-events-none absolute leading-none whitespace-nowrap"
+              style={{
+                fontSize: "clamp(0.625rem, 3cqw, 0.75rem)",
+                left: `${50 + Math.cos(angle) * 47}%`,
+                top: `${50 + Math.sin(angle) * 47}%`,
+                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+              }}
+            >
+              {family}
+            </span>
+          );
+        })}
+      </div>
     </figure>
   );
 }
