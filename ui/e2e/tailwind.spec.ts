@@ -143,3 +143,22 @@ test("3D OKLCH space selects the clicked dot and rotates on drag without selecti
   await tailwind.chooseWheelView("2D");
   await expect(tailwind.canvas("chromatic")).toHaveAttribute("aria-label", /Selected fuchsia-600/);
 });
+
+test("3D OKLCH space view buttons move the camera to the top, side, and bottom", async ({ page }) => {
+  const tailwind = new TailwindPage(page);
+  await tailwind.open();
+  await tailwind.chooseWheelView("3D");
+
+  // Each point is where an otherwise unobstructed dot projects from that camera.
+  await tailwind.viewOklchSpaceFrom("Top");
+  await tailwind.clickOklchSpace(0.651, 0.537);
+  await expect(tailwind.token()).toHaveText("pink-300");
+
+  await tailwind.viewOklchSpaceFrom("Bottom");
+  await tailwind.clickOklchSpace(0.691, 0.466);
+  await expect(tailwind.token()).toHaveText("pink-400");
+
+  await tailwind.viewOklchSpaceFrom("Side");
+  await tailwind.clickOklchSpace(0.447, 0.289);
+  await expect(tailwind.token()).toHaveText("blue-400");
+});

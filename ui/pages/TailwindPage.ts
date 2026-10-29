@@ -127,6 +127,10 @@ export class TailwindPage {
     await this.page.getByTestId(`tailwind-wheel-view-${view}`).click();
   }
 
+  async viewOklchSpaceFrom(view: "Bottom" | "Side" | "Top"): Promise<void> {
+    await this.page.getByTestId(`tailwind-3d-view-${view}`).click();
+  }
+
   /** Clicks the 3D OKLCH space at a point given as fractions of its width and height. */
   async clickOklchSpace(xFraction: number, yFraction: number): Promise<void> {
     const box = await this.oklchSpace().boundingBox();

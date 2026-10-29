@@ -12,6 +12,7 @@ import {
   PerspectiveCamera,
   Raycaster,
   Scene,
+  Spherical,
   SphereGeometry,
   Vector2,
   Vector3,
@@ -45,11 +46,20 @@ const OUTLINE_COLOR = "#64748b";
 const CLICK_TOLERANCE = 5;
 const SPACE_FAMILIES = new Set<TailwindFamily>([...CHROMATIC_FAMILIES, "black", "white"]);
 const CANVAS_CLASSES = "block aspect-square w-full cursor-grab active:cursor-grabbing";
+const CAMERA_BUTTON_CLASSES =
+  "border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control min-h-11 min-w-11 border px-3 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2";
+// Camera angle from the top of the lightness axis, in radians.
+const CAMERA_VIEWS = [
+  ["Bottom", Math.PI],
+  ["Side", Math.PI / 2],
+  ["Top", 0],
+] as const;
 
 type SpaceView = {
   camera: PerspectiveCamera;
   dots: Map<Object3D, TailwindPaletteEntry>;
   highlight: (token: string | null) => void;
+  lookFrom: (polarAngle: number) => void;
 };
 
 type TailwindOklchSpaceProps = {
@@ -112,6 +122,14 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
       }
       render();
     };
+    const lookFrom = (polarAngle: number) => {
+      const offset = new Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+      offset.phi = polarAngle;
+      camera.position.copy(controls.target).add(new Vector3().setFromSpherical(offset));
+      // update() nudges the camera just off the poles, where looking straight along the axis has no "up".
+      controls.update();
+      render();
+    };
     const resize = () => {
       const width = canvas.clientWidth;
       if (width === 0) return;
@@ -121,7 +139,7 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
     controls.addEventListener("change", render);
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
-    viewRef.current = { camera, dots, highlight };
+    viewRef.current = { camera, dots, highlight, lookFrom };
     resize();
 
     return () => {
@@ -163,26 +181,48 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      data-testid="tailwind-chromatic-3d"
-      role="img"
-      aria-label={`Chromatic OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
-      title={hovered?.token}
-      onPointerDown={(event) => {
-        pointerDownRef.current = { x: event.clientX, y: event.clientY };
-      }}
-      onPointerUp={(event) => {
-        const start = pointerDownRef.current;
-        pointerDownRef.current = null;
-        if (start === null || Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_TOLERANCE) return;
-        const entry = entryAtPointer(event);
-        if (entry !== null) onSelect(entry);
-      }}
-      onPointerMove={(event) => setHovered(entryAtPointer(event))}
-      onPointerLeave={() => setHovered(null)}
-      className={CANVAS_CLASSES}
-    />
+    <div className="space-y-2">
+      <canvas
+        ref={canvasRef}
+        data-testid="tailwind-chromatic-3d"
+        role="img"
+        aria-label={`Chromatic OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
+        title={hovered?.token}
+        onPointerDown={(event) => {
+          pointerDownRef.current = { x: event.clientX, y: event.clientY };
+        }}
+        onPointerUp={(event) => {
+          const start = pointerDownRef.current;
+          pointerDownRef.current = null;
+          if (start === null || Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_TOLERANCE) return;
+          const entry = entryAtPointer(event);
+          if (entry !== null) onSelect(entry);
+        }}
+        onPointerMove={(event) => setHovered(entryAtPointer(event))}
+        onPointerLeave={() => setHovered(null)}
+        className={CANVAS_CLASSES}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-muted min-w-0 grow basis-48 text-sm">
+          The 3D view uses OKLCH: lightness rises from black to white along the axis, chroma grows outward, and hue
+          turns around it.
+        </p>
+        <div role="group" aria-label="Camera view" className="flex gap-2">
+          {CAMERA_VIEWS.map(([label, polarAngle]) => (
+            <button
+              key={label}
+              type="button"
+              data-testid={`tailwind-3d-view-${label}`}
+              title={`View from ${label.toLowerCase()}`}
+              onClick={() => viewRef.current?.lookFrom(polarAngle)}
+              className={CAMERA_BUTTON_CLASSES}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 

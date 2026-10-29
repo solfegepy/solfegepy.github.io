@@ -133,6 +133,9 @@ describe("TailwindTool", () => {
     const space = await screen.findByTestId("tailwind-chromatic-3d");
     expect(chromaticWheel).toContainElement(space);
     expect(space.getAttribute("aria-label")).toMatch(/chromatic oklch space.*selected blue-500/i);
+    expect(screen.getByText(/the 3d view uses oklch/i)).toBeInTheDocument();
+    for (const view of ["Bottom", "Side", "Top"])
+      expect(screen.getByRole("button", { name: view })).toBeInTheDocument();
     expect(screen.queryByTestId("tailwind-chromatic-canvas")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
 
