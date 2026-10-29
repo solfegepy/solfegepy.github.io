@@ -2,7 +2,7 @@
 set -e
 
 entry_checks.py \
-  --saicli-version "2026-10-29_13:26" \
+  --saicli-version "2026-10-29_13:48" \
   --ui-dir ./ui
 
 herdr_spreader.py \
