@@ -44,7 +44,7 @@ const SELECTED_SCALE = 1.8;
 const OUTLINE_COLOR = "#64748b";
 // Pointer travel beyond this many pixels is a rotation drag, not a selection click.
 const CLICK_TOLERANCE = 5;
-const SPACE_FAMILIES = new Set<TailwindFamily>([...CHROMATIC_FAMILIES, "black", "white"]);
+const SPACE_FAMILIES = new Set<TailwindFamily>(CHROMATIC_FAMILIES);
 const CANVAS_CLASSES = "block aspect-square w-full cursor-grab active:cursor-grabbing";
 const CAMERA_BUTTON_CLASSES =
   "border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control min-h-11 min-w-11 border px-3 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2";
@@ -108,7 +108,6 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
     scene.add(buildGrid());
     const dots = buildDots();
     for (const dot of dots.keys()) scene.add(dot);
-    scene.add(buildLine((["black", "white"] as const).map((family) => paletteEntry(family, null))));
     for (const family of CHROMATIC_FAMILIES) {
       scene.add(buildLine(SHADES.map((shade) => paletteEntry(family, shade))));
     }
@@ -225,7 +224,7 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
   );
 }
 
-/** Builds one dot per chromatic color plus black and white, each with a hidden selection outline. */
+/** Builds one dot per chromatic color, each with a hidden selection outline. */
 function buildDots(): Map<Object3D, TailwindPaletteEntry> {
   const dots = new Map<Object3D, TailwindPaletteEntry>();
   const dotGeometry = new SphereGeometry(DOT_RADIUS, 16, 12);
@@ -254,7 +253,8 @@ function buildLine(entries: readonly TailwindPaletteEntry[]): Line {
   return new Line(geometry, new LineBasicMaterial({ vertexColors: true }));
 }
 
-/** Draws the OKLCH cylinder: lightness rings and hue lines on its wall, chroma rings and hue spokes on its floor. */
+/** Draws the OKLCH cylinder: its lightness axis, lightness rings and hue lines on its wall, and chroma rings and hue
+ * spokes on its floor. */
 function buildGrid(): LineSegments {
   const points: Vector3[] = [];
   const circle = (lightness: number, chroma: number) => {
@@ -264,6 +264,7 @@ function buildGrid(): LineSegments {
   };
   for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, GRID_CHROMA);
   for (const chroma of [0.1, 0.2]) circle(0, chroma);
+  points.push(oklchPoint(0, 0, 0), oklchPoint(1, 0, 0));
   for (let hue = 0; hue < 360; hue += GRID_HUE_STEP) {
     points.push(oklchPoint(0, GRID_CHROMA, hue), oklchPoint(1, GRID_CHROMA, hue));
     points.push(oklchPoint(0, 0, hue), oklchPoint(0, GRID_CHROMA, hue));
@@ -284,6 +285,6 @@ function oklchPoint(lightness: number, chroma: number, hue: number): Vector3 {
   return new Vector3(radius * Math.cos(angle), (lightness - 0.5) * LIGHTNESS_HEIGHT, -radius * Math.sin(angle));
 }
 
-function paletteEntry(family: TailwindFamily, shade: number | null): TailwindPaletteEntry {
+function paletteEntry(family: TailwindFamily, shade: number): TailwindPaletteEntry {
   return TAILWIND_PALETTE.find((entry) => entry.family === family && entry.shade === shade)!;
 }
