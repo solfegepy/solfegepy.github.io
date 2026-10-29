@@ -10,6 +10,7 @@ services:
     #   - "${API_EXT_PORT}:${API_INT_PORT}"
     environment:
       - ENV=development
+      # - API_EXT_PORT=${API_EXT_PORT}  # Use if we need to set VITE_API_BASE_URL
     volumes:  # '.' is relative to the 1st compose file in dockerComposeFile
       - ..:/workspaces/project  # modify .. if dockerComposeFile[0] changes
       - /media/IDATA_LINUX/GIT/LOCAL/ai_cli/skills/dist:/home/admin/.agents/skills:ro
