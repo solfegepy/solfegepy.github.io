@@ -1,4 +1,5 @@
-.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug test-report outdated upgrade zap lighthouse audit
+.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug \
+	test-report outdated upgrade zap lighthouse lighthouse-ci audit
 
 include .devcontainer/.env
 export
@@ -22,6 +23,14 @@ deploy:
 	  To check the site: $(DEPLOYED_URL)"
 
 # ------------ run from devcontainer (with node) ----------
+# Chromium used by Lighthouse; defaults to the devcontainer's Playwright build.
+CHROME_PATH ?= /ms-playwright/chromium/chrome-linux64/chrome
+
+# Audit the built docs/ with score budgets. The script passes --no-sandbox: the devcontainer lacks the
+# kernel features Chromium's sandbox needs, and audits only load our own static build.
+lighthouse-ci: build
+	cd ui && CHROME_PATH="$(CHROME_PATH)" pnpm exec node scripts/lighthouse-ci.mjs
+
 lighthouse:
 	mkdir -p ui/test-results/lighthouse
 	cd ui && pnpm exec lighthouse "$(DEPLOYED_URL)" --no-enable-error-reporting --view \

@@ -36,6 +36,8 @@ make test-e2e
 
 `make build` creates production output in `./docs/`. `make lint` runs Prettier, type checks, ESLint, and Semgrep.
 Unit and browser tests stop on first failure.
+`make lighthouse-ci` audits the built output (gates accessibility, SEO, best practices; performance is advisory);
+`make lighthouse` audits the deployed site.
 
 When using a preinstalled Chromium outside Playwright's expected browser build, set
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its executable. Set `PLAYWRIGHT_VIDEO=off` when the matching FFmpeg
