@@ -11,8 +11,7 @@ const tool = getTool(toolId);
 const description = getToolDescription(tool);
 const canonical = `https://codec64.com${tool.route}`;
 const title = `${tool.title} | Codec64`;
-const structuredData = {
-  "@context": "https://schema.org",
+const webApplication = {
   "@type": "WebApplication",
   name: toolId === "base64" ? "Codec64 Base64 Encoder and Decoder" : `Codec64 ${tool.label}`,
   url: canonical,
@@ -21,6 +20,14 @@ const structuredData = {
   operatingSystem: "Any",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
+// The home page also describes the site itself; one script keeps a single JSON-LD block per page.
+const structuredData =
+  toolId === "base64"
+    ? {
+        "@context": "https://schema.org",
+        "@graph": [{ "@type": "WebSite", name: "Codec64", url: "https://codec64.com/" }, webApplication],
+      }
+    : { "@context": "https://schema.org", ...webApplication };
 const ARTICLE_CLASSES =
   "border-line bg-panel mx-4 mb-12 min-w-0 rounded-surface border p-5 shadow-sm md:mr-6 md:ml-72 md:p-8";
 const GUIDANCE_CARD_CLASSES = "border-line bg-field min-w-0 rounded-control border p-5";

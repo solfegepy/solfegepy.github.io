@@ -52,7 +52,8 @@ interface FormatSelectProps {
 
 const SELECT_CLASSES =
   "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-sm font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
-const CHANNEL_HEADER_CLASSES = "border-line flex items-center justify-end border-b p-3";
+const CHANNEL_LABEL_CLASSES = "text-muted shrink-0 font-mono text-xs font-semibold tracking-widest uppercase";
+const CHANNEL_HEADER_CLASSES = "border-line flex items-center justify-between gap-3 border-b p-3";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
@@ -219,9 +220,12 @@ export function CodecWorkspace({
           data-testid={`${name}-top-channel`}
           className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface grid min-w-0 overflow-hidden border transition-colors focus-within:ring-3"
           role="group"
-          aria-label="Source"
+          aria-labelledby={`${name}-top-label`}
         >
           <div className={CHANNEL_HEADER_CLASSES}>
+            <span id={`${name}-top-label`} className={CHANNEL_LABEL_CLASSES}>
+              Source
+            </span>
             <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
           </div>
           <TextareaField
@@ -263,9 +267,12 @@ export function CodecWorkspace({
           data-testid={`${name}-bottom-channel`}
           className="border-line bg-panel-target rounded-surface grid min-w-0 overflow-hidden border transition-colors"
           role="group"
-          aria-label="Target"
+          aria-labelledby={`${name}-bottom-label`}
         >
           <div className={CHANNEL_HEADER_CLASSES}>
+            <span id={`${name}-bottom-label`} className={CHANNEL_LABEL_CLASSES}>
+              Target
+            </span>
             <FormatSelect
               channel="Bottom"
               formats={formats}

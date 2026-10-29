@@ -595,6 +595,10 @@ describe("CodecApp", () => {
     expect(channels).toHaveClass("workspace-grid");
     expect(screen.getByRole("group", { name: "Source" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Target" })).toBeInTheDocument();
+    expect(screen.getByTestId("base64-top-channel")).toHaveAccessibleName("Source");
+    expect(screen.getByTestId("base64-bottom-channel")).toHaveAccessibleName("Target");
+    expect(within(screen.getByTestId("base64-top-channel")).getByText("Source")).toBeVisible();
+    expect(within(screen.getByTestId("base64-bottom-channel")).getByText("Target")).toBeVisible();
     expect(screen.getByTestId("codec-workspace-actions")).toHaveAccessibleName("Conversion actions");
     for (const control of screen.getAllByRole("button")) {
       expect(control.className).toMatch(/(?:min-h-11|size-11|icon-button)/);

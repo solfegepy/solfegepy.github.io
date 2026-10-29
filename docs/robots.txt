@@ -1,2 +1,3 @@
 User-agent: *
 Disallow:
+Sitemap: https://codec64.com/sitemap-index.xml

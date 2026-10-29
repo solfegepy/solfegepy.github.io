@@ -113,11 +113,15 @@ describe("TailwindTool", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Shade" }), { target: { value: "700" } });
 
     expect(chromaticCanvas.getAttribute("aria-label")).toMatch(/chromatic wheel.*selected blue-700/i);
-    expect(screen.getByRole("button", { name: /select black/i })).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(screen.getByRole("button", { name: /select white/i }));
+    const blackSwatch = screen.getByTestId("tailwind-black-swatch");
+    // WCAG 2.5.3: the accessible name must contain the visible label so voice users can say it.
+    expect(blackSwatch).toHaveAccessibleName(/black.*#000000/i);
+    expect(blackSwatch).not.toHaveAccessibleName("Select black");
+    expect(screen.getByRole("button", { name: /^black/i })).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(screen.getByRole("button", { name: /^white/i }));
 
     expect(screen.getByTestId("tailwind-token")).toHaveTextContent("white");
-    expect(screen.getByRole("button", { name: /select white/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^white/i })).toHaveAttribute("aria-pressed", "true");
     expect(chromaticCanvas.getAttribute("aria-label")).toMatch(/chromatic wheel.*no token selected/i);
   });
 
@@ -141,7 +145,7 @@ describe("TailwindTool", () => {
     expect(screen.queryByTestId("tailwind-chromatic-canvas")).not.toBeInTheDocument();
 
     // Like the 2D chromatic wheel, the 3D space holds no black or white dot.
-    fireEvent.click(screen.getByRole("button", { name: /select white/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^white/i }));
     expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
     expect(within(chromaticWheel).getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");

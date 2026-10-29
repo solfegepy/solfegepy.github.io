@@ -1,4 +1,5 @@
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, fontProviders } from "astro/config";
 import { loadEnv } from "vite";
@@ -35,8 +36,9 @@ export default defineConfig({
     ]),
     ...selfHostedFamily("JetBrains Mono", "--font-jetbrains-mono", ["SFMono-Regular", "Consolas", "monospace"]),
   ],
-  integrations: [react()],
+  integrations: [react(), sitemap()],
   outDir: "../docs",
+  site: "https://codec64.com",
   output: "static",
   server: { host: "0.0.0.0", port },
   vite: {

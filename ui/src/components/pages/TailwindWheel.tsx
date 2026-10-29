@@ -205,7 +205,6 @@ export function TailwindAnchorSwatches({
               key={family}
               type="button"
               data-testid={`tailwind-${family}-swatch`}
-              aria-label={`Select ${family}`}
               title={entry.token}
               aria-pressed={isSelected}
               onClick={() => onSelect(entry)}

@@ -70,28 +70,28 @@ function notFoundDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+const ROUTES = [
+  "/",
+  "/url/",
+  "/query/",
+  "/jwt/",
+  "/python-json/",
+  "/timestamp/",
+  "/tailwind/",
+  "/faq/",
+  "/privacy/",
+  "/about/",
+  "/ascii/",
+  "/cheatsheets/openssl/",
+  "/cheatsheets/ssh/",
+];
+
 // Fontsource ships 6 subsets per weight file; both families preload weight 400 in every subset.
 const FONT_PRELOAD_COUNT = 2 * 6;
 
 describe("production homepage SEO", () => {
   it("uses GitHub Pages directory URLs in metadata and internal links", () => {
-    const routes = [
-      "/",
-      "/url/",
-      "/query/",
-      "/jwt/",
-      "/python-json/",
-      "/timestamp/",
-      "/tailwind/",
-      "/faq/",
-      "/privacy/",
-      "/about/",
-      "/ascii/",
-      "/cheatsheets/openssl/",
-      "/cheatsheets/ssh/",
-    ];
-
-    for (const route of routes) {
+    for (const route of ROUTES) {
       const html = readFileSync(resolve(import.meta.dirname, "../../../docs", `.${route}index.html`), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
       const canonical = `https://codec64.com${route}`;
@@ -100,12 +100,35 @@ describe("production homepage SEO", () => {
       expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content"), route).toBe(canonical);
       expect(document.querySelector('meta[property="og:site_name"]')?.getAttribute("content"), route).toBe("Codec64");
       const schema = document.querySelector('script[type="application/ld+json"]');
-      if (schema) expect(JSON.parse(schema.textContent ?? "")).toMatchObject({ url: canonical });
+      if (schema) {
+        const parsed = JSON.parse(schema.textContent ?? "") as { "@graph"?: { url: string }[]; url?: string };
+        for (const entity of parsed["@graph"] ?? [parsed]) expect(entity.url, route).toBe(canonical);
+      }
 
       for (const link of document.querySelectorAll('a[href^="/"]')) {
-        expect(routes, `${route}: ${link.getAttribute("href")}`).toContain(link.getAttribute("href"));
+        expect(ROUTES, `${route}: ${link.getAttribute("href")}`).toContain(link.getAttribute("href"));
       }
     }
+  });
+
+  it("lists every indexable route in the sitemap and points robots.txt to it", () => {
+    const docs = resolve(import.meta.dirname, "../../../docs");
+    const parseXml = (file: string) =>
+      new DOMParser().parseFromString(readFileSync(resolve(docs, file), "utf8"), "application/xml");
+    const sitemapFiles = [...parseXml("sitemap-index.xml").querySelectorAll("sitemap > loc")].map((loc) =>
+      new globalThis.URL(loc.textContent ?? "").pathname.slice(1),
+    );
+    const sitemaps = sitemapFiles.map(parseXml);
+    const urls = sitemaps.flatMap((sitemap) =>
+      [...sitemap.querySelectorAll("url > loc")].map((loc) => loc.textContent),
+    );
+
+    expect(new Set(urls)).toEqual(new Set(ROUTES.map((route) => `https://codec64.com${route}`)));
+    expect(urls).toHaveLength(ROUTES.length);
+    for (const sitemap of sitemaps) expect(sitemap.querySelector("lastmod")).toBeNull();
+    expect(readFileSync(resolve(docs, "robots.txt"), "utf8")).toContain(
+      "Sitemap: https://codec64.com/sitemap-index.xml",
+    );
   });
 
   it("serves web fonts from the site's own origin", () => {
@@ -210,7 +233,7 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="cookie-settings-button"]')?.textContent).toBe("Cookie settings");
   });
 
-  it("renders one valid WebApplication JSON-LD object", () => {
+  it("renders one JSON-LD graph with WebSite and WebApplication entities", () => {
     const document = productionDocument();
     const scripts = document.querySelectorAll('script[type="application/ld+json"]');
     expect(scripts).toHaveLength(1);
@@ -218,13 +241,18 @@ describe("production homepage SEO", () => {
     const schema: unknown = JSON.parse(scripts[0]?.textContent ?? "");
     expect(schema).toEqual({
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      name: "Codec64 Base64 Encoder and Decoder",
-      url: URL,
-      description: DESCRIPTION,
-      applicationCategory: "UtilitiesApplication",
-      operatingSystem: "Any",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      "@graph": [
+        { "@type": "WebSite", name: "Codec64", url: URL },
+        {
+          "@type": "WebApplication",
+          name: "Codec64 Base64 Encoder and Decoder",
+          url: URL,
+          description: DESCRIPTION,
+          applicationCategory: "UtilitiesApplication",
+          operatingSystem: "Any",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        },
+      ],
     });
   });
 
