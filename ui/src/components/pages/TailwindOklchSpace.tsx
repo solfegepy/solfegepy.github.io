@@ -204,8 +204,7 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
       />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted min-w-0 grow basis-48 text-sm">
-          The 3D view uses OKLCH: lightness rises from black to white along the axis, chroma grows outward, and hue
-          turns around it.
+          In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around.
         </p>
         <div role="group" aria-label="Camera view" className="flex gap-2">
           {CAMERA_VIEWS.map(([label, polarAngle]) => (
