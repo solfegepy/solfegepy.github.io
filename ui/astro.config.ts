@@ -41,6 +41,11 @@ export default defineConfig({
   server: { host: "0.0.0.0", port },
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // three.js alone is about 550 kB minified. It sits in its own chunk that only downloads when a visitor opens a
+      // 3D view, so it never delays page load. Raise this limit only for a lazily loaded chunk.
+      chunkSizeWarningLimit: 600,
+    },
     server: {
       watch: {
         ignored: ["**/.pnpm-store/**", "**/test-results/**", "**/node_modules/**"],
