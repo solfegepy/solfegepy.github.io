@@ -239,9 +239,6 @@ export function TailwindTool() {
         </div>
 
         <section aria-label="Tailwind color wheels" data-testid="tailwind-wheels" className="space-y-3">
-          <p className="text-muted text-sm">
-            Each wheel groups families by color. Shades run from 50 inside to 950 outside.
-          </p>
           <div className="grid min-w-0 gap-3">
             <TailwindWheel kind="chromatic" selected={selected} onSelect={selectEntry} />
             <TailwindWheel kind="neutral" selected={selected} onSelect={selectEntry} />
