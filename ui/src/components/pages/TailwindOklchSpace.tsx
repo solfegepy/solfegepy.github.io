@@ -22,7 +22,6 @@ import {
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 import {
-  CHROMATIC_FAMILIES,
   parseOklch,
   SHADES,
   TAILWIND_PALETTE,
@@ -30,12 +29,16 @@ import {
   type TailwindPaletteEntry,
 } from "../../lib/tailwind";
 
-// Scene units per OKLCH chroma unit; Tailwind's most saturated colors reach about 0.32.
-const CHROMA_SCALE = 10;
+// Scene radius of the grid cylinder; each space scales its chroma range to fill it.
+const GRID_RADIUS = 3;
 // Scene height of the lightness axis, from black at the bottom to white at the top.
 const LIGHTNESS_HEIGHT = 6;
-// Grid cylinder radius in chroma, just beyond Tailwind's most saturated color.
-const GRID_CHROMA = 0.3;
+// Grid cylinder radius in chroma, just beyond the most saturated color of each space: Tailwind's chromatic colors
+// reach about 0.32 and its neutrals 0.046, so the neutral space magnifies chroma 6 times to keep its tints apart.
+const SPACES = {
+  chromatic: { name: "Chromatic", gridChroma: 0.3, note: "" },
+  neutral: { name: "Neutral", gridChroma: 0.05, note: " Chroma is magnified 6 times so the subtle tints stay apart." },
+} as const;
 const GRID_HUE_STEP = 30;
 const GRID_COLOR = "#94a3b8";
 const DOT_RADIUS = 0.14;
@@ -44,7 +47,6 @@ const SELECTED_SCALE = 1.8;
 const OUTLINE_COLOR = "#64748b";
 // Pointer travel beyond this many pixels is a rotation drag, not a selection click.
 const CLICK_TOLERANCE = 5;
-const SPACE_FAMILIES = new Set<TailwindFamily>(CHROMATIC_FAMILIES);
 const CANVAS_CLASSES = "block aspect-square w-full cursor-grab active:cursor-grabbing";
 const CAMERA_BUTTON_CLASSES =
   "border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control min-h-11 min-w-11 border px-3 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2";
@@ -63,18 +65,21 @@ type SpaceView = {
 };
 
 type TailwindOklchSpaceProps = {
+  kind: keyof typeof SPACES;
+  families: readonly TailwindFamily[];
   selected: TailwindPaletteEntry | null;
   onSelect: (entry: TailwindPaletteEntry) => void;
 };
 
-/** Plots chromatic colors as dots at their OKLCH position, joining the shades of each family with a line. */
-export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpaceProps) {
+/** Plots the given families as dots at their OKLCH position, joining the shades of each family with a line. */
+export function TailwindOklchSpace({ kind, families, selected, onSelect }: TailwindOklchSpaceProps) {
+  const { name, gridChroma, note } = SPACES[kind];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewRef = useRef<SpaceView | null>(null);
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
   const [hovered, setHovered] = useState<TailwindPaletteEntry | null>(null);
   const [webglFailed, setWebglFailed] = useState(false);
-  const spaceSelection = selected !== null && SPACE_FAMILIES.has(selected.family) ? selected : null;
+  const spaceSelection = selected !== null && families.includes(selected.family) ? selected : null;
   const selectedToken = spaceSelection?.token ?? null;
 
   useEffect(() => {
@@ -105,11 +110,17 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
     // Wheel scrolling keeps moving the page instead of zooming the plot.
     controls.enableZoom = false;
 
-    scene.add(buildGrid());
-    const dots = buildDots();
+    const chromaScale = GRID_RADIUS / gridChroma;
+    scene.add(buildGrid(gridChroma, chromaScale));
+    const dots = buildDots(families, chromaScale);
     for (const dot of dots.keys()) scene.add(dot);
-    for (const family of CHROMATIC_FAMILIES) {
-      scene.add(buildLine(SHADES.map((shade) => paletteEntry(family, shade))));
+    for (const family of families) {
+      scene.add(
+        buildLine(
+          SHADES.map((shade) => paletteEntry(family, shade)),
+          chromaScale,
+        ),
+      );
     }
 
     const render = () => renderer.render(scene, camera);
@@ -153,7 +164,7 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
       });
       renderer.dispose();
     };
-  }, []);
+  }, [families, gridChroma]);
 
   useEffect(() => viewRef.current?.highlight(selectedToken), [selectedToken]);
 
@@ -173,7 +184,7 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
 
   if (webglFailed) {
     return (
-      <p data-testid="tailwind-3d-unavailable" role="alert" className="text-muted text-sm">
+      <p data-testid={`tailwind-${kind}-3d-unavailable`} role="alert" className="text-muted text-sm">
         The 3D view needs WebGL, which this browser has disabled. Use the 2D wheel instead.
       </p>
     );
@@ -183,9 +194,9 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
     <div className="space-y-2">
       <canvas
         ref={canvasRef}
-        data-testid="tailwind-chromatic-3d"
+        data-testid={`tailwind-${kind}-3d`}
         role="img"
-        aria-label={`Chromatic OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
+        aria-label={`${name} OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family.${note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
         title={hovered?.token}
         onPointerDown={(event) => {
           pointerDownRef.current = { x: event.clientX, y: event.clientY };
@@ -204,13 +215,14 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted min-w-0 grow basis-48 text-sm">
           In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around.
+          {note}
         </p>
-        <div role="group" aria-label="Camera view" className="flex gap-2">
+        <div role="group" aria-label={`${name} camera view`} className="flex gap-2">
           {CAMERA_VIEWS.map(([label, polarAngle]) => (
             <button
               key={label}
               type="button"
-              data-testid={`tailwind-3d-view-${label}`}
+              data-testid={`tailwind-${kind}-3d-view-${label}`}
               title={`View from ${label.toLowerCase()}`}
               onClick={() => viewRef.current?.lookFrom(polarAngle)}
               className={CAMERA_BUTTON_CLASSES}
@@ -224,8 +236,8 @@ export function TailwindOklchSpace({ selected, onSelect }: TailwindOklchSpacePro
   );
 }
 
-/** Builds one dot per chromatic color, each with a hidden selection outline. */
-function buildDots(): Map<Object3D, TailwindPaletteEntry> {
+/** Builds one dot per color of the given families, each with a hidden selection outline. */
+function buildDots(families: readonly TailwindFamily[], chromaScale: number): Map<Object3D, TailwindPaletteEntry> {
   const dots = new Map<Object3D, TailwindPaletteEntry>();
   const dotGeometry = new SphereGeometry(DOT_RADIUS, 16, 12);
   // A slightly larger back-facing sphere reads as an outline around the dot.
@@ -233,10 +245,10 @@ function buildDots(): Map<Object3D, TailwindPaletteEntry> {
   const outlineMaterial = new MeshBasicMaterial({ color: OUTLINE_COLOR, side: BackSide });
 
   for (const entry of TAILWIND_PALETTE) {
-    if (!SPACE_FAMILIES.has(entry.family)) continue;
+    if (!families.includes(entry.family)) continue;
     // Unlit material keeps each dot at its exact palette hex.
     const dot = new Mesh(dotGeometry, new MeshBasicMaterial({ color: entry.hex }));
-    dot.position.copy(oklchPosition(entry));
+    dot.position.copy(oklchPosition(entry, chromaScale));
     const outline = new Mesh(outlineGeometry, outlineMaterial);
     outline.visible = false;
     dot.add(outline);
@@ -246,8 +258,8 @@ function buildDots(): Map<Object3D, TailwindPaletteEntry> {
 }
 
 /** Joins entries in order with a line that fades through their colors. */
-function buildLine(entries: readonly TailwindPaletteEntry[]): Line {
-  const geometry = new BufferGeometry().setFromPoints(entries.map(oklchPosition));
+function buildLine(entries: readonly TailwindPaletteEntry[], chromaScale: number): Line {
+  const geometry = new BufferGeometry().setFromPoints(entries.map((entry) => oklchPosition(entry, chromaScale)));
   const colors = entries.flatMap((entry) => new Color(entry.hex).toArray());
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
   return new Line(geometry, new LineBasicMaterial({ vertexColors: true }));
@@ -255,33 +267,35 @@ function buildLine(entries: readonly TailwindPaletteEntry[]): Line {
 
 /** Draws the OKLCH cylinder: its lightness axis, lightness rings and hue lines on its wall, and chroma rings and hue
  * spokes on its floor. */
-function buildGrid(): LineSegments {
+function buildGrid(gridChroma: number, chromaScale: number): LineSegments {
   const points: Vector3[] = [];
+  const point = (lightness: number, chroma: number, hue: number) => oklchPoint(lightness, chroma, hue, chromaScale);
   const circle = (lightness: number, chroma: number) => {
     for (let hue = 0; hue < 360; hue += 5) {
-      points.push(oklchPoint(lightness, chroma, hue), oklchPoint(lightness, chroma, hue + 5));
+      points.push(point(lightness, chroma, hue), point(lightness, chroma, hue + 5));
     }
   };
-  for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, GRID_CHROMA);
-  for (const chroma of [0.1, 0.2]) circle(0, chroma);
-  points.push(oklchPoint(0, 0, 0), oklchPoint(1, 0, 0));
+  for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, gridChroma);
+  for (const chroma of [gridChroma / 3, (gridChroma * 2) / 3]) circle(0, chroma);
+  points.push(point(0, 0, 0), point(1, 0, 0));
   for (let hue = 0; hue < 360; hue += GRID_HUE_STEP) {
-    points.push(oklchPoint(0, GRID_CHROMA, hue), oklchPoint(1, GRID_CHROMA, hue));
-    points.push(oklchPoint(0, 0, hue), oklchPoint(0, GRID_CHROMA, hue));
+    points.push(point(0, gridChroma, hue), point(1, gridChroma, hue));
+    points.push(point(0, 0, hue), point(0, gridChroma, hue));
   }
   const material = new LineBasicMaterial({ color: GRID_COLOR, transparent: true, opacity: 0.4 });
   return new LineSegments(new BufferGeometry().setFromPoints(points), material);
 }
 
-function oklchPosition(entry: TailwindPaletteEntry): Vector3 {
+function oklchPosition(entry: TailwindPaletteEntry, chromaScale: number): Vector3 {
   const { lightness, chroma, hue } = parseOklch(entry.oklch)!;
-  return oklchPoint(lightness, chroma, hue);
+  return oklchPoint(lightness, chroma, hue, chromaScale);
 }
 
-/** Places an OKLCH color in the scene: hue as angle, chroma as distance from the axis, lightness as height. */
-function oklchPoint(lightness: number, chroma: number, hue: number): Vector3 {
+/** Places an OKLCH color in the scene: hue as angle, chroma times chromaScale as distance from the axis, lightness
+ * as height. */
+function oklchPoint(lightness: number, chroma: number, hue: number, chromaScale: number): Vector3 {
   const angle = (hue * Math.PI) / 180;
-  const radius = chroma * CHROMA_SCALE;
+  const radius = chroma * chromaScale;
   return new Vector3(radius * Math.cos(angle), (lightness - 0.5) * LIGHTNESS_HEIGHT, -radius * Math.sin(angle));
 }
 

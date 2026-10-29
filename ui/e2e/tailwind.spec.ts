@@ -128,37 +128,53 @@ test("desktop wheel and result remain readable in both themes", async ({ page },
 test("3D OKLCH space selects the clicked dot and rotates on drag without selecting", async ({ page }, testInfo) => {
   const tailwind = new TailwindPage(page);
   await tailwind.open();
-  await tailwind.chooseWheelView("3D");
-  await expect(tailwind.oklchSpace()).toHaveAttribute("aria-label", /No token selected in this space/);
+  await tailwind.chooseWheelView("chromatic", "3D");
+  await expect(tailwind.oklchSpace("chromatic")).toHaveAttribute("aria-label", /No token selected in this space/);
 
   // Where fuchsia-600 projects from the initial camera, clear of every other dot.
-  await tailwind.clickOklchSpace(0.792, 0.443);
+  await tailwind.clickOklchSpace("chromatic", 0.792, 0.443);
   await expect(tailwind.token()).toHaveText("fuchsia-600");
-  await expect(tailwind.oklchSpace()).toHaveAttribute("aria-label", /Selected fuchsia-600, #/);
+  await expect(tailwind.oklchSpace("chromatic")).toHaveAttribute("aria-label", /Selected fuchsia-600, #/);
   await tailwind.captureScreenshot(testInfo.outputPath("tailwind-oklch-space.png"));
 
-  await tailwind.dragOklchSpace(0.25);
+  await tailwind.dragOklchSpace("chromatic", 0.25);
   await expect(tailwind.token()).toHaveText("fuchsia-600");
 
-  await tailwind.chooseWheelView("2D");
+  await tailwind.chooseWheelView("chromatic", "2D");
   await expect(tailwind.canvas("chromatic")).toHaveAttribute("aria-label", /Selected fuchsia-600/);
 });
 
 test("3D OKLCH space view buttons move the camera to the top, side, and bottom", async ({ page }) => {
   const tailwind = new TailwindPage(page);
   await tailwind.open();
-  await tailwind.chooseWheelView("3D");
+  await tailwind.chooseWheelView("chromatic", "3D");
 
   // Each point is where an otherwise unobstructed dot projects from that camera.
-  await tailwind.viewOklchSpaceFrom("Top");
-  await tailwind.clickOklchSpace(0.651, 0.537);
+  await tailwind.viewOklchSpaceFrom("chromatic", "Top");
+  await tailwind.clickOklchSpace("chromatic", 0.651, 0.537);
   await expect(tailwind.token()).toHaveText("pink-300");
 
-  await tailwind.viewOklchSpaceFrom("Bottom");
-  await tailwind.clickOklchSpace(0.691, 0.466);
+  await tailwind.viewOklchSpaceFrom("chromatic", "Bottom");
+  await tailwind.clickOklchSpace("chromatic", 0.691, 0.466);
   await expect(tailwind.token()).toHaveText("pink-400");
 
-  await tailwind.viewOklchSpaceFrom("Side");
-  await tailwind.clickOklchSpace(0.447, 0.289);
+  await tailwind.viewOklchSpaceFrom("chromatic", "Side");
+  await tailwind.clickOklchSpace("chromatic", 0.447, 0.289);
   await expect(tailwind.token()).toHaveText("blue-400");
+});
+
+test("neutral 3D OKLCH space selects the clicked dot while the chromatic wheel stays flat", async ({ page }) => {
+  const tailwind = new TailwindPage(page);
+  await tailwind.open();
+  await tailwind.chooseWheelView("neutral", "3D");
+  await expect(tailwind.oklchSpace("neutral")).toHaveAttribute("aria-label", /No token selected in this space/);
+  await expect(tailwind.canvas("chromatic")).toBeVisible();
+
+  // Where mauve-500 projects from the initial camera, clear of every other dot.
+  await tailwind.clickOklchSpace("neutral", 0.69, 0.46);
+  await expect(tailwind.token()).toHaveText("mauve-500");
+  await expect(tailwind.oklchSpace("neutral")).toHaveAttribute("aria-label", /Selected mauve-500, #/);
+
+  await tailwind.chooseWheelView("neutral", "2D");
+  await expect(tailwind.canvas("neutral")).toHaveAttribute("aria-label", /Selected mauve-500/);
 });

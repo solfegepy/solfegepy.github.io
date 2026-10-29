@@ -45,53 +45,57 @@ type TailwindWheelProps = {
   onSelect: (entry: TailwindPaletteEntry) => void;
 };
 
-/** Shows a family-and-shade wheel; the chromatic one can switch to a 3D OKLCH plot. */
+/** Shows a family-and-shade wheel that can switch to a 3D OKLCH plot of the same families. */
 export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) {
   const [view, setView] = useState<WheelView>("2D");
   const title = kind === "chromatic" ? "Chromatic wheel" : "Neutral wheel";
+  const families = kind === "chromatic" ? CHROMATIC_FAMILIES : NEUTRAL_FAMILIES;
 
   return (
     <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
       <figcaption className="mb-2 flex items-center justify-between gap-2">
         <span className="text-ink font-semibold">{title}</span>
-        {kind === "chromatic" && (
-          <div
-            role="group"
-            aria-label={`${title} view`}
-            className="border-line rounded-control flex overflow-hidden border"
-          >
-            {VIEWS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                data-testid={`tailwind-wheel-view-${option}`}
-                title={`Show ${option} view`}
-                aria-pressed={view === option}
-                onClick={() => setView(option)}
-                className={`${VIEW_BUTTON_CLASSES} ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        )}
+        <div
+          role="group"
+          aria-label={`${title} view`}
+          className="border-line rounded-control flex overflow-hidden border"
+        >
+          {VIEWS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              data-testid={`tailwind-${kind}-view-${option}`}
+              title={`Show ${option} view`}
+              aria-pressed={view === option}
+              onClick={() => setView(option)}
+              className={`${VIEW_BUTTON_CLASSES} ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </figcaption>
       {view === "3D" ? (
         <Suspense fallback={<div aria-busy="true" className={CANVAS_CLASSES} />}>
-          <TailwindOklchSpace selected={selected} onSelect={onSelect} />
+          <TailwindOklchSpace kind={kind} families={families} selected={selected} onSelect={onSelect} />
         </Suspense>
       ) : (
-        <FlatWheel kind={kind} title={title} selected={selected} onSelect={onSelect} />
+        <FlatWheel kind={kind} title={title} families={families} selected={selected} onSelect={onSelect} />
       )}
     </figure>
   );
 }
 
 /** Draws a family-and-shade wheel while leaving selection state with its parent. */
-function FlatWheel({ kind, title, selected, onSelect }: TailwindWheelProps & { title: string }) {
+function FlatWheel({
+  kind,
+  title,
+  families,
+  selected,
+  onSelect,
+}: TailwindWheelProps & { title: string; families: readonly TailwindFamily[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hovered, setHovered] = useState<TailwindPaletteEntry | null>(null);
-  const families = kind === "chromatic" ? CHROMATIC_FAMILIES : NEUTRAL_FAMILIES;
   const wheelSelection = selected !== null && new Set<TailwindFamily>(families).has(selected.family) ? selected : null;
 
   useEffect(() => {

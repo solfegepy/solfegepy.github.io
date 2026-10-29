@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TAILWIND_PALETTE } from "../../lib/tailwind";
@@ -124,11 +124,10 @@ describe("TailwindTool", () => {
   it("switches the chromatic wheel between the flat wheel and a described 3D OKLCH space", async () => {
     render(<TailwindTool />);
     const chromaticWheel = screen.getByTestId("tailwind-chromatic-wheel");
-    expect(screen.getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getAllByRole("button", { name: "3D" })).toHaveLength(1);
+    expect(within(chromaticWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
-    fireEvent.click(screen.getByRole("button", { name: "3D" }));
+    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D" }));
 
     const space = await screen.findByTestId("tailwind-chromatic-3d");
     expect(chromaticWheel).toContainElement(space);
@@ -142,10 +141,30 @@ describe("TailwindTool", () => {
     fireEvent.click(screen.getByRole("button", { name: /select white/i }));
     expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
-    expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(chromaticWheel).getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: "2D" }));
+    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "2D" }));
     expect(screen.getByTestId("tailwind-chromatic-canvas").getAttribute("aria-label")).toMatch(/selected blue-500/i);
+  });
+
+  it("switches the neutral wheel to its own 3D OKLCH space with magnified chroma", async () => {
+    render(<TailwindTool />);
+    const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "slate" } });
+    fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D" }));
+
+    const space = await screen.findByTestId("tailwind-neutral-3d");
+    expect(neutralWheel).toContainElement(space);
+    expect(space.getAttribute("aria-label")).toMatch(/neutral oklch space.*selected slate-500/i);
+    expect(within(neutralWheel).getByText(/chroma is magnified 6 times/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("tailwind-neutral-canvas")).not.toBeInTheDocument();
+    // Each wheel keeps its own view.
+    expect(screen.getByTestId("tailwind-chromatic-canvas")).toBeInTheDocument();
+
+    // The neutral space holds no chromatic dot.
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
+    expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
   });
 
   it("shows the hovered wheel token as a tooltip", () => {
