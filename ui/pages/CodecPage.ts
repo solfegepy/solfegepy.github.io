@@ -254,20 +254,71 @@ export class CodecPage {
       };
     }, toolId);
   }
+  /** Applies 200% text size to the current page. @returns Resolves after style is applied. */
   async useLargeText(): Promise<void> {
     await this.page.addStyleTag({ content: "html { font-size: 200%; }" });
   }
+
+  /** Sets a 320 by 812 mobile viewport. @returns Resolves after viewport changes. */
   async setMobileViewport(): Promise<void> {
-    await this.page.setViewportSize({ width: 320, height: 812 });
+    await this.setViewport(320, 812);
   }
+
+  /** Sets viewport dimensions. @param width Viewport width. @param height Viewport height. @returns Resolves after resize. */
   async setViewport(width: number, height: number): Promise<void> {
     await this.page.setViewportSize({ width, height });
   }
+
+  /** Sets theme before next route load. @param theme Theme to store. @returns Resolves after script setup. */
   async useTheme(theme: "light" | "dark"): Promise<void> {
     await this.page.addInitScript((value) => localStorage.setItem("codec-bench-theme", value), theme);
   }
+
+  /** Opens mobile navigation drawer. @returns Resolves after activation. */
   async openDrawer(): Promise<void> {
     await this.page.getByTestId("menu-button").click();
+  }
+
+  /** Closes mobile navigation drawer. @returns Resolves after activation. */
+  async closeDrawer(): Promise<void> {
+    await this.page.getByTestId("drawer-close").click();
+  }
+
+  /** Grants browser clipboard permissions. @returns Resolves after permissions are granted. */
+  async allowClipboard(): Promise<void> {
+    await this.page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  }
+
+  /** Returns current browser URL. @returns Current URL. */
+  currentUrl(): string {
+    return this.page.url();
+  }
+
+  /** Finds CHEATSHEETS navigation group. @param scope Navigation container. @returns Group locator. */
+  cheatsheetsGroup(scope: "desktop" | "mobile"): Locator {
+    const navigation = scope === "desktop" ? this.sidebar() : this.drawer();
+    return navigation.getByTestId("cheatsheets-navigation-group");
+  }
+
+  /** Finds current navigation links. @param scope Navigation container. @returns Current link locators. */
+  activeNavigationLinks(scope: "desktop" | "mobile"): Locator {
+    const navigation = scope === "desktop" ? this.sidebar() : this.drawer();
+    return navigation.locator('[aria-current="page"]');
+  }
+
+  /** Reads CHEATSHEETS labels in order. @param scope Navigation container. @returns Link labels. */
+  async cheatsheetLinkNames(scope: "desktop" | "mobile"): Promise<string[]> {
+    return this.cheatsheetsGroup(scope).locator("a").allTextContents();
+  }
+
+  /** Reports whether mobile drawer is open. @returns True when open. */
+  async isDrawerOpen(): Promise<boolean> {
+    return this.page.getByTestId("mobile-drawer-layer").isVisible();
+  }
+
+  /** Saves a page screenshot. @param path Output file path. @param fullPage Capture full page. @returns Resolves after capture. */
+  async captureScreenshot(path: string, fullPage = true): Promise<void> {
+    await this.page.screenshot({ path, fullPage, animations: "disabled" });
   }
   async fill(testId: string, value: string): Promise<void> {
     await this.page.getByTestId(testId).fill(value);
@@ -362,11 +413,19 @@ export class CodecPage {
   root(): Locator {
     return this.page.locator("html");
   }
+  /** Returns desktop sidebar. */
   sidebar(): Locator {
     return this.page.getByTestId("desktop-sidebar");
   }
+
+  /** Returns mobile navigation drawer. */
   drawer(): Locator {
     return this.page.getByTestId("mobile-drawer");
+  }
+
+  /** Returns the root HTML element. */
+  htmlRoot(): Locator {
+    return this.page.locator("html");
   }
   async mobileBrandTargetSize(): Promise<{ width: number; height: number }> {
     return this.page.getByTestId("mobile-home-link").evaluate((link) => {

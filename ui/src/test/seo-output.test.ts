@@ -50,6 +50,16 @@ function asciiDocument(): Document {
   return new DOMParser().parseFromString(html, "text/html");
 }
 
+function openSslDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/cheatsheets/openssl/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function sshDocument(): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/cheatsheets/ssh/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
 function tailwindDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/tailwind/index.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
@@ -77,6 +87,8 @@ describe("production homepage SEO", () => {
       "/privacy/",
       "/about/",
       "/ascii/",
+      "/cheatsheets/openssl/",
+      "/cheatsheets/ssh/",
     ];
 
     for (const route of routes) {
@@ -109,6 +121,8 @@ describe("production homepage SEO", () => {
       "privacy/",
       "about/",
       "ascii/",
+      "cheatsheets/openssl/",
+      "cheatsheets/ssh/",
     ];
     const builtPages = [...pages.map((page) => `${page}index.html`), "404.html"].map((page) =>
       new DOMParser().parseFromString(
@@ -394,6 +408,48 @@ describe("production ASCII reference SEO", () => {
     expect(document.body.textContent).toContain("ASCII covers U+0000–U+007F");
     expect(document.querySelectorAll('[data-testid="ascii-table"] tbody tr')).toHaveLength(848);
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
+  });
+});
+
+describe("production OpenSSL cheatsheet SEO", () => {
+  it("renders command examples, guidance, and unique metadata in static HTML", () => {
+    const document = openSslDocument();
+    const canonical = "https://codec64.com/cheatsheets/openssl/";
+
+    expect(document.title).toBe("OpenSSL Cheatsheet | Codec64");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toContain("OpenSSL");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("OpenSSL Cheatsheet");
+    expect(document.body.textContent).toContain("openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\\n'");
+    expect(document.body.textContent).toContain("openssl rand -hex 32");
+    expect(document.body.textContent).toContain(
+      "(openssl rand -base64 32)\n  .Replace('+', '-')\n  .Replace('/', '_')\n  .TrimEnd('=')",
+    );
+    expect(document.body.textContent).toContain("32 bytes × 8 = 256 bits");
+    expect(document.body.textContent).toContain("43 characters");
+    expect(document.querySelector('[data-testid="codec-workspace"]')).toBeNull();
+  });
+});
+
+describe("production SSH cheatsheet SEO", () => {
+  it("renders shell commands, version guidance, and unique metadata in static HTML", () => {
+    const document = sshDocument();
+    const canonical = "https://codec64.com/cheatsheets/ssh/";
+
+    expect(document.title).toBe("SSH Cheatsheet | Codec64");
+    expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toContain("SSH");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
+    expect(document.querySelector("h1")?.textContent?.trim()).toBe("SSH Cheatsheet");
+    expect(document.body.textContent).toContain(
+      'ssh-keygen \\\n  -t ed25519 \\\n  -N "" \\\n  -C "ci_github 2026-10-29" \\\n  -f ~/.ssh/id_ed25519_ci_github',
+    );
+    expect(document.body.textContent).toContain("PowerShell 7.3+");
+    expect(document.body.textContent).toContain("-i ~/.ssh/id_ed25519_ci_github.pub \\\n  user@server.example.com");
+    expect(document.body.textContent).toContain(".pub");
+    expect(document.body.textContent).toContain("Keep it protected on the source machine");
+    expect(document.querySelector('[data-testid="codec-workspace"]')).toBeNull();
   });
 });
 

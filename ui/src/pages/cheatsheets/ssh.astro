@@ -1,0 +1,12 @@
+---
+import { CodecApp } from "../../components/pages/CodecApp";
+import Layout from "../../layouts/Layout.astro";
+
+const title = "SSH Cheatsheet | Codec64";
+const description = "Create and inspect an Ed25519 SSH key pair locally with OpenSSH on macOS, Linux, or PowerShell.";
+const canonical = "https://codec64.com/cheatsheets/ssh/";
+---
+
+<Layout {title} {description} {canonical} siteName="Codec64">
+  <CodecApp page="ssh" client:load />
+</Layout>

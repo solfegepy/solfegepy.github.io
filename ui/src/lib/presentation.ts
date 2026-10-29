@@ -7,6 +7,7 @@ import {
   CookieIcon,
   InfoIcon,
   KeyRoundIcon,
+  TerminalIcon,
   LinkIcon,
   PaletteIcon,
   type LucideIcon,
@@ -14,7 +15,7 @@ import {
 
 import type { ToolId } from "./tools";
 
-export type PresentationId = ToolId | "faq" | "privacy" | "about" | "ascii";
+export type PresentationId = ToolId | "faq" | "privacy" | "about" | "ascii" | "openssl" | "ssh";
 
 interface ToolPresentation {
   Icon: LucideIcon;
@@ -47,4 +48,6 @@ export const TOOL_PRESENTATION = {
   // About shares the Help group's accent with the FAQ.
   about: { Icon: InfoIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
   ascii: { Icon: BinaryIcon, accentClasses: "border-tool-url-border bg-tool-url-soft text-tool-url" },
+  openssl: { Icon: TerminalIcon, accentClasses: "border-tool-python-border bg-tool-python-soft text-tool-python" },
+  ssh: { Icon: TerminalIcon, accentClasses: "border-tool-python-border bg-tool-python-soft text-tool-python" },
 } as const satisfies Record<PresentationId, ToolPresentation>;

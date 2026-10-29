@@ -7,6 +7,8 @@ import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
 import { ThemeControl } from "../ui/ThemeControl";
 import { AboutContent } from "./AboutContent";
 import { AsciiContent } from "./AsciiContent";
+import { OpenSslCheatsheet } from "./OpenSslCheatsheet";
+import { SshCheatsheet } from "./SshCheatsheet";
 import { Base64Tool } from "./Base64Tool";
 import { FaqContent } from "./FaqContent";
 import { JwtTool } from "./JwtTool";
@@ -25,7 +27,7 @@ const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 font-mono text-xs font-sem
 const BRAND_SUFFIX_CLASSES = "text-accent-strong";
 const ICON_BUTTON_CLASSES = "icon-button";
 
-type InfoPage = "faq" | "privacy" | "about" | "ascii";
+type InfoPage = "faq" | "privacy" | "about" | "ascii" | "openssl" | "ssh";
 
 interface ToolNavigationProps {
   activeTool: ToolId | undefined;
@@ -85,6 +87,39 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           </div>
         </section>
       ))}
+      <section data-testid="cheatsheets-navigation-group" className={NAV_GROUP_CLASSES}>
+        <p className={NAV_GROUP_LABEL_CLASSES}>Cheatsheets</p>
+        <a
+          data-testid="cheatsheet-link-openssl"
+          data-accent="openssl"
+          href="/cheatsheets/openssl/"
+          aria-current={currentPage === "openssl" ? "page" : undefined}
+          className={`${NAV_LINK_CLASSES} ${currentPage === "openssl" ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+          onClick={onNavigate}
+        >
+          <span
+            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.openssl.accentClasses}`}
+          >
+            <TOOL_PRESENTATION.openssl.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
+          </span>
+          OpenSSL
+        </a>
+        <a
+          data-testid="cheatsheet-link-ssh"
+          data-accent="ssh"
+          href="/cheatsheets/ssh/"
+          aria-current={currentPage === "ssh" ? "page" : undefined}
+          className={`${NAV_LINK_CLASSES} ${currentPage === "ssh" ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+          onClick={onNavigate}
+        >
+          <span
+            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.ssh.accentClasses}`}
+          >
+            <TOOL_PRESENTATION.ssh.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
+          </span>
+          SSH
+        </a>
+      </section>
       <section data-testid="help-navigation-group" className={NAV_GROUP_CLASSES}>
         <p className={NAV_GROUP_LABEL_CLASSES}>Help</p>
         <a
@@ -179,6 +214,16 @@ const INFO_PAGES = {
     heading: "ASCII & Latin Codes",
     lead: "Find a character by its hexadecimal or URL-encoded value, or browse accented Latin letter families.",
     content: <AsciiContent />,
+  },
+  openssl: {
+    heading: "OpenSSL Cheatsheet",
+    lead: "Generate a random Base64URL or hexadecimal secret on your own machine.",
+    content: <OpenSslCheatsheet />,
+  },
+  ssh: {
+    heading: "SSH Cheatsheet",
+    lead: "Create an Ed25519 SSH key for automation on your own machine and share only its public key.",
+    content: <SshCheatsheet />,
   },
 } as const satisfies Record<InfoPage, { heading: string; lead: ReactNode; content: ReactNode }>;
 

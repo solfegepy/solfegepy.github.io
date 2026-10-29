@@ -400,6 +400,46 @@ describe("CodecApp", () => {
     );
   });
 
+  it("renders the OpenSSL reference from CHEATSHEETS navigation without converter controls", () => {
+    render(<CodecApp page="openssl" />);
+
+    const navigation = screen.getAllByTestId("tool-navigation")[0]!;
+    const groups = [...navigation.querySelectorAll("section")];
+    expect(groups.at(-2)).toHaveAttribute("data-testid", "cheatsheets-navigation-group");
+    expect(groups.at(-1)).toHaveAttribute("data-testid", "help-navigation-group");
+    expect(groups.at(-2)).toHaveTextContent("OpenSSL");
+    const links = screen.getAllByTestId("cheatsheet-link-openssl");
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute("href", "/cheatsheets/openssl/");
+    expect(links[0]).toHaveAttribute("aria-current", "page");
+    expect(navigation.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1, name: "OpenSSL Cheatsheet" })).toBeInTheDocument();
+    expect(screen.getByTestId("openssl-cheatsheet")).toHaveTextContent(
+      "openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\\n'",
+    );
+    expect(screen.getByTestId("openssl-cheatsheet")).toHaveTextContent("32 bytes × 8 = 256 bits");
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
+  });
+
+  it("renders SSH after OpenSSL with its own active destination and reference content", () => {
+    render(<CodecApp page="ssh" />);
+
+    const navigation = screen.getAllByTestId("tool-navigation")[0]!;
+    const links = [...navigation.querySelectorAll('[data-testid^="cheatsheet-link-"]')];
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/cheatsheets/openssl/", "/cheatsheets/ssh/"]);
+    expect(links[0]).not.toHaveAttribute("aria-current", "page");
+    expect(links[1]).toHaveAttribute("aria-current", "page");
+    expect(navigation.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1, name: "SSH Cheatsheet" })).toBeInTheDocument();
+    expect(screen.getByTestId("ssh-cheatsheet")).toHaveTextContent(
+      'ssh-keygen \\ -t ed25519 \\ -N "" \\ -C "ci_github 2026-10-29" \\ -f ~/.ssh/id_ed25519_ci_github',
+    );
+    expect(screen.getByTestId("ssh-cheatsheet")).toHaveTextContent("PowerShell 7.3+");
+    expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
+  });
+
   it("gives tool and FAQ headings visible decorative accent identities", () => {
     const view = render(<CodecApp toolId="base64" />);
     const toolHeader = screen.getByTestId("tool-header");
