@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { TOOL_PRESENTATION } from "../../lib/presentation";
 import { applyTheme, readTheme, writeTheme, type Theme } from "../../lib/theme";
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
+import { BrandLogo } from "../ui/BrandLogo";
 import { ThemeControl } from "../ui/ThemeControl";
 import { AboutContent } from "./AboutContent";
 import { AsciiContent } from "./AsciiContent";
@@ -306,7 +307,12 @@ export function CodecApp(props: CodecAppProps) {
         data-testid="desktop-sidebar"
         className="border-line bg-panel sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r shadow-sm md:flex"
       >
-        <a data-testid="desktop-home-link" href="/" className="border-line flex min-h-20 items-center border-b px-5">
+        <a
+          data-testid="desktop-home-link"
+          href="/"
+          className="border-line flex min-h-20 items-center gap-3 border-b px-5"
+        >
+          <BrandLogo />
           <span className="font-display text-xl font-extrabold tracking-tight">
             Codec<span className={BRAND_SUFFIX_CLASSES}>64</span>
           </span>
@@ -329,9 +335,12 @@ export function CodecApp(props: CodecAppProps) {
         <a
           data-testid="mobile-home-link"
           href="/"
-          className="font-display inline-flex min-h-11 min-w-0 items-center text-base font-extrabold tracking-tight"
+          className="font-display inline-flex min-h-11 min-w-0 items-center gap-2 text-base font-extrabold tracking-tight"
         >
-          Codec<span className={BRAND_SUFFIX_CLASSES}>64</span>
+          <BrandLogo />
+          <span>
+            Codec<span className={BRAND_SUFFIX_CLASSES}>64</span>
+          </span>
         </a>
         <button
           ref={menuRef}

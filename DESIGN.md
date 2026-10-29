@@ -113,6 +113,9 @@ text. Theme roles keep identical meaning in light and dark modes.
   `1.25rem`; stroke width `1.8–2`.
 - Icons support labels; they do not replace labels except in familiar compact controls with accessible names and
   tooltips. No emoji, hand-authored SVG, stock photography, 3D art, or decorative illustration in core workflows.
+- Brand mark: `ui/public/logo.png` (transparent hexagon) at `2rem` before the "Codec64" wordmark in every home
+  link, through `BrandLogo`. It is decorative (`alt=""`); the visible wordmark names the link. `favicon.ico` uses
+  the same mark at 16, 32, and 48 px.
 
 ## Implementation Notes
 

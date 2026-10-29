@@ -517,6 +517,17 @@ describe("CodecApp", () => {
     }
   });
 
+  it("shows the decorative brand logo beside the Codec64 name in home links", () => {
+    render(<CodecApp toolId="base64" />);
+
+    for (const testId of ["desktop-home-link", "mobile-home-link"]) {
+      const link = screen.getByTestId(testId);
+      expect(within(link).getByTestId("brand-logo")).toHaveAttribute("src", "/logo.png");
+      expect(within(link).getByTestId("brand-logo")).toHaveAttribute("alt", "");
+      expect(link).toHaveAccessibleName("Codec64");
+    }
+  });
+
   it("opens accessible drawer, traps focus, and restores menu focus", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);

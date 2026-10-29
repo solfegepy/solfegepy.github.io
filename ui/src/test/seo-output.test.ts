@@ -148,6 +148,15 @@ describe("production homepage SEO", () => {
     }
   });
 
+  it("links the favicon from every built page", () => {
+    const pages = ["", "url/", "faq/", "cheatsheets/ssh/"].map((page) => `${page}index.html`);
+    for (const page of [...pages, "404.html"]) {
+      const html = readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8");
+      const document = new DOMParser().parseFromString(html, "text/html");
+      expect(document.querySelectorAll('link[rel="icon"][href="/favicon.ico"]'), page).toHaveLength(1);
+    }
+  });
+
   it("renders every registered route with unique metadata and one heading", () => {
     for (const tool of TOOLS) {
       const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}index.html`;
@@ -477,6 +486,9 @@ describe("production 404", () => {
     expect(document.querySelector('[data-testid="not-found-section"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="not-found-brand-link"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="not-found-brand-link"]')?.getAttribute("aria-label")).toBeNull();
+    expect(
+      document.querySelector('[data-testid="not-found-brand-link"] [data-testid="brand-logo"]')?.getAttribute("alt"),
+    ).toBe("");
     expect(document.querySelector('[data-testid="not-found-home"]')).not.toBeNull();
   });
 });
