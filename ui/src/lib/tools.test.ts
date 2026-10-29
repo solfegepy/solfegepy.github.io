@@ -34,6 +34,8 @@ describe("tool registry", () => {
       route: "/jwt/",
       title: "JWT Decoder",
       description: ["Decode JWT headers and payloads without signature verification."],
+      metaDescription:
+        "Decode JWT headers and payloads into formatted JSON to inspect token claims. Decoding only: signatures are not verified.",
     });
   });
 

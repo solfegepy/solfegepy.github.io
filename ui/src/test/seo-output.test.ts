@@ -3,11 +3,11 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 import { TAILWIND_VERSION } from "../lib/tailwind";
-import { getToolDescription, TOOLS } from "../lib/tools";
+import { TOOLS } from "../lib/tools";
 
 const TITLE = "Base64 Decode and Encode | Codec64";
 const DESCRIPTION =
-  "Convert plain text, Base64, or Base64url: Base64: uses +, /, and = padding Base64url: uses - and _ without padding.";
+  "Free Base64 encoder and decoder. Convert UTF-8 text to and from standard Base64 or unpadded Base64url in your browser.";
 const URL = "https://codec64.com/";
 
 function productionDocument(): Document {
@@ -62,6 +62,11 @@ function sshDocument(): Document {
 
 function tailwindDocument(): Document {
   const html = readFileSync(resolve(import.meta.dirname, "../../../docs/tailwind/index.html"), "utf8");
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function builtDocument(page: string): Document {
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
 }
 
@@ -186,9 +191,10 @@ describe("production homepage SEO", () => {
       const html = readFileSync(resolve(import.meta.dirname, `../../../docs/${output}`), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
       expect(document.title).toBe(`${tool.title} | Codec64`);
-      expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-        getToolDescription(tool),
-      );
+      const description = document.querySelector('meta[name="description"]')?.getAttribute("content");
+      expect(description).toBe(tool.metaDescription);
+      // Search engines truncate snippets past roughly 160 characters.
+      expect(description?.length, tool.route).toBeLessThanOrEqual(160);
       expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
         `https://codec64.com${tool.route}`,
       );
@@ -259,7 +265,7 @@ describe("production homepage SEO", () => {
   it("renders URL mode guidance and metadata in static HTML", () => {
     const document = urlDocument();
     const description =
-      "Encode or decode URL values: RFC 3986 components: encode reserved characters Full URI: preserves URI structure Form URL encoded: uses + for spaces";
+      "Free URL encoder and decoder for RFC 3986 components, full URIs, and form URL-encoded values, with clear + and %20 handling.";
 
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(description);
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe("https://codec64.com/url/");
@@ -285,7 +291,7 @@ describe("production homepage SEO", () => {
 
     expect(document.title).toBe("Z Time and Unix Timestamp Converter | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toContain(
-      "UTC Z time, Unix seconds, and Unix milliseconds",
+      "Unix timestamps in seconds or milliseconds to UTC Z time",
     );
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
@@ -308,7 +314,7 @@ describe("production homepage SEO", () => {
 
     expect(document.title).toBe("JWT Decoder | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-      "Decode JWT headers and payloads without signature verification.",
+      "Decode JWT headers and payloads into formatted JSON to inspect token claims. Decoding only: signatures are not verified.",
     );
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
@@ -333,7 +339,7 @@ describe("production homepage SEO", () => {
 
     expect(document.title).toBe("Tailwind Color Converter | Codec64");
     expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe(
-      "Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token.",
+      "Browse Tailwind CSS 4 colors and convert any hex color to the closest Tailwind token using OKLab distance.",
     );
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(canonical);
     expect(document.querySelector('meta[property="og:url"]')?.getAttribute("content")).toBe(canonical);
@@ -352,6 +358,23 @@ describe("production homepage SEO", () => {
     expect(document.querySelector('[data-testid="tailwind-family-select"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="tailwind-shade-select"]')).not.toBeNull();
     expect(document.querySelector('[data-testid="codec-app"]')?.getAttribute("data-hydrated")).toBe("false");
+  });
+  it("renders Query guidance for parsing and building query strings in static HTML", () => {
+    const document = builtDocument("query/index.html");
+
+    expect(document.body.textContent).toContain("How to parse and build query strings");
+    expect(document.body.textContent).toContain('{ "tag": ["one", "two"] }');
+    expect(document.body.textContent).toContain("Build a query string from JSON");
+    expect(document.querySelector('[data-testid="query-guidance"]')).not.toBeNull();
+  });
+
+  it("renders Python-to-JSON guidance and a syntax table in static HTML", () => {
+    const document = builtDocument("python-json/index.html");
+
+    expect(document.body.textContent).toContain("How to convert a Python dict to JSON");
+    expect(document.body.textContent).toContain("never calls Python or eval");
+    expect(document.querySelectorAll('[data-testid="python-syntax-table"] tbody tr')).toHaveLength(4);
+    expect(document.querySelector('[data-testid="python-guidance"]')).not.toBeNull();
   });
 });
 

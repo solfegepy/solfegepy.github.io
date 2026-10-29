@@ -9,6 +9,8 @@ export interface ToolDefinition {
   route: "/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/" | "/tailwind/";
   title: string;
   description: readonly [summary: string, ...details: string[]];
+  /** Search snippet for the page `<meta name="description">`; keep it under 160 characters. */
+  metaDescription: string;
 }
 
 export const TOOLS = [
@@ -23,6 +25,8 @@ export const TOOLS = [
       "Base64: uses +, /, and = padding",
       "Base64url: uses - and _ without padding.",
     ],
+    metaDescription:
+      "Free Base64 encoder and decoder. Convert UTF-8 text to and from standard Base64 or unpadded Base64url in your browser.",
   },
   {
     id: "url",
@@ -36,6 +40,8 @@ export const TOOLS = [
       "Full URI: preserves URI structure",
       "Form URL encoded: uses + for spaces",
     ],
+    metaDescription:
+      "Free URL encoder and decoder for RFC 3986 components, full URIs, and form URL-encoded values, with clear + and %20 handling.",
   },
   {
     id: "query",
@@ -44,6 +50,8 @@ export const TOOLS = [
     route: "/query/",
     title: "Query Parameter Editor",
     description: ["Convert URL query parameters to JSON or build a query string from JSON."],
+    metaDescription:
+      "Parse URL query parameters into JSON or build a query string from JSON. Repeated names become arrays and + decodes to a space.",
   },
   {
     id: "jwt",
@@ -52,6 +60,8 @@ export const TOOLS = [
     route: "/jwt/",
     title: "JWT Decoder",
     description: ["Decode JWT headers and payloads without signature verification."],
+    metaDescription:
+      "Decode JWT headers and payloads into formatted JSON to inspect token claims. Decoding only: signatures are not verified.",
   },
   {
     id: "python",
@@ -60,6 +70,8 @@ export const TOOLS = [
     route: "/python-json/",
     title: "Python Literal to JSON Converter",
     description: ["Convert dictionaries from Python PDB or print output into JSON."],
+    metaDescription:
+      "Convert Python dict and list literals from print() or PDB output into JSON and back. Handles True, False, None, and tuples without eval.",
   },
   {
     id: "timestamp",
@@ -68,6 +80,8 @@ export const TOOLS = [
     route: "/timestamp/",
     title: "Z Time and Unix Timestamp Converter",
     description: ["Convert strict UTC Z time, Unix seconds, and Unix milliseconds."],
+    metaDescription:
+      "Convert Unix timestamps in seconds or milliseconds to UTC Z time (ISO 8601) and back, with explicit format selection instead of guessing.",
   },
   {
     id: "tailwind",
@@ -76,15 +90,12 @@ export const TOOLS = [
     route: "/tailwind/",
     title: "Tailwind Color Converter",
     description: ["Browse Tailwind CSS colors and convert a hex color to the closest Tailwind token."],
+    metaDescription:
+      "Browse Tailwind CSS 4 colors and convert any hex color to the closest Tailwind token using OKLab distance.",
   },
 ] as const satisfies readonly ToolDefinition[];
 
 /** Returns registry definition for tool ID. */
 export function getTool(id: ToolId): (typeof TOOLS)[number] {
   return TOOLS.find((tool) => tool.id === id)!;
-}
-
-/** Returns tool description as plain text for metadata. */
-export function getToolDescription(tool: ToolDefinition): string {
-  return tool.description.join(" ");
 }
