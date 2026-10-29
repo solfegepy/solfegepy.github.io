@@ -64,7 +64,8 @@ export function parseOklch(value: string): Oklch | null {
   };
 }
 
-function oklchToHex(value: string): string {
+/** Converts a CSS `oklch()` value to sRGB hex, clipping colors outside the sRGB gamut. */
+export function oklchToHex(value: string): string {
   const oklch = parseOklch(value);
   if (oklch === null) return value.toLowerCase() === "#000" ? "#000000" : "#ffffff";
 
@@ -132,6 +133,12 @@ function hexToOklab(hex: string): Oklab {
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
     0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
   ];
+}
+
+/** Returns the OKLCH hue, in degrees from 0 to 360, of a normalized `#rrggbb` hex. */
+export function hexHue(hex: string): number {
+  const [, a, b] = hexToOklab(hex);
+  return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
 }
 
 const PALETTE_OKLAB = TAILWIND_PALETTE.map((entry) => ({ entry, coordinates: hexToOklab(entry.hex) }));

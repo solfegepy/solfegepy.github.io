@@ -207,6 +207,10 @@ export class TailwindPage {
     return this.page.getByTestId(`tailwind-${kind}-canvas`);
   }
 
+  hueLabels(kind: WheelKind): Locator {
+    return this.page.getByTestId(`tailwind-${kind}-3d-hue-labels`);
+  }
+
   oklchSpace(kind: WheelKind): Locator {
     return this.page.getByTestId(`tailwind-${kind}-3d`);
   }

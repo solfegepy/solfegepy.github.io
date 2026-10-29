@@ -3,6 +3,7 @@ import {
   BackSide,
   BufferGeometry,
   Color,
+  DoubleSide,
   Float32BufferAttribute,
   Line,
   LineBasicMaterial,
@@ -11,6 +12,7 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   Raycaster,
+  RingGeometry,
   Scene,
   Spherical,
   SphereGeometry,
@@ -20,8 +22,11 @@ import {
   type Object3D,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 
 import {
+  hexHue,
+  oklchToHex,
   parseOklch,
   SHADES,
   TAILWIND_PALETTE,
@@ -40,6 +45,14 @@ const SPACES = {
   neutral: { name: "Neutral", gridChroma: 0.05, note: " Chroma is magnified 6 times so the subtle tints stay apart." },
 } as const;
 const GRID_HUE_STEP = 30;
+// The sRGB primaries and secondaries give the hue circle familiar landmarks; OKLCH spreads them unevenly.
+const HUE_REFERENCES = ["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"] as const;
+const HUE_REFERENCE_LIST = new Intl.ListFormat("en", { type: "conjunction" }).format(HUE_REFERENCES);
+// Hue ring band and label distance, as multiples of the grid radius.
+const HUE_RING_WIDTH = 0.08;
+const HUE_LABEL_RADIUS = 1.25;
+const HUE_LABEL_CLASSES =
+  "bg-panel/80 text-ink flex items-center gap-1 rounded-sm px-1 font-mono text-xs leading-tight select-none";
 const GRID_COLOR = "#94a3b8";
 const DOT_RADIUS = 0.14;
 const SELECTED_SCALE = 1.8;
@@ -112,6 +125,18 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
 
     const chromaScale = GRID_RADIUS / gridChroma;
     scene.add(buildGrid(gridChroma, chromaScale));
+    scene.add(buildHueRing());
+    for (const hex of HUE_REFERENCES) {
+      const label = buildHueLabel(hex);
+      label.position.copy(oklchPoint(0, gridChroma * HUE_LABEL_RADIUS, hexHue(hex), chromaScale));
+      scene.add(label);
+    }
+    const labelRenderer = new CSS2DRenderer();
+    // Labels sit over the canvas but let drags and clicks reach it.
+    labelRenderer.domElement.className = "pointer-events-none absolute inset-0";
+    labelRenderer.domElement.setAttribute("aria-hidden", "true");
+    labelRenderer.domElement.dataset.testid = `tailwind-${kind}-3d-hue-labels`;
+    canvas.after(labelRenderer.domElement);
     const dots = buildDots(families, chromaScale);
     for (const dot of dots.keys()) scene.add(dot);
     for (const family of families) {
@@ -123,7 +148,10 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
       );
     }
 
-    const render = () => renderer.render(scene, camera);
+    const render = () => {
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    };
     const highlight = (token: string | null) => {
       for (const [dot, entry] of dots) {
         const isSelected = entry.token === token;
@@ -144,6 +172,7 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
       const width = canvas.clientWidth;
       if (width === 0) return;
       renderer.setSize(width, width, false);
+      labelRenderer.setSize(width, width);
       render();
     };
     controls.addEventListener("change", render);
@@ -155,6 +184,7 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
     return () => {
       viewRef.current = null;
       observer.disconnect();
+      labelRenderer.domElement.remove();
       controls.dispose();
       scene.traverse((object) => {
         if (object instanceof Mesh || object instanceof Line) {
@@ -164,7 +194,7 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
       });
       renderer.dispose();
     };
-  }, [families, gridChroma]);
+  }, [families, gridChroma, kind]);
 
   useEffect(() => viewRef.current?.highlight(selectedToken), [selectedToken]);
 
@@ -192,29 +222,33 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
 
   return (
     <div className="space-y-2">
-      <canvas
-        ref={canvasRef}
-        data-testid={`tailwind-${kind}-3d`}
-        role="img"
-        aria-label={`${name} OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family.${note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
-        title={hovered?.token}
-        onPointerDown={(event) => {
-          pointerDownRef.current = { x: event.clientX, y: event.clientY };
-        }}
-        onPointerUp={(event) => {
-          const start = pointerDownRef.current;
-          pointerDownRef.current = null;
-          if (start === null || Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_TOLERANCE) return;
-          const entry = entryAtPointer(event);
-          if (entry !== null) onSelect(entry);
-        }}
-        onPointerMove={(event) => setHovered(entryAtPointer(event))}
-        onPointerLeave={() => setHovered(null)}
-        className={CANVAS_CLASSES}
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          data-testid={`tailwind-${kind}-3d`}
+          role="img"
+          aria-label={`${name} OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. A hue ring on the floor marks where ${HUE_REFERENCE_LIST} fall.${note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
+          title={hovered?.token}
+          onPointerDown={(event) => {
+            pointerDownRef.current = { x: event.clientX, y: event.clientY };
+          }}
+          onPointerUp={(event) => {
+            const start = pointerDownRef.current;
+            pointerDownRef.current = null;
+            if (start === null || Math.hypot(event.clientX - start.x, event.clientY - start.y) > CLICK_TOLERANCE)
+              return;
+            const entry = entryAtPointer(event);
+            if (entry !== null) onSelect(entry);
+          }}
+          onPointerMove={(event) => setHovered(entryAtPointer(event))}
+          onPointerLeave={() => setHovered(null)}
+          className={CANVAS_CLASSES}
+        />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted min-w-0 grow basis-48 text-sm">
           In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around.
+          The floor ring shows each hue; labels mark where the screen&apos;s pure colors fall.
           {note}
         </p>
         <div role="group" aria-label={`${name} camera view`} className="flex gap-2">
@@ -255,6 +289,34 @@ function buildDots(families: readonly TailwindFamily[], chromaScale: number): Ma
     dots.set(dot, entry);
   }
   return dots;
+}
+
+/** Builds a flat band around the grid floor, colored with the hue at each angle. */
+function buildHueRing(): Mesh {
+  const geometry = new RingGeometry(GRID_RADIUS, GRID_RADIUS * (1 + HUE_RING_WIDTH), 90, 1);
+  const positions = geometry.getAttribute("position");
+  const colors: number[] = [];
+  for (let index = 0; index < positions.count; index++) {
+    const hue = (Math.atan2(positions.getY(index), positions.getX(index)) * 180) / Math.PI;
+    // A moderate lightness and chroma keeps every hue inside the sRGB gamut, so none is clipped to another hue.
+    colors.push(...new Color(oklchToHex(`oklch(70% 0.12 ${hue})`)).toArray());
+  }
+  geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
+  // The ring is drawn in the XY plane; laying it flat maps its angle onto the hue angle used by oklchPoint.
+  geometry.rotateX(-Math.PI / 2);
+  geometry.translate(0, -LIGHTNESS_HEIGHT / 2, 0);
+  return new Mesh(geometry, new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }));
+}
+
+/** Builds a screen-facing label with a swatch and the hex of a reference color. */
+function buildHueLabel(hex: string): CSS2DObject {
+  const swatch = document.createElement("span");
+  swatch.className = "border-line size-2.5 rounded-full border";
+  swatch.style.backgroundColor = hex;
+  const label = document.createElement("span");
+  label.className = HUE_LABEL_CLASSES;
+  label.append(swatch, hex);
+  return new CSS2DObject(label);
 }
 
 /** Joins entries in order with a line that fades through their colors. */

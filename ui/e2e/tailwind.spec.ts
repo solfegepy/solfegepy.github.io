@@ -178,3 +178,21 @@ test("neutral 3D OKLCH space selects the clicked dot while the chromatic wheel s
   await tailwind.chooseWheelView("neutral", "2D");
   await expect(tailwind.canvas("neutral")).toHaveAttribute("aria-label", /Selected mauve-500/);
 });
+
+test("both 3D OKLCH spaces label the screen's pure colors around the hue ring", async ({ page }, testInfo) => {
+  const tailwind = new TailwindPage(page);
+  await tailwind.open();
+  await tailwind.chooseWheelView("chromatic", "3D");
+  await tailwind.chooseWheelView("neutral", "3D");
+
+  for (const kind of ["chromatic", "neutral"] as const) {
+    for (const hex of ["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"]) {
+      await expect(tailwind.hueLabels(kind).getByText(hex, { exact: true })).toBeVisible();
+    }
+  }
+  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hue-labels.png"));
+
+  // Labels overlay the canvas without blocking dot selection.
+  await tailwind.clickOklchSpace("neutral", 0.69, 0.46);
+  await expect(tailwind.token()).toHaveText("mauve-500");
+});

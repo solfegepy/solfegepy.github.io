@@ -132,6 +132,9 @@ describe("TailwindTool", () => {
     const space = await screen.findByTestId("tailwind-chromatic-3d");
     expect(chromaticWheel).toContainElement(space);
     expect(space.getAttribute("aria-label")).toMatch(/chromatic oklch space.*selected blue-500/i);
+    expect(space.getAttribute("aria-label")).toMatch(
+      /hue ring.*#FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, and #FF00FF/,
+    );
     expect(screen.getByText(/in oklch, equal steps up the axis are perceived equally lighter/i)).toBeInTheDocument();
     for (const view of ["Bottom", "Side", "Top"])
       expect(screen.getByRole("button", { name: view })).toBeInTheDocument();

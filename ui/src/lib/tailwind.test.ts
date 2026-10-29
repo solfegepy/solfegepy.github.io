@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatHsl, matchTailwindColor, parseOklch, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
+import { formatHsl, hexHue, matchTailwindColor, parseOklch, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
 
 describe("Tailwind palette", () => {
   it("exposes all default fixed-color tokens in wheel order", () => {
@@ -136,5 +136,19 @@ describe("parseOklch", () => {
     ["oklch(50% 0 none)", { lightness: 0.5, chroma: 0, hue: 0 }],
   ])("reads lightness as a fraction, chroma, and hue degrees from %s", (value, expected) => {
     expect(parseOklch(value)).toEqual(expected);
+  });
+});
+
+describe("hexHue", () => {
+  // The sRGB primaries and secondaries are unevenly spread around the OKLCH hue circle.
+  it.each([
+    ["#ff0000", 29.2],
+    ["#ffff00", 109.8],
+    ["#00ff00", 142.5],
+    ["#00ffff", 194.8],
+    ["#0000ff", 264.1],
+    ["#ff00ff", 328.4],
+  ])("places %s at OKLCH hue %f degrees", (hex, hue) => {
+    expect(hexHue(hex)).toBeCloseTo(hue, 1);
   });
 });
