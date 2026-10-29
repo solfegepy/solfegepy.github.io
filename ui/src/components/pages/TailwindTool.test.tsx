@@ -137,6 +137,11 @@ describe("TailwindTool", () => {
     for (const view of ["Bottom", "Side", "Top"])
       expect(screen.getByRole("button", { name: view })).toBeInTheDocument();
     expect(screen.queryByTestId("tailwind-chromatic-canvas")).not.toBeInTheDocument();
+
+    // Like the 2D chromatic wheel, the 3D space holds no black or white dot.
+    fireEvent.click(screen.getByRole("button", { name: /select white/i }));
+    expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
     expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(screen.getByRole("button", { name: "2D" }));
