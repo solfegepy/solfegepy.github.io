@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatHsl, matchTailwindColor, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
+import { formatHsl, matchTailwindColor, parseOklch, TAILWIND_PALETTE, TAILWIND_VERSION } from "./tailwind";
 
 describe("Tailwind palette", () => {
   it("exposes all default fixed-color tokens in wheel order", () => {
@@ -126,5 +126,15 @@ describe("formatHsl", () => {
     expect(formatHsl("#3f3f46")).toBe("hsl(240 5% 26%)");
     expect(formatHsl("#2b7fff")).toBe("hsl(216 100% 58%)");
     expect(formatHsl("#ffffff")).toBe("hsl(0 0% 100%)");
+  });
+});
+
+describe("parseOklch", () => {
+  it.each([
+    ["oklch(63.7% 0.237 25.331)", { lightness: 0.637, chroma: 0.237, hue: 25.331 }],
+    ["oklch(100% 0 0)", { lightness: 1, chroma: 0, hue: 0 }],
+    ["oklch(50% 0 none)", { lightness: 0.5, chroma: 0, hue: 0 }],
+  ])("reads lightness as a fraction, chroma, and hue degrees from %s", (value, expected) => {
+    expect(parseOklch(value)).toEqual(expected);
   });
 });

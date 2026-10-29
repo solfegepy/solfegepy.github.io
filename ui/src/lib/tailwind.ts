@@ -1,6 +1,6 @@
 import colors from "tailwindcss/colors";
 
-const CHROMATIC_FAMILIES = [
+export const CHROMATIC_FAMILIES = [
   "red",
   "orange",
   "amber",
@@ -21,7 +21,7 @@ const CHROMATIC_FAMILIES = [
 ] as const;
 
 const NEUTRAL_FAMILIES = ["slate", "gray", "zinc", "neutral", "stone", "mauve", "olive", "mist", "taupe"] as const;
-const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+export const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 const HEX_PATTERN = /^#?(?:[\da-f]{3}|[\da-f]{6})$/i;
 
 type NumberedFamily = (typeof CHROMATIC_FAMILIES)[number] | (typeof NEUTRAL_FAMILIES)[number];
@@ -51,13 +51,25 @@ export type TailwindMatchResult =
 // Bump it when a Tailwind upgrade changes the palette.
 export const TAILWIND_VERSION = "4.2.0";
 
-function oklchToHex(value: string): string {
-  const components = value.match(/^oklch\(([^%]+)%\s+([^\s]+)\s+([^\s)]+)\)$/);
-  if (components === null) return value.toLowerCase() === "#000" ? "#000000" : "#ffffff";
+export type Oklch = Readonly<{ lightness: number; chroma: number; hue: number }>;
 
-  const lightness = Number(components[1]) / 100;
-  const chroma = Number(components[2]);
-  const hue = components[3] === "none" ? 0 : (Number(components[3]) * Math.PI) / 180;
+/** Reads a CSS `oklch(L% C H)` value: lightness from 0 to 1, chroma, and hue in degrees; null for other formats. */
+export function parseOklch(value: string): Oklch | null {
+  const components = value.match(/^oklch\(([^%]+)%\s+([^\s]+)\s+([^\s)]+)\)$/);
+  if (components === null) return null;
+  return {
+    lightness: Number(components[1]) / 100,
+    chroma: Number(components[2]),
+    hue: components[3] === "none" ? 0 : Number(components[3]),
+  };
+}
+
+function oklchToHex(value: string): string {
+  const oklch = parseOklch(value);
+  if (oklch === null) return value.toLowerCase() === "#000" ? "#000000" : "#ffffff";
+
+  const { lightness, chroma } = oklch;
+  const hue = (oklch.hue * Math.PI) / 180;
   // CSS Color's Oklch-to-sRGB conversion uses this direct form to avoid intermediate rounding.
   const a = chroma * Math.cos(hue);
   const b = chroma * Math.sin(hue);

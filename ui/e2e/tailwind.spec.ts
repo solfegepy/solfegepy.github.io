@@ -124,3 +124,22 @@ test("desktop wheel and result remain readable in both themes", async ({ page },
     await tailwind.captureScreenshot(testInfo.outputPath(`tailwind-desktop-${theme}.png`));
   }
 });
+
+test("3D OKLCH space selects the clicked dot and rotates on drag without selecting", async ({ page }, testInfo) => {
+  const tailwind = new TailwindPage(page);
+  await tailwind.open();
+  await tailwind.chooseWheelView("3D");
+  await expect(tailwind.oklchSpace()).toHaveAttribute("aria-label", /No token selected in this space/);
+
+  // Where fuchsia-600 projects from the initial camera, clear of every other dot.
+  await tailwind.clickOklchSpace(0.792, 0.443);
+  await expect(tailwind.token()).toHaveText("fuchsia-600");
+  await expect(tailwind.oklchSpace()).toHaveAttribute("aria-label", /Selected fuchsia-600, #/);
+  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-oklch-space.png"));
+
+  await tailwind.dragOklchSpace(0.25);
+  await expect(tailwind.token()).toHaveText("fuchsia-600");
+
+  await tailwind.chooseWheelView("2D");
+  await expect(tailwind.canvas("chromatic")).toHaveAttribute("aria-label", /Selected fuchsia-600/);
+});

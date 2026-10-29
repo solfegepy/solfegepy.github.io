@@ -121,6 +121,25 @@ describe("TailwindTool", () => {
     expect(chromaticCanvas.getAttribute("aria-label")).toMatch(/chromatic wheel.*no token selected/i);
   });
 
+  it("switches the chromatic wheel between the flat wheel and a described 3D OKLCH space", async () => {
+    render(<TailwindTool />);
+    const chromaticWheel = screen.getByTestId("tailwind-chromatic-wheel");
+    expect(screen.getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByRole("button", { name: "3D" })).toHaveLength(1);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
+    fireEvent.click(screen.getByRole("button", { name: "3D" }));
+
+    const space = await screen.findByTestId("tailwind-chromatic-3d");
+    expect(chromaticWheel).toContainElement(space);
+    expect(space.getAttribute("aria-label")).toMatch(/chromatic oklch space.*selected blue-500/i);
+    expect(screen.queryByTestId("tailwind-chromatic-canvas")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "2D" }));
+    expect(screen.getByTestId("tailwind-chromatic-canvas").getAttribute("aria-label")).toMatch(/selected blue-500/i);
+  });
+
   it("shows the hovered wheel token as a tooltip", () => {
     render(<TailwindTool />);
     const canvas = screen.getByTestId("tailwind-chromatic-canvas");

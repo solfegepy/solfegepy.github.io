@@ -123,6 +123,29 @@ export class TailwindPage {
     await this.canvas(kind).click({ position: { x: 1, y: 1 } });
   }
 
+  async chooseWheelView(view: "2D" | "3D"): Promise<void> {
+    await this.page.getByTestId(`tailwind-wheel-view-${view}`).click();
+  }
+
+  /** Clicks the 3D OKLCH space at a point given as fractions of its width and height. */
+  async clickOklchSpace(xFraction: number, yFraction: number): Promise<void> {
+    const box = await this.oklchSpace().boundingBox();
+    if (box === null) throw new Error("3D OKLCH space is not visible");
+    await this.oklchSpace().click({ position: { x: box.width * xFraction, y: box.height * yFraction } });
+  }
+
+  /** Drags across the 3D OKLCH space horizontally by a fraction of its width. */
+  async dragOklchSpace(widthFraction: number): Promise<void> {
+    const box = await this.oklchSpace().boundingBox();
+    if (box === null) throw new Error("3D OKLCH space is not visible");
+    const startX = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + box.width * widthFraction, y, { steps: 10 });
+    await this.page.mouse.up();
+  }
+
   async hasHorizontalOverflow(): Promise<boolean> {
     return this.page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   }
@@ -178,6 +201,10 @@ export class TailwindPage {
 
   canvas(kind: WheelKind): Locator {
     return this.page.getByTestId(`tailwind-${kind}-canvas`);
+  }
+
+  oklchSpace(): Locator {
+    return this.page.getByTestId("tailwind-chromatic-3d");
   }
 
   activeNavigation(): Locator {

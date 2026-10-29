@@ -1,26 +1,17 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type MouseEvent } from "react";
 
-import { TAILWIND_PALETTE, type TailwindFamily, type TailwindPaletteEntry } from "../../lib/tailwind";
+import {
+  CHROMATIC_FAMILIES,
+  SHADES,
+  TAILWIND_PALETTE,
+  type TailwindFamily,
+  type TailwindPaletteEntry,
+} from "../../lib/tailwind";
 
-const CHROMATIC_FAMILIES = [
-  "red",
-  "orange",
-  "amber",
-  "yellow",
-  "lime",
-  "green",
-  "emerald",
-  "teal",
-  "cyan",
-  "sky",
-  "blue",
-  "indigo",
-  "violet",
-  "purple",
-  "fuchsia",
-  "pink",
-  "rose",
-] as const satisfies readonly TailwindFamily[];
+// three.js only downloads once a visitor opens the 3D view.
+const TailwindOklchSpace = lazy(() =>
+  import("./TailwindOklchSpace").then((module) => ({ default: module.TailwindOklchSpace })),
+);
 
 const NEUTRAL_FAMILIES = [
   "slate",
@@ -33,7 +24,6 @@ const NEUTRAL_FAMILIES = [
   "olive",
   "mist",
 ] as const satisfies readonly TailwindFamily[];
-const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 const CANVAS_INSET = 8;
 const INNER_RADIUS = 0.19;
 const OUTER_RADIUS = 0.88;
@@ -41,8 +31,13 @@ const SECTOR_GAP = 0.018;
 const RING_GAP = 0.012;
 const CANVAS_CLASSES = "block aspect-square w-full";
 const PANEL_CLASSES = "border-line bg-panel min-w-0 rounded-surface border p-3";
+const VIEW_BUTTON_CLASSES =
+  "focus-visible:outline-primary min-h-11 min-w-11 px-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2";
+const VIEWS = ["2D", "3D"] as const;
 const ANCHOR_BUTTON_CLASSES =
   "border-line bg-field text-ink focus-visible:ring-primary flex min-h-11 min-w-11 items-center gap-2 rounded-control border px-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+
+type WheelView = (typeof VIEWS)[number];
 
 type TailwindWheelProps = {
   kind: "chromatic" | "neutral";
@@ -50,12 +45,53 @@ type TailwindWheelProps = {
   onSelect: (entry: TailwindPaletteEntry) => void;
 };
 
-/** Draws a family-and-shade wheel while leaving selection state with its parent. */
+/** Shows a family-and-shade wheel; the chromatic one can switch to a 3D OKLCH plot. */
 export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) {
+  const [view, setView] = useState<WheelView>("2D");
+  const title = kind === "chromatic" ? "Chromatic wheel" : "Neutral wheel";
+
+  return (
+    <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
+      <figcaption className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-ink font-semibold">{title}</span>
+        {kind === "chromatic" && (
+          <div
+            role="group"
+            aria-label={`${title} view`}
+            className="border-line rounded-control flex overflow-hidden border"
+          >
+            {VIEWS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                data-testid={`tailwind-wheel-view-${option}`}
+                title={`Show ${option} view`}
+                aria-pressed={view === option}
+                onClick={() => setView(option)}
+                className={`${VIEW_BUTTON_CLASSES} ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
+      </figcaption>
+      {view === "3D" ? (
+        <Suspense fallback={<div aria-busy="true" className={CANVAS_CLASSES} />}>
+          <TailwindOklchSpace selected={selected} onSelect={onSelect} />
+        </Suspense>
+      ) : (
+        <FlatWheel kind={kind} title={title} selected={selected} onSelect={onSelect} />
+      )}
+    </figure>
+  );
+}
+
+/** Draws a family-and-shade wheel while leaving selection state with its parent. */
+function FlatWheel({ kind, title, selected, onSelect }: TailwindWheelProps & { title: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hovered, setHovered] = useState<TailwindPaletteEntry | null>(null);
   const families = kind === "chromatic" ? CHROMATIC_FAMILIES : NEUTRAL_FAMILIES;
-  const title = kind === "chromatic" ? "Chromatic wheel" : "Neutral wheel";
   const wheelSelection = selected !== null && new Set<TailwindFamily>(families).has(selected.family) ? selected : null;
 
   useEffect(() => {
@@ -108,43 +144,40 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
   }
 
   return (
-    <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
-      <figcaption className="text-ink mb-2 font-semibold">{title}</figcaption>
-      <div className="[container-type:inline-size] relative">
-        <canvas
-          ref={canvasRef}
-          data-testid={`tailwind-${kind}-canvas`}
-          role="img"
-          aria-label={`${title}. Shades radiate from 50 inside to 950 outside. ${wheelSelection === null ? "No token selected on this wheel" : `Selected ${wheelSelection.token}, ${wheelSelection.hex}`}.`}
-          title={hovered?.token}
-          onPointerUp={(event) => {
-            const entry = entryAtPointer(event);
-            if (entry !== null) onSelect(entry);
-          }}
-          onMouseMove={(event) => setHovered(entryAtPointer(event))}
-          onMouseLeave={() => setHovered(null)}
-          className={CANVAS_CLASSES}
-        />
-        {families.map((family, index) => {
-          const angle = ((index + 0.5) / families.length) * Math.PI * 2 - Math.PI / 2;
-          const rotation = (angle * 180) / Math.PI + (Math.sin(angle) > 0 ? -90 : 90);
-          return (
-            <span
-              key={family}
-              className="text-muted pointer-events-none absolute leading-none whitespace-nowrap"
-              style={{
-                fontSize: "clamp(0.75rem, 3.5cqw, 0.875rem)",
-                left: `${50 + Math.cos(angle) * 47}%`,
-                top: `${50 + Math.sin(angle) * 47}%`,
-                transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-              }}
-            >
-              {family}
-            </span>
-          );
-        })}
-      </div>
-    </figure>
+    <div className="[container-type:inline-size] relative">
+      <canvas
+        ref={canvasRef}
+        data-testid={`tailwind-${kind}-canvas`}
+        role="img"
+        aria-label={`${title}. Shades radiate from 50 inside to 950 outside. ${wheelSelection === null ? "No token selected on this wheel" : `Selected ${wheelSelection.token}, ${wheelSelection.hex}`}.`}
+        title={hovered?.token}
+        onPointerUp={(event) => {
+          const entry = entryAtPointer(event);
+          if (entry !== null) onSelect(entry);
+        }}
+        onMouseMove={(event) => setHovered(entryAtPointer(event))}
+        onMouseLeave={() => setHovered(null)}
+        className={CANVAS_CLASSES}
+      />
+      {families.map((family, index) => {
+        const angle = ((index + 0.5) / families.length) * Math.PI * 2 - Math.PI / 2;
+        const rotation = (angle * 180) / Math.PI + (Math.sin(angle) > 0 ? -90 : 90);
+        return (
+          <span
+            key={family}
+            className="text-muted pointer-events-none absolute leading-none whitespace-nowrap"
+            style={{
+              fontSize: "clamp(0.75rem, 3.5cqw, 0.875rem)",
+              left: `${50 + Math.cos(angle) * 47}%`,
+              top: `${50 + Math.sin(angle) * 47}%`,
+              transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+            }}
+          >
+            {family}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
