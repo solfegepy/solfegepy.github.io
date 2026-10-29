@@ -8,11 +8,8 @@ workspaces:
           - command: m start-dev
 
       # ======== shell commands ========
-      - label: misc
+      - label: make
         panes:
-          - command: ll
-      # - label: make
-      #   panes:
-      #     - command: make test
-      #       lf: false
-      #       split: down
+          - command: make build
+            lf: false
+            split: down
