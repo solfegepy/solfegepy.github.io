@@ -417,7 +417,7 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("openssl-cheatsheet")).toHaveTextContent(
       "openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\\n'",
     );
-    expect(screen.getByTestId("openssl-cheatsheet")).toHaveTextContent("32 bytes × 8 = 256 bits");
+    expect(screen.getByTestId("openssl-cheatsheet")).toHaveTextContent("32 random bytes (256 bits)");
     expect(screen.queryByTestId("codec-workspace")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /convert|decode/i })).not.toBeInTheDocument();
   });

@@ -19,12 +19,6 @@ export function OpenSslCheatsheet() {
       data-testid="openssl-cheatsheet"
       className="[&>section]:border-line max-w-prose min-w-0 space-y-8 [&>section]:border-t [&>section]:pt-8 [&>section>h2]:text-2xl"
     >
-      <p data-testid="openssl-prerequisites" className="text-muted">
-        Run one command in your local terminal, then paste its output where your application expects the secret. You
-        need an installed <code>openssl</code> executable on PATH. macOS and Linux also need <code>tr</code>; Windows
-        does not include OpenSSL by default. Fix terminal errors before using any output.
-      </p>
-
       <section data-testid="openssl-base64url" aria-labelledby="openssl-base64url" className="space-y-4">
         <h2 id="openssl-base64url" className="text-ink text-xl font-bold">
           Base64URL secret
@@ -40,16 +34,7 @@ export function OpenSslCheatsheet() {
         <div>
           <h3 className="text-ink mb-2 font-semibold">What the command returns</h3>
           <p className="text-muted">
-            OpenSSL generates 32 random bytes: 32 bytes × 8 = 256 bits. Its cryptographically secure randomness is
-            Base64-encoded, then <code>+</code> becomes <code>-</code>, <code>/</code> becomes <code>_</code>, and
-            padding is removed. Encoding preserves the random bytes; it adds no entropy. Successful output contains 43
-            characters from <code>A–Z</code>, <code>a–z</code>, <code>0–9</code>, <code>_</code>, and <code>-</code>,
-            without embedded whitespace. The POSIX command also removes the trailing newline. A random value need not
-            contain every character class.
-          </p>
-          <p className="text-muted mt-3">
-            Use this format only when your application accepts a random Base64URL secret of this length. The commands
-            generate the value on your machine; the website does not receive it.
+            OpenSSL generates 32 random bytes (256 bits) Base64-encoded, then it is converted to Base64URL.
           </p>
         </div>
       </section>
@@ -60,9 +45,8 @@ export function OpenSslCheatsheet() {
         </h2>
         <CommandSnippet command={HEX_COMMAND} prompt="$" label="Copy hexadecimal secret command" />
         <p className="text-muted">
-          Use this when your application requires a hex secret. The same command runs in POSIX shells and PowerShell. It
-          returns 32 random bytes (256 bits) as 64 lowercase characters from <code>0–9</code> and <code>a–f</code>. Hex
-          is longer than Base64URL for the same randomness; it adds no entropy.
+          OpenSSL generates 32 random bytes (256 bits) in hexadecimal. Hex is longer than Base64URL for the same
+          randomness.
         </p>
       </section>
 

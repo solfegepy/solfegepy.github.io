@@ -38,12 +38,6 @@ export function SshCheatsheet() {
       data-testid="ssh-cheatsheet"
       className="[&>section]:border-line max-w-prose min-w-0 space-y-8 [&>section]:border-t [&>section]:pt-8 [&>section>h2]:text-2xl"
     >
-      <p data-testid="ssh-prerequisites" className="text-muted">
-        <code>ssh-keygen</code> is an OpenSSH client tool. Install OpenSSH client tools and put them on PATH. These
-        commands expect an existing <code>.ssh</code> directory; create it with the command for your shell if needed.
-        The commands run on your machine. Fix terminal errors before using the output.
-      </p>
-
       <section data-testid="ssh-directory" aria-labelledby="ssh-directory" className="space-y-4">
         <h2 id="ssh-directory" className="text-ink text-xl font-bold">
           Prepare the directory if needed

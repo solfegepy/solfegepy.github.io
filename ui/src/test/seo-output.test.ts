@@ -486,8 +486,7 @@ describe("production OpenSSL cheatsheet SEO", () => {
     expect(document.body.textContent).toContain(
       "(openssl rand -base64 32)\n  .Replace('+', '-')\n  .Replace('/', '_')\n  .TrimEnd('=')",
     );
-    expect(document.body.textContent).toContain("32 bytes × 8 = 256 bits");
-    expect(document.body.textContent).toContain("43 characters");
+    expect(document.body.textContent).toContain("32 random bytes (256 bits)");
     expect(document.querySelector('[data-testid="codec-workspace"]')).toBeNull();
   });
 });
