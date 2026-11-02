@@ -59,17 +59,17 @@
 
 :root {
   --paper: var(--color-stone-50);
-  --panel: var(--color-neutral-50);
-  --panel-target: var(--color-neutral-200);
+  --panel: var(--color-stone-100);
+  --panel-target: var(--color-violet-50);
   --field: var(--color-white);
-  --ink: var(--color-slate-900);
-  --muted: var(--color-slate-600);
+  --ink: var(--color-stone-950);
+  --muted: var(--color-stone-600);
   --line: var(--color-stone-500);
   --primary: var(--color-blue-700);
   --primary-strong: var(--color-blue-800);
   --primary-soft: var(--color-blue-50);
-  --accent: var(--color-orange-600);
-  --accent-strong: var(--color-orange-700);
+  --accent: var(--color-violet-700);
+  --accent-strong: var(--color-violet-800);
   --success: var(--color-green-700);
   --success-soft: var(--color-green-50);
   --warning: var(--color-amber-800);
@@ -106,16 +106,16 @@
 :root[data-theme="dark"] {
   --paper: var(--color-slate-950);
   --panel: var(--color-slate-900);
-  --panel-target: var(--color-slate-900);
+  --panel-target: var(--color-violet-950);
   --field: var(--color-slate-800);
   --ink: var(--color-slate-50);
-  --muted: var(--color-slate-400);
-  --line: var(--color-slate-500);
-  --primary: var(--color-blue-400);
-  --primary-strong: var(--color-blue-300);
+  --muted: var(--color-slate-300);
+  --line: var(--color-slate-400);
+  --primary: var(--color-blue-300);
+  --primary-strong: var(--color-blue-200);
   --primary-soft: var(--color-blue-950);
-  --accent: var(--color-orange-400);
-  --accent-strong: var(--color-orange-300);
+  --accent: var(--color-violet-200);
+  --accent-strong: var(--color-violet-200);
   --success: var(--color-green-300);
   --success-soft: var(--color-green-950);
   --warning: var(--color-amber-300);

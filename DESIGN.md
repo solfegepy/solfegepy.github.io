@@ -17,22 +17,37 @@
 All names below are semantic utilities emitted by `ui/src/styles/globals.css`. Components use these names, never
 raw palette colors. Light and dark values are Tailwind CSS 4 default swatches.
 
-| Token                      | Light / dark                                           | Use                                        |
-| -------------------------- | ------------------------------------------------------ | ------------------------------------------ |
-| `paper`                    | `stone-50` / `slate-950`                               | Page canvas, disabled fill                 |
-| `panel`                    | `neutral-50` / `slate-900`                             | Navigation and grouped surfaces            |
-| `field`                    | `white` / `slate-800`                                  | Editable fields and active surfaces        |
-| `ink`                      | `slate-900` / `slate-50`                               | Primary text and headings                  |
-| `muted`                    | `slate-600` / `slate-400`                              | Supporting text and inactive controls      |
-| `line`                     | `stone-500` / `slate-500`                              | Borders, dividers, control boundaries      |
-| `primary`                  | `blue-700` / `blue-400`                                | Primary action, selection, links, focus    |
-| `primary-strong`           | `blue-800` / `blue-300`                                | Primary hover and emphasis                 |
-| `primary-soft`             | `blue-50` / `blue-950`                                 | Selected and informative backgrounds       |
-| `accent`                   | `orange-600` / `orange-400`                            | Decorative and large-text context          |
-| `accent-strong`            | `orange-700` / `orange-300`                            | Brand numerals and normal-size accent text |
-| `success` / `success-soft` | `green-700` on `green-50` / `green-300` on `green-950` | Completed operations                       |
-| `warning` / `warning-soft` | `amber-800` on `amber-50` / `amber-300` on `amber-950` | Unverified or caution states               |
-| `danger` / `danger-soft`   | `red-700` on `red-50` / `red-300` on `red-950`         | Errors and destructive states              |
+| Token                      | Light / dark                                           | Use                                     |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------- |
+| `paper`                    | `stone-50` / `slate-950`                               | Page canvas, disabled fill              |
+| `panel`                    | `stone-100` / `slate-900`                              | Navigation and grouped surfaces         |
+| `field`                    | `white` / `slate-800`                                  | Editable fields and active surfaces     |
+| `ink`                      | `stone-950` / `slate-50`                               | Primary text and headings               |
+| `muted`                    | `stone-600` / `slate-300`                              | Supporting text and inactive controls   |
+| `line`                     | `stone-500` / `slate-400`                              | Borders, dividers, control boundaries   |
+| `primary`                  | `blue-700` / `blue-300`                                | Primary action, selection, links, focus |
+| `primary-strong`           | `blue-800` / `blue-200`                                | Primary hover and emphasis              |
+| `primary-soft`             | `blue-50` / `blue-950`                                 | Selected and informative backgrounds    |
+| `accent`                   | `violet-700` / `violet-200`                            | Secondary emphasis                      |
+| `accent-strong`            | `violet-800` / `violet-200`                            | Brand numerals and secondary text       |
+| `success` / `success-soft` | `green-700` on `green-50` / `green-300` on `green-950` | Completed operations                    |
+| `warning` / `warning-soft` | `amber-800` on `amber-50` / `amber-300` on `amber-950` | Unverified or caution states            |
+| `danger` / `danger-soft`   | `red-700` on `red-50` / `red-300` on `red-950`         | Errors and destructive states           |
+
+The approved themes are **Linen** (light) and **Blue Hour** (dark). Linen uses one stone neutral family;
+Blue Hour uses one slate neutral family. Blue primary actions and violet secondary regions use analogous harmony:
+Tailwind shade-500 hue anchors are blue 259.8° and violet 292.7° (32.9° apart). Cyan was considered but violet
+preserves the selected Blue Hour identity. Aim for 80% neutral, 15% violet-tinted regions, and 5% blue actions.
+No third brand accent. Status and tool identity colors remain sparse functional layers.
+
+`panel-target` maps to `violet-50` / `violet-950` for conversion output regions. Their text uses `ink` and `muted`;
+source fields remain neutral. Primary button text uses `paper`, including cookie-consent buttons. Existing semantic
+token names remain the theme contract in `ui/src/styles/globals.css`.
+
+Measured WCAG contrast (sRGB, palette skill): Linen body on panel 18.11:1, muted on violet output 6.97:1,
+button text 6.54:1 (hover 8.47:1), violet emphasis on panel 8.40:1. Blue Hour body on output 14.59:1,
+muted on output 10.29:1, button text 11.14:1 (hover 14.18:1), violet emphasis on panel 12.83:1.
+Output borders are 4.38:1 in Linen and 5.81:1 in Blue Hour; borders require 3:1 and are not text colors.
 
 Tool identity uses a foreground, soft background, and matching border for each tool: Base64 `cyan-800/50` and
 `cyan-300/950`; URL `blue-700/50` and `blue-300/950`; Query `amber-800/50` and `amber-300/950`; JWT
