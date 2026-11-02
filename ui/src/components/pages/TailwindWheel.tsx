@@ -9,8 +9,8 @@ import {
 } from "../../lib/tailwind";
 
 // three.js only downloads once a visitor opens the 3D view.
-const TailwindOklchSpace = lazy(() =>
-  import("./TailwindOklchSpace").then((module) => ({ default: module.TailwindOklchSpace })),
+const TailwindColorSpace = lazy(() =>
+  import("./TailwindColorSpace").then((module) => ({ default: module.TailwindColorSpace })),
 );
 
 const NEUTRAL_FAMILIES = [
@@ -33,11 +33,12 @@ const CANVAS_CLASSES = "block aspect-square w-full";
 const PANEL_CLASSES = "border-line bg-panel min-w-0 rounded-surface border p-3";
 const VIEW_BUTTON_CLASSES =
   "focus-visible:outline-primary min-h-11 min-w-11 px-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2";
-const VIEWS = ["2D", "3D"] as const;
+const VIEWS = ["2D", "3D OKLCH", "3D HSL"] as const;
 const ANCHOR_BUTTON_CLASSES =
   "border-line bg-field text-ink focus-visible:ring-primary flex min-h-11 min-w-11 items-center gap-2 rounded-control border px-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
 type WheelView = (typeof VIEWS)[number];
+type ColorModel = "oklch" | "hsl";
 
 type TailwindWheelProps = {
   kind: "chromatic" | "neutral";
@@ -45,7 +46,7 @@ type TailwindWheelProps = {
   onSelect: (entry: TailwindPaletteEntry) => void;
 };
 
-/** Shows a family-and-shade wheel that can switch to a 3D OKLCH plot of the same families. */
+/** Shows a family-and-shade wheel that can switch to 3D color plots of the same families. */
 export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) {
   const [view, setView] = useState<WheelView>("2D");
   const title = kind === "chromatic" ? "Chromatic wheel" : "Neutral wheel";
@@ -53,37 +54,48 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
 
   return (
     <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
-      <figcaption className="mb-2 flex items-center justify-between gap-2">
+      <figcaption className="mb-2 flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
         <span className="text-ink font-semibold">{title}</span>
         <div
           role="group"
           aria-label={`${title} view`}
-          className="border-line rounded-control flex overflow-hidden border"
+          className="border-line rounded-control w-full border md:flex md:w-auto md:overflow-hidden"
         >
           {VIEWS.map((option) => (
             <button
               key={option}
               type="button"
-              data-testid={`tailwind-${kind}-view-${option}`}
+              data-testid={`tailwind-${kind}-view-${option === "2D" ? "2d" : `3d-${option.slice(3).toLowerCase()}`}`}
               title={`Show ${option} view`}
               aria-pressed={view === option}
               onClick={() => setView(option)}
-              className={`${VIEW_BUTTON_CLASSES} ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
+              className={`${VIEW_BUTTON_CLASSES} w-full whitespace-normal md:w-auto md:whitespace-nowrap ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
             >
               {option}
             </button>
           ))}
         </div>
       </figcaption>
-      {view === "3D" ? (
-        <Suspense fallback={<div aria-busy="true" className={CANVAS_CLASSES} />}>
-          <TailwindOklchSpace kind={kind} families={families} selected={selected} onSelect={onSelect} />
-        </Suspense>
-      ) : (
+      {view === "2D" ? (
         <FlatWheel kind={kind} title={title} families={families} selected={selected} onSelect={onSelect} />
+      ) : (
+        <Suspense fallback={<div aria-busy="true" className={CANVAS_CLASSES} />}>
+          <TailwindColorSpace
+            key={view}
+            kind={kind}
+            model={colorModel(view)}
+            families={families}
+            selected={selected}
+            onSelect={onSelect}
+          />
+        </Suspense>
       )}
     </figure>
   );
+}
+
+function colorModel(view: WheelView): ColorModel {
+  return view === "3D HSL" ? "hsl" : "oklch";
 }
 
 /** Draws a family-and-shade wheel while leaving selection state with its parent. */

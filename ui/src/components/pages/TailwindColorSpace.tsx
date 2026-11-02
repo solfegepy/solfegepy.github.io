@@ -13,6 +13,7 @@ import {
   PerspectiveCamera,
   Raycaster,
   RingGeometry,
+  SRGBColorSpace,
   Scene,
   Spherical,
   SphereGeometry,
@@ -25,6 +26,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 
 import {
+  hexToHsl,
   hexHue,
   oklchToHex,
   parseOklch,
@@ -77,16 +79,19 @@ type SpaceView = {
   lookFrom: (polarAngle: number) => void;
 };
 
-type TailwindOklchSpaceProps = {
+type TailwindColorSpaceProps = {
   kind: keyof typeof SPACES;
+  model: "oklch" | "hsl";
   families: readonly TailwindFamily[];
   selected: TailwindPaletteEntry | null;
   onSelect: (entry: TailwindPaletteEntry) => void;
 };
 
-/** Plots the given families as dots at their OKLCH position, joining the shades of each family with a line. */
-export function TailwindOklchSpace({ kind, families, selected, onSelect }: TailwindOklchSpaceProps) {
+/** Plots the given families in OKLCH or HSL, joining the shades of each family with a line. */
+export function TailwindColorSpace({ kind, model, families, selected, onSelect }: TailwindColorSpaceProps) {
   const { name, gridChroma, note } = SPACES[kind];
+  const gridRadius = model === "hsl" ? (kind === "neutral" ? 0.85 : 1) : gridChroma;
+  const scale = GRID_RADIUS / gridRadius;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewRef = useRef<SpaceView | null>(null);
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
@@ -123,12 +128,12 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
     // Wheel scrolling keeps moving the page instead of zooming the plot.
     controls.enableZoom = false;
 
-    const chromaScale = GRID_RADIUS / gridChroma;
-    scene.add(buildGrid(gridChroma, chromaScale));
-    scene.add(buildHueRing());
-    for (const hex of HUE_REFERENCES) {
+    scene.add(buildGrid(gridRadius, scale));
+    scene.add(buildHueRing(model));
+    for (const [index, hex] of HUE_REFERENCES.entries()) {
       const label = buildHueLabel(hex);
-      label.position.copy(oklchPoint(0, gridChroma * HUE_LABEL_RADIUS, hexHue(hex), chromaScale));
+      const angle = model === "hsl" ? index * 60 : hexHue(hex);
+      label.position.copy(colorPoint(0, gridRadius * HUE_LABEL_RADIUS, angle, scale));
       scene.add(label);
     }
     const labelRenderer = new CSS2DRenderer();
@@ -137,13 +142,14 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
     labelRenderer.domElement.setAttribute("aria-hidden", "true");
     labelRenderer.domElement.dataset.testid = `tailwind-${kind}-3d-hue-labels`;
     canvas.after(labelRenderer.domElement);
-    const dots = buildDots(families, chromaScale);
+    const dots = buildDots(families, model, scale);
     for (const dot of dots.keys()) scene.add(dot);
     for (const family of families) {
       scene.add(
         buildLine(
           SHADES.map((shade) => paletteEntry(family, shade)),
-          chromaScale,
+          model,
+          scale,
         ),
       );
     }
@@ -194,9 +200,9 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
       });
       renderer.dispose();
     };
-  }, [families, gridChroma, kind]);
+  }, [families, gridRadius, kind, model, scale]);
 
-  useEffect(() => viewRef.current?.highlight(selectedToken), [selectedToken]);
+  useEffect(() => viewRef.current?.highlight(selectedToken), [model, selectedToken]);
 
   function entryAtPointer(event: PointerEvent<HTMLCanvasElement>): TailwindPaletteEntry | null {
     const view = viewRef.current;
@@ -227,7 +233,7 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
           ref={canvasRef}
           data-testid={`tailwind-${kind}-3d`}
           role="img"
-          aria-label={`${name} OKLCH space. Each dot is one color: hue sets its angle and chroma its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. A hue ring on the floor marks where ${HUE_REFERENCE_LIST} fall.${note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
+          aria-label={`${name} ${model.toUpperCase()} space. Each dot is one color: hue sets its angle and ${model === "hsl" ? "saturation" : "chroma"} its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. A hue ring on the floor marks where ${HUE_REFERENCE_LIST} fall.${model === "hsl" && kind === "neutral" ? " Saturation is magnified about 1.18 times; the outer grid represents 85% saturation." : note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
           title={hovered?.token}
           onPointerDown={(event) => {
             pointerDownRef.current = { x: event.clientX, y: event.clientY };
@@ -247,11 +253,14 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted min-w-0 grow basis-48 text-sm">
-          In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around.
-          The floor ring shows each hue; labels mark where the screen&apos;s pure colors fall.
-          {note}
+          {model === "hsl"
+            ? "In HSL, hue sets the angle, saturation grows outward, and lightness sets height. The floor ring shows each hue; labels mark the screen’s pure colors."
+            : "In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around. The floor ring shows each hue; labels mark where the screen’s pure colors fall."}
+          {model === "hsl" && kind === "neutral"
+            ? " Saturation is magnified about 1.18 times; the outer grid represents 85% saturation."
+            : note}
         </p>
-        <div role="group" aria-label={`${name} camera view`} className="flex gap-2">
+        <div role="group" aria-label={`${name} camera view`} className="flex flex-wrap justify-end gap-2">
           {CAMERA_VIEWS.map(([label, polarAngle]) => (
             <button
               key={label}
@@ -271,7 +280,11 @@ export function TailwindOklchSpace({ kind, families, selected, onSelect }: Tailw
 }
 
 /** Builds one dot per color of the given families, each with a hidden selection outline. */
-function buildDots(families: readonly TailwindFamily[], chromaScale: number): Map<Object3D, TailwindPaletteEntry> {
+function buildDots(
+  families: readonly TailwindFamily[],
+  model: "oklch" | "hsl",
+  scale: number,
+): Map<Object3D, TailwindPaletteEntry> {
   const dots = new Map<Object3D, TailwindPaletteEntry>();
   const dotGeometry = new SphereGeometry(DOT_RADIUS, 16, 12);
   // A slightly larger back-facing sphere reads as an outline around the dot.
@@ -282,7 +295,7 @@ function buildDots(families: readonly TailwindFamily[], chromaScale: number): Ma
     if (!families.includes(entry.family)) continue;
     // Unlit material keeps each dot at its exact palette hex.
     const dot = new Mesh(dotGeometry, new MeshBasicMaterial({ color: entry.hex }));
-    dot.position.copy(oklchPosition(entry, chromaScale));
+    dot.position.copy(colorPosition(entry, model, scale));
     const outline = new Mesh(outlineGeometry, outlineMaterial);
     outline.visible = false;
     dot.add(outline);
@@ -292,14 +305,17 @@ function buildDots(families: readonly TailwindFamily[], chromaScale: number): Ma
 }
 
 /** Builds a flat band around the grid floor, colored with the hue at each angle. */
-function buildHueRing(): Mesh {
+function buildHueRing(model: "oklch" | "hsl"): Mesh {
   const geometry = new RingGeometry(GRID_RADIUS, GRID_RADIUS * (1 + HUE_RING_WIDTH), 90, 1);
   const positions = geometry.getAttribute("position");
   const colors: number[] = [];
   for (let index = 0; index < positions.count; index++) {
     const hue = (Math.atan2(positions.getY(index), positions.getX(index)) * 180) / Math.PI;
-    // A moderate lightness and chroma keeps every hue inside the sRGB gamut, so none is clipped to another hue.
-    colors.push(...new Color(oklchToHex(`oklch(70% 0.12 ${hue})`)).toArray());
+    const color =
+      model === "hsl"
+        ? new Color().setHSL(((hue + 360) % 360) / 360, 1, 0.5, SRGBColorSpace)
+        : new Color(oklchToHex(`oklch(70% 0.12 ${hue})`));
+    colors.push(...color.toArray());
   }
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
   // The ring is drawn in the XY plane; laying it flat maps its angle onto the hue angle used by oklchPoint.
@@ -320,8 +336,8 @@ function buildHueLabel(hex: string): CSS2DObject {
 }
 
 /** Joins entries in order with a line that fades through their colors. */
-function buildLine(entries: readonly TailwindPaletteEntry[], chromaScale: number): Line {
-  const geometry = new BufferGeometry().setFromPoints(entries.map((entry) => oklchPosition(entry, chromaScale)));
+function buildLine(entries: readonly TailwindPaletteEntry[], model: "oklch" | "hsl", scale: number): Line {
+  const geometry = new BufferGeometry().setFromPoints(entries.map((entry) => colorPosition(entry, model, scale)));
   const colors = entries.flatMap((entry) => new Color(entry.hex).toArray());
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
   return new Line(geometry, new LineBasicMaterial({ vertexColors: true }));
@@ -329,36 +345,43 @@ function buildLine(entries: readonly TailwindPaletteEntry[], chromaScale: number
 
 /** Draws the OKLCH cylinder: its lightness axis, lightness rings and hue lines on its wall, and chroma rings and hue
  * spokes on its floor. */
-function buildGrid(gridChroma: number, chromaScale: number): LineSegments {
+function buildGrid(gridRadius: number, scale: number): LineSegments {
   const points: Vector3[] = [];
-  const point = (lightness: number, chroma: number, hue: number) => oklchPoint(lightness, chroma, hue, chromaScale);
-  const circle = (lightness: number, chroma: number) => {
+  const point = (lightness: number, radius: number, hue: number) => colorPoint(lightness, radius, hue, scale);
+  const circle = (lightness: number, radius: number) => {
     for (let hue = 0; hue < 360; hue += 5) {
-      points.push(point(lightness, chroma, hue), point(lightness, chroma, hue + 5));
+      points.push(point(lightness, radius, hue), point(lightness, radius, hue + 5));
     }
   };
-  for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, gridChroma);
-  for (const chroma of [gridChroma / 3, (gridChroma * 2) / 3]) circle(0, chroma);
+  for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, gridRadius);
+  for (const radius of [gridRadius / 3, (gridRadius * 2) / 3]) circle(0, radius);
   points.push(point(0, 0, 0), point(1, 0, 0));
   for (let hue = 0; hue < 360; hue += GRID_HUE_STEP) {
-    points.push(point(0, gridChroma, hue), point(1, gridChroma, hue));
-    points.push(point(0, 0, hue), point(0, gridChroma, hue));
+    points.push(point(0, gridRadius, hue), point(1, gridRadius, hue));
+    points.push(point(0, 0, hue), point(0, gridRadius, hue));
   }
   const material = new LineBasicMaterial({ color: GRID_COLOR, transparent: true, opacity: 0.4 });
   return new LineSegments(new BufferGeometry().setFromPoints(points), material);
 }
 
-function oklchPosition(entry: TailwindPaletteEntry, chromaScale: number): Vector3 {
+function colorPosition(entry: TailwindPaletteEntry, model: "oklch" | "hsl", scale: number): Vector3 {
+  if (model === "hsl") {
+    const { hue, saturation, lightness } = hexToHsl(entry.hex);
+    return colorPoint(lightness, saturation, hue, scale);
+  }
   const { lightness, chroma, hue } = parseOklch(entry.oklch)!;
-  return oklchPoint(lightness, chroma, hue, chromaScale);
+  return colorPoint(lightness, chroma, hue, scale);
 }
 
-/** Places an OKLCH color in the scene: hue as angle, chroma times chromaScale as distance from the axis, lightness
- * as height. */
-function oklchPoint(lightness: number, chroma: number, hue: number, chromaScale: number): Vector3 {
+/** Places a color in the scene using its model radius and hue angle. */
+function colorPoint(lightness: number, radius: number, hue: number, scale: number): Vector3 {
   const angle = (hue * Math.PI) / 180;
-  const radius = chroma * chromaScale;
-  return new Vector3(radius * Math.cos(angle), (lightness - 0.5) * LIGHTNESS_HEIGHT, -radius * Math.sin(angle));
+  const scaledRadius = radius * scale;
+  return new Vector3(
+    scaledRadius * Math.cos(angle),
+    (lightness - 0.5) * LIGHTNESS_HEIGHT,
+    -scaledRadius * Math.sin(angle),
+  );
 }
 
 function paletteEntry(family: TailwindFamily, shade: number): TailwindPaletteEntry {

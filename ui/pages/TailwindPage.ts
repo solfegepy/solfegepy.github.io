@@ -2,6 +2,9 @@ import type { Locator, Page } from "@playwright/test";
 
 type WheelKind = "chromatic" | "neutral";
 type Theme = "light" | "dark";
+type WheelView = "2D" | "3D OKLCH" | "3D HSL";
+type ColorSpaceView = "Bottom" | "Side" | "Top";
+type ScreenshotPixel = Readonly<{ x: number; y: number }>;
 
 const WHEEL_FAMILIES: Record<WheelKind, readonly string[]> = {
   chromatic: [
@@ -123,24 +126,37 @@ export class TailwindPage {
     await this.canvas(kind).click({ position: { x: 1, y: 1 } });
   }
 
-  async chooseWheelView(kind: WheelKind, view: "2D" | "3D"): Promise<void> {
-    await this.page.getByTestId(`tailwind-${kind}-view-${view}`).click();
+  async chooseWheelView(kind: WheelKind, view: WheelView): Promise<void> {
+    const viewId = view === "2D" ? "2d" : `3d-${view.slice(3).toLowerCase()}`;
+    await this.page.getByTestId(`tailwind-${kind}-view-${viewId}`).click();
   }
 
-  async viewOklchSpaceFrom(kind: WheelKind, view: "Bottom" | "Side" | "Top"): Promise<void> {
+  async focusWheelView(kind: WheelKind, view: WheelView): Promise<void> {
+    await this.wheelViewButton(kind, view).focus();
+  }
+
+  async activateFocusedWheelView(): Promise<void> {
+    await this.page.keyboard.press("Space");
+  }
+
+  async viewColorSpaceFrom(kind: WheelKind, view: ColorSpaceView): Promise<void> {
     await this.page.getByTestId(`tailwind-${kind}-3d-view-${view}`).click();
   }
 
-  /** Clicks a 3D OKLCH space at a point given as fractions of its width and height. */
-  async clickOklchSpace(kind: WheelKind, xFraction: number, yFraction: number): Promise<void> {
-    const box = await this.oklchSpace(kind).boundingBox();
-    if (box === null) throw new Error(`${kind} 3D OKLCH space is not visible`);
-    await this.oklchSpace(kind).click({ position: { x: box.width * xFraction, y: box.height * yFraction } });
+  /** Clicks a 3D color space at a point given as fractions of its width and height. */
+  async clickColorSpace(kind: WheelKind, xFraction: number, yFraction: number): Promise<void> {
+    const box = (await this.colorSpace(kind).boundingBox())!;
+    await this.colorSpace(kind).click({ position: { x: box.width * xFraction, y: box.height * yFraction } });
   }
 
-  /** Drags across a 3D OKLCH space horizontally by a fraction of its width. */
-  async dragOklchSpace(kind: WheelKind, widthFraction: number): Promise<void> {
-    const box = await this.oklchSpace(kind).boundingBox();
+  async hoverColorSpace(kind: WheelKind, xFraction: number, yFraction: number): Promise<void> {
+    const box = (await this.colorSpace(kind).boundingBox())!;
+    await this.colorSpace(kind).hover({ position: { x: box.width * xFraction, y: box.height * yFraction } });
+  }
+
+  /** Drags across a 3D color space horizontally by a fraction of its width. */
+  async dragColorSpace(kind: WheelKind, widthFraction: number): Promise<void> {
+    const box = await this.colorSpace(kind).boundingBox();
     if (box === null) throw new Error(`${kind} 3D OKLCH space is not visible`);
     const startX = box.x + box.width / 2;
     const y = box.y + box.height / 2;
@@ -211,8 +227,51 @@ export class TailwindPage {
     return this.page.getByTestId(`tailwind-${kind}-3d-hue-labels`);
   }
 
-  oklchSpace(kind: WheelKind): Locator {
+  /** Returns one hue-reference label locator. */
+  hueLabel(kind: WheelKind, hex: string): Locator {
+    return this.hueLabels(kind).getByText(hex, { exact: true });
+  }
+
+  async hueLabelX(kind: WheelKind, hex: string): Promise<number> {
+    const bounds = (await this.hueLabel(kind, hex).boundingBox())!;
+    return bounds.x;
+  }
+
+  async colorSpacePixels(
+    kind: WheelKind,
+    points: readonly ScreenshotPixel[],
+  ): Promise<Array<readonly [number, number, number]>> {
+    const screenshot = await this.colorSpace(kind).screenshot();
+    return this.page.evaluate(
+      async ({ pngBytes, points }) => {
+        const bitmap = await createImageBitmap(new Blob([new Uint8Array(pngBytes)], { type: "image/png" }));
+        const image = document.createElement("canvas");
+        image.width = bitmap.width;
+        image.height = bitmap.height;
+        const context = image.getContext("2d")!;
+        context.drawImage(bitmap, 0, 0);
+        bitmap.close();
+        return points.map(({ x, y }) => {
+          const pixel = context.getImageData(
+            Math.round((image.width - 1) * x),
+            Math.round((image.height - 1) * y),
+            1,
+            1,
+          ).data;
+          return [pixel[0]!, pixel[1]!, pixel[2]!] as const;
+        });
+      },
+      { pngBytes: [...screenshot], points },
+    );
+  }
+
+  colorSpace(kind: WheelKind): Locator {
     return this.page.getByTestId(`tailwind-${kind}-3d`);
+  }
+
+  wheelViewButton(kind: WheelKind, view: WheelView): Locator {
+    const viewId = view === "2D" ? "2d" : `3d-${view.slice(3).toLowerCase()}`;
+    return this.page.getByTestId(`tailwind-${kind}-view-${viewId}`);
   }
 
   activeNavigation(): Locator {

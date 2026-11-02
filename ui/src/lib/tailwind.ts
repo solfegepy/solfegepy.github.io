@@ -52,6 +52,29 @@ export type TailwindMatchResult =
 export const TAILWIND_VERSION = "4.2.0";
 
 export type Oklch = Readonly<{ lightness: number; chroma: number; hue: number }>;
+export type Hsl = Readonly<{ hue: number; saturation: number; lightness: number }>;
+
+/** Returns unrounded HSL components from a normalized `#rrggbb` hex. */
+export function hexToHsl(hex: string): Hsl {
+  const [red, green, blue] = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255) as [
+    number,
+    number,
+    number,
+  ];
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const chroma = max - min;
+  const lightness = (max + min) / 2;
+  const saturation = chroma === 0 ? 0 : chroma / (1 - Math.abs(2 * lightness - 1));
+  let hue = 0;
+  if (chroma !== 0) {
+    if (max === red) hue = ((green - blue) / chroma) % 6;
+    else if (max === green) hue = (blue - red) / chroma + 2;
+    else hue = (red - green) / chroma + 4;
+  }
+
+  return { hue: (hue * 60 + 360) % 360, saturation, lightness };
+}
 
 /** Reads a CSS `oklch(L% C H)` value: lightness from 0 to 1, chroma, and hue in degrees; null for other formats. */
 export function parseOklch(value: string): Oklch | null {
@@ -193,22 +216,6 @@ export function formatRgb(hex: string): string {
 
 /** Format a normalized `#rrggbb` hex as a CSS `hsl()` value with rounded components. */
 export function formatHsl(hex: string): string {
-  const [red, green, blue] = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255) as [
-    number,
-    number,
-    number,
-  ];
-  const max = Math.max(red, green, blue);
-  const min = Math.min(red, green, blue);
-  const chroma = max - min;
-  const lightness = (max + min) / 2;
-  const saturation = chroma === 0 ? 0 : chroma / (1 - Math.abs(2 * lightness - 1));
-  let hue = 0;
-  if (chroma !== 0) {
-    if (max === red) hue = ((green - blue) / chroma) % 6;
-    else if (max === green) hue = (blue - red) / chroma + 2;
-    else hue = (red - green) / chroma + 4;
-  }
-
-  return `hsl(${Math.round((hue * 60 + 360) % 360)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%)`;
+  const { hue, saturation, lightness } = hexToHsl(hex);
+  return `hsl(${Math.round(hue)} ${Math.round(saturation * 100)}% ${Math.round(lightness * 100)}%)`;
 }

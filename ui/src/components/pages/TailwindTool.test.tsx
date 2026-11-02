@@ -131,7 +131,7 @@ describe("TailwindTool", () => {
     expect(within(chromaticWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
-    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D" }));
+    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D OKLCH" }));
 
     const space = await screen.findByTestId("tailwind-chromatic-3d");
     expect(chromaticWheel).toContainElement(space);
@@ -148,7 +148,7 @@ describe("TailwindTool", () => {
     fireEvent.click(screen.getByRole("button", { name: /^white/i }));
     expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
-    expect(within(chromaticWheel).getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(chromaticWheel).getByRole("button", { name: "3D OKLCH" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(within(chromaticWheel).getByRole("button", { name: "2D" }));
     expect(screen.getByTestId("tailwind-chromatic-canvas").getAttribute("aria-label")).toMatch(/selected blue-500/i);
@@ -159,7 +159,7 @@ describe("TailwindTool", () => {
     const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
 
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "slate" } });
-    fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D" }));
+    fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D OKLCH" }));
 
     const space = await screen.findByTestId("tailwind-neutral-3d");
     expect(neutralWheel).toContainElement(space);
@@ -172,6 +172,73 @@ describe("TailwindTool", () => {
     // The neutral space holds no chromatic dot.
     fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
     expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
+  });
+
+  it("opens an independent 3D HSL space with saturation and lightness descriptions", async () => {
+    render(<TailwindTool />);
+    const chromaticWheel = screen.getByTestId("tailwind-chromatic-wheel");
+    const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
+
+    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D HSL" }));
+
+    const chromaticSpace = await screen.findByTestId("tailwind-chromatic-3d");
+    expect(chromaticSpace.getAttribute("aria-label")).toMatch(/chromatic hsl space.*saturation.*lightness/i);
+    expect(within(chromaticWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(chromaticWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "false");
+    expect(within(chromaticWheel).getByRole("button", { name: "3D OKLCH" })).toHaveAttribute("aria-pressed", "false");
+    expect(within(neutralWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(neutralWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "false");
+    expect(
+      screen.getByText(/in hsl, hue sets the angle, saturation grows outward, and lightness sets height/i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D HSL" }));
+    const neutralSpace = await screen.findByTestId("tailwind-neutral-3d");
+    expect(neutralSpace.getAttribute("aria-label")).toMatch(
+      /saturation is magnified about 1\.18 times.*outer grid represents 85% saturation/i,
+    );
+    expect(within(neutralWheel).getByText(/saturation is magnified about 1\.18 times/i)).toBeInTheDocument();
+    expect(within(neutralWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps HSL highlights limited to tokens in each graph", async () => {
+    render(<TailwindTool />);
+    const chromaticWheel = screen.getByTestId("tailwind-chromatic-wheel");
+    const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
+    fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D HSL" }));
+    fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D HSL" }));
+    const chromaticSpace = await screen.findByTestId("tailwind-chromatic-3d");
+    const neutralSpace = await screen.findByTestId("tailwind-neutral-3d");
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "blue" } });
+    expect(chromaticSpace.getAttribute("aria-label")).toMatch(/Selected blue-500/);
+    expect(neutralSpace.getAttribute("aria-label")).toMatch(/No token selected in this space/);
+
+    fireEvent.click(screen.getByRole("button", { name: /^black/i }));
+    expect(chromaticSpace.getAttribute("aria-label")).toMatch(/No token selected in this space/);
+    expect(neutralSpace.getAttribute("aria-label")).toMatch(/No token selected in this space/);
+    fireEvent.click(screen.getByRole("button", { name: /^white/i }));
+    expect(chromaticSpace.getAttribute("aria-label")).toMatch(/No token selected in this space/);
+    expect(neutralSpace.getAttribute("aria-label")).toMatch(/No token selected in this space/);
+  });
+
+  it("keeps a control-selected token identified when switching its wheel between models", async () => {
+    render(<TailwindTool />);
+    const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
+    fireEvent.change(screen.getByRole("combobox", { name: "Family" }), { target: { value: "slate" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Shade" }), { target: { value: "950" } });
+
+    for (const mode of ["3D HSL", "3D OKLCH", "2D"] as const) {
+      fireEvent.click(within(neutralWheel).getByRole("button", { name: mode }));
+      if (mode === "2D") {
+        expect(screen.getByTestId("tailwind-neutral-canvas").getAttribute("aria-label")).toMatch(/Selected slate-950/);
+      } else {
+        expect((await screen.findByTestId("tailwind-neutral-3d")).getAttribute("aria-label")).toMatch(
+          /Selected slate-950, #020618/,
+        );
+      }
+      expect(screen.getByTestId("tailwind-token")).toHaveTextContent("slate-950");
+    }
   });
 
   it("shows the hovered wheel token as a tooltip", () => {
@@ -201,7 +268,7 @@ describe("TailwindTool", () => {
     expect(screen.getByRole("combobox", { name: "Shade" })).toBeDisabled();
   });
 
-  it("preserves the explicitly selected token when palette entries share a hex", () => {
+  it("preserves the explicitly selected token when palette entries share a hex", async () => {
     const duplicate = TAILWIND_PALETTE.find((entry, index, entries) =>
       entries.some((candidate, candidateIndex) => candidate.hex === entry.hex && candidateIndex > index),
     );
@@ -218,6 +285,25 @@ describe("TailwindTool", () => {
 
     expect(screen.getByTestId("tailwind-token")).toHaveTextContent(chosen.token);
     expect(screen.getByTestId("tailwind-hex")).toHaveTextContent(chosen.hex);
+
+    const wheel = screen.getByTestId(`tailwind-${chosen.family === "neutral" ? "neutral" : "chromatic"}-wheel`);
+    for (const mode of ["3D HSL", "3D OKLCH", "2D"] as const) {
+      fireEvent.click(within(wheel).getByRole("button", { name: mode }));
+      if (mode === "2D") {
+        expect(
+          screen
+            .getByTestId(`tailwind-${chosen.family === "neutral" ? "neutral" : "chromatic"}-canvas`)
+            .getAttribute("aria-label"),
+        ).toMatch(new RegExp(`Selected ${chosen.token}`));
+      } else {
+        expect(
+          (
+            await screen.findByTestId(`tailwind-${chosen.family === "neutral" ? "neutral" : "chromatic"}-3d`)
+          ).getAttribute("aria-label"),
+        ).toMatch(new RegExp(`Selected ${chosen.token}, ${chosen.hex}`));
+      }
+      expect(screen.getByTestId("tailwind-token")).toHaveTextContent(chosen.token);
+    }
   });
 
   it("places the color-distance explanation after the interactive controls", () => {
