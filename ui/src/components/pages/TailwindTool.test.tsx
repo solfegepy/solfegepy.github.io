@@ -174,7 +174,7 @@ describe("TailwindTool", () => {
     expect(space.getAttribute("aria-label")).toMatch(/no token selected in this space/i);
   });
 
-  it("opens an independent 3D HSL space with saturation and lightness descriptions", async () => {
+  it("describes the HSL double cone and the neutral saturation scale", async () => {
     render(<TailwindTool />);
     const chromaticWheel = screen.getByTestId("tailwind-chromatic-wheel");
     const neutralWheel = screen.getByTestId("tailwind-neutral-wheel");
@@ -182,20 +182,22 @@ describe("TailwindTool", () => {
     fireEvent.click(within(chromaticWheel).getByRole("button", { name: "3D HSL" }));
 
     const chromaticSpace = await screen.findByTestId("tailwind-chromatic-3d");
-    expect(chromaticSpace.getAttribute("aria-label")).toMatch(/chromatic hsl space.*saturation.*lightness/i);
+    expect(chromaticSpace.getAttribute("aria-label")).toMatch(
+      /chromatic hsl double cone.*black.*white.*widest at 50% lightness/i,
+    );
     expect(within(chromaticWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "true");
     expect(within(chromaticWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "false");
     expect(within(chromaticWheel).getByRole("button", { name: "3D OKLCH" })).toHaveAttribute("aria-pressed", "false");
     expect(within(neutralWheel).getByRole("button", { name: "2D" })).toHaveAttribute("aria-pressed", "true");
     expect(within(neutralWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "false");
     expect(
-      screen.getByText(/in hsl, hue sets the angle, saturation grows outward, and lightness sets height/i),
+      screen.getByText(/hsl double cone.*widest at 50% lightness.*tips meet at black and white/i),
     ).toBeInTheDocument();
 
     fireEvent.click(within(neutralWheel).getByRole("button", { name: "3D HSL" }));
     const neutralSpace = await screen.findByTestId("tailwind-neutral-3d");
     expect(neutralSpace.getAttribute("aria-label")).toMatch(
-      /saturation is magnified about 1\.18 times.*outer grid represents 85% saturation/i,
+      /saturation is magnified about 1\.18 times.*equatorial grid represents 85% saturation/i,
     );
     expect(within(neutralWheel).getByText(/saturation is magnified about 1\.18 times/i)).toBeInTheDocument();
     expect(within(neutralWheel).getByRole("button", { name: "3D HSL" })).toHaveAttribute("aria-pressed", "true");

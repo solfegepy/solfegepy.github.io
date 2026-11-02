@@ -113,7 +113,10 @@ test("320px and 200% text remain usable in both themes", async ({ page }, testIn
       await expect(hslButton).toBeFocused();
       await expect(hslButton).toHaveAttribute("aria-pressed", "true");
       await expect(tailwind.colorSpace(kind)).toBeVisible();
-      await expect(tailwind.colorSpace(kind)).toHaveAttribute("aria-label", new RegExp(`${kind} HSL space`, "i"));
+      await expect(tailwind.colorSpace(kind)).toHaveAttribute(
+        "aria-label",
+        new RegExp(`${kind} HSL double cone space`, "i"),
+      );
       expect(await tailwind.hasHorizontalOverflow()).toBe(false);
 
       await tailwind.chooseWheelView(kind, "3D OKLCH");
@@ -226,31 +229,38 @@ test("3D HSL spaces select chromatic and high-saturation neutral colors", async 
   await tailwind.open();
 
   await tailwind.chooseWheelView("chromatic", "3D HSL");
-  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("aria-label", /Chromatic HSL space/);
+  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("aria-label", /Chromatic HSL double cone space/);
+  // The bicone taper pulls red-500 inward from the cylinder at this lightness.
+  await tailwind.hoverColorSpace("chromatic", 0.77, 0.4);
+  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("title", "red-500");
+  await tailwind.clickColorSpace("chromatic", 0.77, 0.4);
+  await expect(tailwind.token()).toHaveText("red-500");
+  await expect(tailwind.hexInput()).toHaveValue("#fb2c36");
+  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("aria-label", /Selected red-500, #fb2c36/);
   // Halfway between red and yellow, the encoded-sRGB HSL hue sweep produces #ff8000.
-  const intermediateHuePixels = await tailwind.colorSpacePixels("chromatic", [{ x: 0.74, y: 0.67 }]);
+  const intermediateHuePixels = await tailwind.colorSpacePixels("chromatic", [{ x: 0.74, y: 0.45 }]);
   const [orangeRed, orangeGreen, orangeBlue] = intermediateHuePixels[0]!;
   expect(orangeRed).toBeGreaterThan(220);
   expect(orangeGreen).toBeGreaterThan(90);
   expect(orangeGreen).toBeLessThan(160);
   expect(orangeBlue).toBeLessThan(50);
-  // red-500 has HSL (357.5°, 96.1%, 57.8%); its point projects near 82%, 40% from the initial camera.
-  await tailwind.hoverColorSpace("chromatic", 0.82, 0.4);
-  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("title", "red-500");
-  await tailwind.clickColorSpace("chromatic", 0.82, 0.4);
-  await expect(tailwind.token()).toHaveText("red-500");
-  await expect(tailwind.hexInput()).toHaveValue("#fb2c36");
-  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("aria-label", /Selected red-500, #fb2c36/);
 
   await tailwind.chooseWheelView("neutral", "3D HSL");
-  await expect(tailwind.colorSpace("neutral")).toHaveAttribute("aria-label", /outer grid represents 85% saturation/i);
-  // slate-950 (#020618) has HSL (229.1°, 84.6%, 5.1%); neutral scaling puts it near 26%, 83% from the initial camera.
-  await tailwind.hoverColorSpace("neutral", 0.26, 0.83);
+  await expect(tailwind.colorSpace("neutral")).toHaveAttribute(
+    "aria-label",
+    /equatorial grid represents 85% saturation/i,
+  );
+  // slate-950 has HSL (229.1°, 84.6%, 5.1%); bicone taper places it near the black tip.
+  await tailwind.hoverColorSpace("neutral", 0.47, 0.72);
   await expect(tailwind.colorSpace("neutral")).toHaveAttribute("title", "slate-950");
-  await tailwind.clickColorSpace("neutral", 0.26, 0.83);
+  await tailwind.clickColorSpace("neutral", 0.47, 0.72);
   await expect(tailwind.token()).toHaveText("slate-950");
   await expect(tailwind.hexInput()).toHaveValue("#020618");
   await expect(tailwind.colorSpace("neutral")).toHaveAttribute("aria-label", /Selected slate-950, #020618/);
+  await tailwind.viewColorSpaceFrom("neutral", "Side");
+  // At Side view, the hue 0° meridian crosses L=65% to the right of the axis.
+  const upperMeridianPixel = await tailwind.colorSpacePixels("neutral", [{ x: 0.73, y: 0.35 }]);
+  expect(upperMeridianPixel[0]![2]).toBeGreaterThan(50);
 
   for (const hex of ["#FF0000", "#FFFF00", "#00FF00", "#00FFFF", "#0000FF", "#FF00FF"])
     await expect(tailwind.hueLabel("neutral", hex)).toBeVisible();
@@ -269,10 +279,10 @@ test("3D HSL selection survives model switches, and drags and camera controls pr
   await tailwind.open();
   await tailwind.chooseWheelView("chromatic", "3D HSL");
 
-  // red-500 has HSL (357.5°, 96.1%, 57.8%); its initial camera point is near 82%, 40%.
-  await tailwind.clickColorSpace("chromatic", 0.82, 0.4);
+  // The bicone taper pulls red-500 inward from the cylinder at this lightness.
+  await tailwind.clickColorSpace("chromatic", 0.77, 0.4);
   await expect(tailwind.token()).toHaveText("red-500");
-  await tailwind.hoverColorSpace("chromatic", 0.82, 0.4);
+  await tailwind.hoverColorSpace("chromatic", 0.77, 0.4);
   await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("title", /.+/);
 
   await tailwind.chooseWheelView("chromatic", "3D OKLCH");
@@ -281,33 +291,37 @@ test("3D HSL selection survives model switches, and drags and camera controls pr
   await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-selection-in-oklch.png"));
 
   await tailwind.chooseWheelView("chromatic", "3D HSL");
+  // Switching models resets the camera so each preset starts at its default azimuth.
+  await tailwind.chooseWheelView("chromatic", "3D OKLCH");
+  await tailwind.chooseWheelView("chromatic", "3D HSL");
+
+  // From top and bottom, lightness collapses along the view axis and red-500 stays at the same hue radius.
+  await tailwind.viewColorSpaceFrom("chromatic", "Top");
+  await tailwind.enterHex("#2b7fff");
+  // red-700's HSL radius and hue project into the cone's red arc from above.
+  await tailwind.clickColorSpace("chromatic", 0.74, 0.5);
+  await expect(tailwind.token()).toHaveText("red-700");
+  await tailwind.viewColorSpaceFrom("chromatic", "Bottom");
+  await tailwind.enterHex("#2b7fff");
+  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-bottom-view.png"));
+  await tailwind.clickColorSpace("chromatic", 0.6, 0.5);
+  await expect(tailwind.token()).toHaveText("red-950");
+
+  // Side view projects rose-800 below the equator on the red arc.
+  await tailwind.viewColorSpaceFrom("chromatic", "Side");
+  await tailwind.enterHex("#2b7fff");
+  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-side-view.png"));
+  await tailwind.clickColorSpace("chromatic", 0.7, 0.55);
+  await expect(tailwind.token()).toHaveText("rose-800");
+  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-camera-presets.png"));
+
   const samplePoints = [0.25, 0.4, 0.55, 0.7].flatMap((x) => [0.25, 0.4, 0.55, 0.7].map((y) => ({ x, y })));
   const beforeDrag = await tailwind.colorSpacePixels("chromatic", samplePoints);
   await tailwind.dragColorSpace("chromatic", 0.25);
   const afterDrag = await tailwind.colorSpacePixels("chromatic", samplePoints);
   expect(afterDrag).not.toEqual(beforeDrag);
-  await expect(tailwind.token()).toHaveText("red-500");
-  await expect(tailwind.colorSpace("chromatic")).toHaveAttribute("aria-label", /Selected red-500/);
-
-  // From top and bottom, lightness collapses along the view axis and red-500 stays at the same hue radius.
-  await tailwind.viewColorSpaceFrom("chromatic", "Top");
-  await tailwind.enterHex("#2b7fff");
-  await tailwind.clickColorSpace("chromatic", 0.82, 0.5);
-  await expect(tailwind.token()).toHaveText("red-700");
-  await tailwind.viewColorSpaceFrom("chromatic", "Bottom");
-  await tailwind.enterHex("#2b7fff");
-  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-bottom-view.png"));
-  await tailwind.clickColorSpace("chromatic", 0.79, 0.48);
-  await expect(tailwind.token()).toHaveText("red-950");
-
-  // From the side, red hue lies near the view axis and the token's lightness sets its vertical position.
-  await tailwind.viewColorSpaceFrom("chromatic", "Side");
-  await tailwind.enterHex("#2b7fff");
-  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-side-view.png"));
-  await tailwind.clickColorSpace("chromatic", 0.82, 0.4);
-  await expect(tailwind.token()).toHaveText("rose-500");
-  await tailwind.captureScreenshot(testInfo.outputPath("tailwind-hsl-camera-presets.png"));
+  await expect(tailwind.token()).toHaveText("rose-800");
 
   await tailwind.chooseWheelView("chromatic", "2D");
-  await expect(tailwind.canvas("chromatic")).toHaveAttribute("aria-label", /Selected rose-500/);
+  await expect(tailwind.canvas("chromatic")).toHaveAttribute("aria-label", /Selected rose-800/);
 });

@@ -128,12 +128,13 @@ export function TailwindColorSpace({ kind, model, families, selected, onSelect }
     // Wheel scrolling keeps moving the page instead of zooming the plot.
     controls.enableZoom = false;
 
-    scene.add(buildGrid(gridRadius, scale));
+    scene.add(buildGrid(gridRadius, scale, model === "hsl"));
     scene.add(buildHueRing(model));
     for (const [index, hex] of HUE_REFERENCES.entries()) {
       const label = buildHueLabel(hex);
       const angle = model === "hsl" ? index * 60 : hexHue(hex);
-      label.position.copy(colorPoint(0, gridRadius * HUE_LABEL_RADIUS, angle, scale));
+      const lightness = model === "hsl" ? 0.5 : 0;
+      label.position.copy(colorPoint(lightness, gridRadius * HUE_LABEL_RADIUS, angle, scale));
       scene.add(label);
     }
     const labelRenderer = new CSS2DRenderer();
@@ -233,7 +234,7 @@ export function TailwindColorSpace({ kind, model, families, selected, onSelect }
           ref={canvasRef}
           data-testid={`tailwind-${kind}-3d`}
           role="img"
-          aria-label={`${name} ${model.toUpperCase()} space. Each dot is one color: hue sets its angle and ${model === "hsl" ? "saturation" : "chroma"} its distance from the lightness axis, which runs from black at the bottom to white at the top. Lines join the shades of each family. A hue ring on the floor marks where ${HUE_REFERENCE_LIST} fall.${model === "hsl" && kind === "neutral" ? " Saturation is magnified about 1.18 times; the outer grid represents 85% saturation." : note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
+          aria-label={`${name} ${model.toUpperCase()}${model === "hsl" ? " double cone" : ""} space. Each dot is one color: hue sets its angle and ${model === "hsl" ? "saturation sets its distance from the axis, tapered to zero at black and white and widest at 50% lightness" : "chroma its distance from the lightness axis"}, which runs from black at the bottom to white at the top. Lines join the shades of each family. A hue ring at ${model === "hsl" ? "the equator" : "the floor"} marks ${HUE_REFERENCE_LIST}.${model === "hsl" && kind === "neutral" ? " Saturation is magnified about 1.18 times; the equatorial grid represents 85% saturation." : note} Drag to rotate. ${spaceSelection === null ? "No token selected in this space" : `Selected ${spaceSelection.token}, ${spaceSelection.hex}`}.`}
           title={hovered?.token}
           onPointerDown={(event) => {
             pointerDownRef.current = { x: event.clientX, y: event.clientY };
@@ -254,10 +255,10 @@ export function TailwindColorSpace({ kind, model, families, selected, onSelect }
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted min-w-0 grow basis-48 text-sm">
           {model === "hsl"
-            ? "In HSL, hue sets the angle, saturation grows outward, and lightness sets height. The floor ring shows each hue; labels mark the screen’s pure colors."
+            ? "The HSL double cone is widest at 50% lightness; its tips meet at black and white. Saturation grows outward within each lightness slice. The equatorial ring shows each hue."
             : "In OKLCH, equal steps up the axis are perceived equally lighter, chroma grows outward, and hue turns around. The floor ring shows each hue; labels mark where the screen’s pure colors fall."}
           {model === "hsl" && kind === "neutral"
-            ? " Saturation is magnified about 1.18 times; the outer grid represents 85% saturation."
+            ? " Saturation is magnified about 1.18 times; the equatorial grid represents 85% saturation."
             : note}
         </p>
         <div role="group" aria-label={`${name} camera view`} className="flex flex-wrap justify-end gap-2">
@@ -304,7 +305,7 @@ function buildDots(
   return dots;
 }
 
-/** Builds a flat band around the grid floor, colored with the hue at each angle. */
+/** Builds an encoded HSL hue band at the cone equator or an OKLCH hue band at the cylinder floor. */
 function buildHueRing(model: "oklch" | "hsl"): Mesh {
   const geometry = new RingGeometry(GRID_RADIUS, GRID_RADIUS * (1 + HUE_RING_WIDTH), 90, 1);
   const positions = geometry.getAttribute("position");
@@ -318,9 +319,9 @@ function buildHueRing(model: "oklch" | "hsl"): Mesh {
     colors.push(...color.toArray());
   }
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
-  // The ring is drawn in the XY plane; laying it flat maps its angle onto the hue angle used by oklchPoint.
+  // The ring's scene angle matches the hue angle used for color positions.
   geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, -LIGHTNESS_HEIGHT / 2, 0);
+  geometry.translate(0, model === "hsl" ? 0 : -LIGHTNESS_HEIGHT / 2, 0);
   return new Mesh(geometry, new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }));
 }
 
@@ -343,9 +344,8 @@ function buildLine(entries: readonly TailwindPaletteEntry[], model: "oklch" | "h
   return new Line(geometry, new LineBasicMaterial({ vertexColors: true }));
 }
 
-/** Draws the OKLCH cylinder: its lightness axis, lightness rings and hue lines on its wall, and chroma rings and hue
- * spokes on its floor. */
-function buildGrid(gridRadius: number, scale: number): LineSegments {
+/** Draws the OKLCH cylinder or HSL double cone, including their lightness and radial guides. */
+function buildGrid(gridRadius: number, scale: number, doubleCone: boolean): LineSegments {
   const points: Vector3[] = [];
   const point = (lightness: number, radius: number, hue: number) => colorPoint(lightness, radius, hue, scale);
   const circle = (lightness: number, radius: number) => {
@@ -353,12 +353,24 @@ function buildGrid(gridRadius: number, scale: number): LineSegments {
       points.push(point(lightness, radius, hue), point(lightness, radius, hue + 5));
     }
   };
-  for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, gridRadius);
-  for (const radius of [gridRadius / 3, (gridRadius * 2) / 3]) circle(0, radius);
+  if (doubleCone) {
+    for (const lightness of [0.25, 0.5, 0.75]) {
+      circle(lightness, gridRadius * (1 - Math.abs(2 * lightness - 1)));
+    }
+    for (const radius of [gridRadius / 3, (gridRadius * 2) / 3]) circle(0.5, radius);
+  } else {
+    for (const lightness of [0, 0.25, 0.5, 0.75, 1]) circle(lightness, gridRadius);
+    for (const radius of [gridRadius / 3, (gridRadius * 2) / 3]) circle(0, radius);
+  }
   points.push(point(0, 0, 0), point(1, 0, 0));
   for (let hue = 0; hue < 360; hue += GRID_HUE_STEP) {
-    points.push(point(0, gridRadius, hue), point(1, gridRadius, hue));
-    points.push(point(0, 0, hue), point(0, gridRadius, hue));
+    if (doubleCone) {
+      const equator = point(0.5, gridRadius, hue);
+      points.push(point(0, 0, hue), equator, equator, point(1, 0, hue));
+    } else {
+      points.push(point(0, gridRadius, hue), point(1, gridRadius, hue));
+      points.push(point(0, 0, hue), point(0, gridRadius, hue));
+    }
   }
   const material = new LineBasicMaterial({ color: GRID_COLOR, transparent: true, opacity: 0.4 });
   return new LineSegments(new BufferGeometry().setFromPoints(points), material);
@@ -367,7 +379,8 @@ function buildGrid(gridRadius: number, scale: number): LineSegments {
 function colorPosition(entry: TailwindPaletteEntry, model: "oklch" | "hsl", scale: number): Vector3 {
   if (model === "hsl") {
     const { hue, saturation, lightness } = hexToHsl(entry.hex);
-    return colorPoint(lightness, saturation, hue, scale);
+    const coneWidth = 1 - Math.abs(2 * lightness - 1);
+    return colorPoint(lightness, saturation * coneWidth, hue, scale);
   }
   const { lightness, chroma, hue } = parseOklch(entry.oklch)!;
   return colorPoint(lightness, chroma, hue, scale);
