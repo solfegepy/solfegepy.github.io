@@ -278,6 +278,9 @@ export function CodecApp(props: CodecAppProps) {
   const menuRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const exitAnimationRef = useRef<Animation | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -300,6 +303,8 @@ export function CodecApp(props: CodecAppProps) {
     document.documentElement.style.overflow = "hidden";
     closeRef.current?.focus();
     return () => {
+      exitAnimationRef.current?.cancel();
+      exitAnimationRef.current = null;
       document.documentElement.style.overflow = previousOverflow;
       if (typeof dialog.close === "function" && dialog.open) dialog.close();
       else dialog.removeAttribute("open");
@@ -307,10 +312,29 @@ export function CodecApp(props: CodecAppProps) {
   }, [drawerOpen]);
 
   const closeDrawer = () => {
-    const dialog = dialogRef.current;
-    if (dialog?.open && typeof dialog.close === "function") dialog.close();
-    setDrawerOpen(false);
-    menuRef.current?.focus();
+    // Repeated Escape or backdrop clicks must not restart an exit already in progress.
+    if (exitAnimationRef.current) return;
+    const finishClosing = () => {
+      const dialog = dialogRef.current;
+      if (dialog?.open && typeof dialog.close === "function") dialog.close();
+      setDrawerOpen(false);
+      menuRef.current?.focus();
+    };
+    const drawer = drawerRef.current;
+    const backdrop = backdropRef.current;
+    // Close immediately for reduced motion or browsers without Web Animations support.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !drawer?.animate || !backdrop) {
+      finishClosing();
+      return;
+    }
+    const options: KeyframeAnimationOptions = { duration: 150, easing: "ease-in", fill: "forwards" };
+    backdrop.animate([{ opacity: getComputedStyle(backdrop).opacity }, { opacity: 0 }], options);
+    const animation = drawer.animate(
+      [{ transform: getComputedStyle(drawer).transform }, { transform: "translateX(100%)" }],
+      options,
+    );
+    exitAnimationRef.current = animation;
+    animation.onfinish = finishClosing;
   };
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -428,18 +452,20 @@ export function CodecApp(props: CodecAppProps) {
           }}
         >
           <button
+            ref={backdropRef}
             data-testid="drawer-backdrop"
             type="button"
             tabIndex={-1}
             title="Close tools menu"
             aria-label="Close tools menu"
-            className="bg-ink/45 absolute inset-0"
+            className="mobile-drawer-backdrop bg-ink/45 absolute inset-0"
             onClick={closeDrawer}
           />
           <aside
+            ref={drawerRef}
             data-testid="mobile-drawer"
             aria-label="Tools"
-            className="border-line bg-panel shadow-drawer w-drawer relative flex h-dvh flex-col border-r"
+            className="mobile-drawer-panel border-line bg-panel shadow-drawer w-drawer relative ml-auto flex h-dvh flex-col border-l"
           >
             <div className="border-line flex min-h-16 items-center justify-between border-b px-4">
               <span className="font-display text-section-title font-semibold">Tools</span>

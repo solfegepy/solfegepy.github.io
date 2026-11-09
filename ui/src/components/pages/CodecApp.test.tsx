@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -581,6 +581,43 @@ describe("CodecApp", () => {
     await user.click(screen.getByTestId("drawer-backdrop"));
     expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
     expect(menu).toHaveFocus();
+  });
+
+  it("keeps the drawer modal until its exit finishes, then restores focus and scrolling", async () => {
+    const animation = { onfinish: null as (() => void) | null, cancel: vi.fn() };
+    const animate = vi.fn(() => animation);
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    const menu = screen.getByTestId("menu-button");
+    await user.click(menu);
+    Object.defineProperty(screen.getByTestId("mobile-drawer"), "animate", { value: animate });
+    Object.defineProperty(screen.getByTestId("drawer-backdrop"), "animate", { value: vi.fn() });
+
+    await user.keyboard("{Escape}");
+    expect(screen.getByTestId("mobile-drawer")).toBeInTheDocument();
+    expect(document.documentElement).toHaveStyle({ overflow: "hidden" });
+    expect(menu).not.toHaveFocus();
+    await user.click(screen.getByTestId("drawer-close"));
+    expect(animate).toHaveBeenCalledTimes(1);
+
+    act(() => animation.onfinish?.());
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+    expect(document.documentElement).not.toHaveStyle({ overflow: "hidden" });
+    expect(menu).toHaveFocus();
+  });
+
+  it("closes immediately without spatial animation when reduced motion is preferred", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    await user.click(screen.getByTestId("menu-button"));
+    const animate = vi.fn();
+    Object.defineProperty(screen.getByTestId("mobile-drawer"), "animate", { value: animate });
+    vi.mocked(window.matchMedia).mockReturnValue({ matches: true } as MediaQueryList);
+
+    await user.click(screen.getByTestId("drawer-close"));
+    expect(animate).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("mobile-drawer")).not.toBeInTheDocument();
+    expect(screen.getByTestId("menu-button")).toHaveFocus();
   });
 
   it("loads Base64 defaults with contextual complementary formats", () => {

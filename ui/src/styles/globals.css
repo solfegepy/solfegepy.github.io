@@ -325,6 +325,34 @@ code {
   background: transparent;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .mobile-drawer-dialog[open] .mobile-drawer-panel {
+    animation: drawer-enter 200ms var(--default-transition-timing-function);
+  }
+
+  .mobile-drawer-dialog[open] .mobile-drawer-backdrop {
+    animation: drawer-backdrop-enter 200ms var(--default-transition-timing-function);
+  }
+}
+
+@keyframes drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .icon-button {
   display: inline-flex;
   min-width: 2.75rem;
