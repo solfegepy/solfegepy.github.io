@@ -16,8 +16,6 @@ import {
 
 const FAMILIES = [...new Set(TAILWIND_PALETTE.map(({ family }) => family))];
 const SHADES = [...new Set(TAILWIND_PALETTE.flatMap(({ shade }) => (shade === null ? [] : [shade])))];
-const INITIAL_FAMILY: TailwindFamily = "red";
-const INITIAL_SHADE = 500;
 const FIELD_CLASSES =
   "border-line bg-field text-ink focus-visible:ring-primary min-h-11 w-full rounded-control border font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 const SELECT_CLASSES = `${FIELD_CLASSES} px-3`;
@@ -37,8 +35,7 @@ export function TailwindTool() {
   const [copyError, setCopyError] = useState("");
   const copyRequest = useRef(0);
   const selected = result.status === "matched" ? result.entry : null;
-  const family = selected?.family ?? INITIAL_FAMILY;
-  const shade = selected?.shade ?? INITIAL_SHADE;
+  const family = selected?.family ?? "";
   const numberedFamily = family !== "black" && family !== "white";
 
   function updateInput(value: string) {
@@ -128,11 +125,13 @@ export function TailwindTool() {
                     value={family}
                     onChange={(event) => {
                       const nextFamily = event.currentTarget.value as TailwindFamily;
+                      const nextShade = selected?.shade ?? 500;
                       selectEntry(
-                        entryFor(nextFamily, nextFamily === "black" || nextFamily === "white" ? null : shade),
+                        entryFor(nextFamily, nextFamily === "black" || nextFamily === "white" ? null : nextShade),
                       );
                     }}
                   >
+                    {!selected && <option value="">Select family</option>}
                     {FAMILIES.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -148,10 +147,13 @@ export function TailwindTool() {
                     id="tailwind-shade"
                     data-testid="tailwind-shade-select"
                     className={SELECT_CLASSES}
-                    value={shade ?? ""}
-                    disabled={!numberedFamily}
-                    onChange={(event) => selectEntry(entryFor(family, Number(event.currentTarget.value)))}
+                    value={selected?.shade ?? ""}
+                    disabled={!selected || !numberedFamily}
+                    onChange={(event) => {
+                      if (selected) selectEntry(entryFor(selected.family, Number(event.currentTarget.value)));
+                    }}
                   >
+                    {!selected && <option value="">Select shade</option>}
                     {SHADES.map((item) => (
                       <option key={item} value={item}>
                         {item}
@@ -161,12 +163,14 @@ export function TailwindTool() {
                 </div>
               </div>
             </fieldset>
-            <div
-              aria-hidden="true"
-              data-testid="tailwind-input-swatch"
-              className={PREVIEW_CLASSES}
-              style={result.status === "matched" ? { backgroundColor: result.inputHex } : undefined}
-            />
+            {result.status === "matched" && (
+              <div
+                aria-hidden="true"
+                data-testid="tailwind-input-swatch"
+                className={PREVIEW_CLASSES}
+                style={{ backgroundColor: result.inputHex }}
+              />
+            )}
           </section>
 
           {result.status === "empty" ? (

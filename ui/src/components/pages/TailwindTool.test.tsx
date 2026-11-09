@@ -5,6 +5,25 @@ import { TAILWIND_PALETTE } from "../../lib/tailwind";
 import { TailwindTool } from "./TailwindTool";
 
 describe("TailwindTool", () => {
+  it("opens without a selected color and selects red 500 when chosen", () => {
+    render(<TailwindTool />);
+
+    const family = screen.getByRole("combobox", { name: "Family" });
+    const shade = screen.getByRole("combobox", { name: "Shade" });
+    expect(family).toHaveValue("");
+    expect(within(family).getByRole("option", { name: "Select family" })).toHaveValue("");
+    expect(shade).toBeDisabled();
+    expect(shade).toHaveValue("");
+    expect(within(shade).getByRole("option", { name: "Select shade" })).toHaveValue("");
+    expect(screen.queryByTestId("tailwind-input-swatch")).not.toBeInTheDocument();
+
+    fireEvent.change(family, { target: { value: "red" } });
+
+    expect(family).toHaveValue("red");
+    expect(shade).toHaveValue("500");
+    expect(screen.getByTestId("tailwind-token")).toHaveTextContent("red-500");
+  });
+
   it("starts with a labelled empty hex field and an inspection prompt", () => {
     render(<TailwindTool />);
 
