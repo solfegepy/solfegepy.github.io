@@ -1,11 +1,11 @@
-.PHONY: start-dev clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug \
+.PHONY: init start-dev-ui deploy clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug \
 	test-report outdated upgrade zap lighthouse lighthouse-ci audit
 
 include .devcontainer/.env
 export
 
 
-# ------------ run from host (with docker) --------
+# ======== run on host (installed: docker only) ========
 DEPLOYED_URL ?= https://codec64.com
 
 zap:
@@ -22,7 +22,7 @@ deploy:
 	  To check the status: https://github.com/solfegepy/solfegepy.github.io/actions\n\
 	  To check the site: $(DEPLOYED_URL)"
 
-# ------------ run from devcontainer (with node) ----------
+# ======== run in devcontainer (installed: pnpm, node...) ========
 # Chromium used by Lighthouse; defaults to the devcontainer's Playwright build.
 CHROME_PATH ?= /ms-playwright/chromium/chrome-linux64/chrome
 
@@ -36,14 +36,17 @@ lighthouse:
 	cd ui && pnpm exec lighthouse "$(DEPLOYED_URL)" --no-enable-error-reporting --view \
 		--output-path=./test-results/lighthouse --output=html --output=json
 
-start-dev:
+init: ui/node_modules
+
+start-dev-ui:
 	cd ui && pnpm run dev
 
 build: ui/node_modules
-	cd ui && pnpm run build
+	cd ui && ENV=production pnpm run build
 
 clean:
 	cd ui && rm -rf ../docs .astro .pnpm-store node_modules test-results
+	rm -rf .cache
 
 format: ui/node_modules
 	cd ui && pnpm exec prettier --write .
