@@ -1,12 +1,26 @@
 {
+  "search.useIgnoreFiles": true,
   "search.exclude": {
     "**/docs": true,
 
     "**/test-results": true,
     "**/.astro": true,
     "**/.pnpm-store": true,
+    "**/.cache": true,
     "**/node_modules": true,
     "**/dist": true,
     "**/.venv": true
-  }
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true,
+    "**/.pnpm-store/**": true,
+    "**/.cache/**": true,
+    "**/test-results/**": true,
+    "**/.venv/**": true,
+    "**/dist/**": true,
+    "**/.astro/**": true,
+    "**/docs/**": true
+  },
+  "js/ts.tsdk.path": "ui/node_modules/typescript/lib"
 }
