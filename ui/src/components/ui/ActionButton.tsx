@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  tone?: "primary" | "quiet";
+  tone?: "primary" | "secondary" | "quiet";
 }
 
 const BASE_CLASSES =
@@ -12,7 +12,9 @@ export function ActionButton({ children, title, tone = "quiet", type = "button",
   const toneClasses =
     tone === "primary"
       ? "border-primary bg-primary text-paper hover:bg-primary-strong"
-      : "border-line bg-panel text-ink hover:border-primary hover:text-primary";
+      : tone === "secondary"
+        ? "border-secondary bg-secondary-soft text-secondary-soft-foreground hover:bg-secondary hover:text-secondary-foreground"
+        : "border-line bg-panel text-ink hover:border-primary hover:text-primary";
   return (
     <button
       data-testid="action-button"

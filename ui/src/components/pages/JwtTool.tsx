@@ -175,7 +175,7 @@ export function JwtTool() {
       </div>
       <aside
         data-testid="jwt-guidance"
-        className="border-warning bg-warning-soft text-warning rounded-control text-control flex items-start gap-2 border px-4 py-2 font-medium"
+        className="border-warning-soft-foreground bg-warning-soft text-warning-soft-foreground rounded-control text-control flex items-start gap-2 border px-4 py-2 font-medium"
       >
         <CircleAlertIcon aria-hidden="true" className="mt-1 shrink-0" size={17} />
         <p data-testid="jwt-warning">Decoded only. Signature not verified.</p>

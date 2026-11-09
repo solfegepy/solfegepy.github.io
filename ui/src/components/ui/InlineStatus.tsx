@@ -12,7 +12,7 @@ export function InlineStatus({ error, status }: InlineStatusProps) {
       <p
         data-testid="inline-status"
         role="alert"
-        className="border-danger bg-danger-soft text-danger rounded-control text-control flex items-start gap-2 border px-3 py-2 font-medium"
+        className="border-danger-soft-foreground bg-danger-soft text-danger-soft-foreground rounded-control text-control flex items-start gap-2 border px-3 py-2 font-medium"
       >
         <CircleAlertIcon aria-hidden="true" className={STATUS_ICON_CLASSES} size={17} />
         {error}
@@ -23,7 +23,7 @@ export function InlineStatus({ error, status }: InlineStatusProps) {
       <p
         data-testid="inline-status"
         role="status"
-        className="border-success bg-success-soft text-success rounded-control text-control flex items-start gap-2 border px-3 py-2 font-medium"
+        className="border-success-soft-foreground bg-success-soft text-success-soft-foreground rounded-control text-control flex items-start gap-2 border px-3 py-2 font-medium"
       >
         <CircleCheckIcon aria-hidden="true" className={STATUS_ICON_CLASSES} size={17} />
         {status}

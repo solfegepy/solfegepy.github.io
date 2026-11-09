@@ -181,7 +181,7 @@ export function TailwindTool() {
             <p
               data-testid="tailwind-input-error"
               role="alert"
-              className="text-danger rounded-control border-danger bg-danger-soft text-control border p-3"
+              className="rounded-control border-danger-soft-foreground bg-danger-soft text-danger-soft-foreground text-control border p-3"
             >
               A three or six digit hex color.
             </p>

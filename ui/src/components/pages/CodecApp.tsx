@@ -510,7 +510,7 @@ export function CodecApp(props: CodecAppProps) {
             {!infoPage && (
               <p
                 data-testid="tool-privacy"
-                className="border-success bg-success-soft text-success rounded-control text-control flex shrink-0 items-center gap-2 border px-3 py-2 font-semibold"
+                className="border-info-soft-foreground bg-info-soft text-info-soft-foreground rounded-control text-control flex shrink-0 items-center gap-2 border px-3 py-2 font-semibold"
               >
                 <ShieldCheckIcon aria-hidden="true" size={18} strokeWidth={1.8} />
                 Your data stays in this browser.

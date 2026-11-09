@@ -4,7 +4,10 @@ import { ENV, Feature, enabledFeatures, isFeatureEnabled } from "../../lib/featu
 export function EnvBanner() {
   if (!isFeatureEnabled(Feature.EnvBanner)) return null;
   return (
-    <div data-testid="env-banner" className="bg-warning-soft text-warning shrink-0 px-4 py-1 text-center text-xs">
+    <div
+      data-testid="env-banner"
+      className="bg-warning-soft text-warning-soft-foreground shrink-0 px-4 py-1 text-center text-xs"
+    >
       ENV: {ENV} · Features: {enabledFeatures().join(", ") || "none"}
     </div>
   );

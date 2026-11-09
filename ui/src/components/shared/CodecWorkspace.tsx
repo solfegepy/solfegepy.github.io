@@ -247,16 +247,15 @@ export function CodecWorkspace({
                 <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
                 Convert
               </ActionButton>
-              <button
+              <ActionButton
                 data-testid="codec-workspace-swap"
-                type="button"
+                tone="secondary"
                 aria-label="Swap source and target"
                 title="Swap source and target"
                 onClick={swap}
-                className="icon-button"
               >
                 <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
-              </button>
+              </ActionButton>
               <ActionButton title="Clear" onClick={clear}>
                 <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
                 Clear

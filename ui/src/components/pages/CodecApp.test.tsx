@@ -955,6 +955,8 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="base64" />);
     const swapButton = screen.getByTestId("codec-workspace-swap");
     expect(swapButton).not.toHaveClass("bg-primary");
+    expect(swapButton).toHaveClass("bg-secondary-soft");
+    expect(screen.getByRole("button", { name: "Convert" })).toHaveClass("bg-primary");
     await user.click(swapButton);
     expect(screen.getByTestId("base64-input")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-output")).toHaveValue("Hello, world!");
@@ -1300,7 +1302,7 @@ describe("CodecApp", () => {
     expect(convert).toHaveClass("disabled:bg-paper", "disabled:text-muted");
     expect(convert).not.toHaveClass("disabled:opacity-40");
     await user.click(screen.getByRole("button", { name: "Copy output" }));
-    expect(screen.getByRole("status")).toHaveClass("text-success");
+    expect(screen.getByRole("status")).toHaveClass("text-success-soft-foreground");
   });
 
   it("loads JWT navigation, header, warning, and decoded synthetic fixture", () => {
