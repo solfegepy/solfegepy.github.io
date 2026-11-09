@@ -167,8 +167,10 @@ Decisions intentionally deferred:
   Preserve existing accessible labels, test IDs and Ctrl/Cmd+Enter, with a visible shortcut hint.
 - Below container width 44rem editors stack; at 44rem use two equal minmax(0, 1fr) columns without an action rail.
   Each editor retains its format header and metadata footer. Use internal separators and existing field/panel-target roles.
-- Editor minimum height 10rem stacked and 20rem side by side. Retain vertical resize for source; target is read-only,
-  focusable and selectable. JWT outputs also remain read-only and selectable. Wrap or locally scroll technical values.
+- Editor minimum height 10rem stacked and 20rem side by side. At container widths ≥ 44rem, source and target panes share
+  header, editor, actions and metadata rows through CSS subgrid; target editor spans editor and actions rows. Only the
+  source editor resizes vertically. Read-only target and JWT editors remain focusable and selectable without resize.
+  Wrap or locally scroll technical values.
 - Format controls wrap under their label when required; never squeeze labels or clip values. Minimum control height 2.75rem.
 - Navigation: retain existing grouping and labels, unbox the 1rem Lucide icons, preserve tool identity roles and
   primary-soft active background, weight 600 and aria-current. Default weight 500.
