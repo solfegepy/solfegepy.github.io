@@ -27,6 +27,7 @@ function selfHostedFamily(name: string, cssVariable: string, fallbacks: string[]
 }
 
 export default defineConfig({
+  devToolbar: { enabled: false },
   fonts: [
     ...selfHostedFamily("IBM Plex Sans", "--font-ibm-plex-sans", [
       "Segoe UI",
