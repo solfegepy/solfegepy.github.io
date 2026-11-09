@@ -5,7 +5,7 @@ workspaces:
       # ======== dev servers ========
       - label: dev_servers
         panes:
-          - command: m start-dev
+          - command: m start-dev-ui
 
       # ======== shell commands ========
       - label: make
