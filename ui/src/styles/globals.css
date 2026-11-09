@@ -232,6 +232,15 @@ html {
   min-height: var(--spacing-target);
 }
 
+#cc-main .cm__btn[data-role="necessary"] {
+  --cc-btn-primary-bg: var(--cc-btn-secondary-bg);
+  --cc-btn-primary-color: var(--cc-btn-secondary-color);
+  --cc-btn-primary-border-color: var(--cc-btn-secondary-border-color);
+  --cc-btn-primary-hover-bg: var(--cc-btn-secondary-hover-bg);
+  --cc-btn-primary-hover-color: var(--cc-btn-secondary-hover-color);
+  --cc-btn-primary-hover-border-color: var(--cc-btn-secondary-hover-border-color);
+}
+
 @media (width < 48rem) {
   #cc-main .cm {
     max-height: calc(100dvh - 1rem);
@@ -253,6 +262,11 @@ html {
 
   #cc-main .cm__btns > .cm__btn-group {
     display: contents !important;
+  }
+
+  /* The library's stacked-button margin otherwise makes the second grid item shorter. */
+  #cc-main .cm .cm__btn + .cm__btn {
+    margin: 0 !important;
   }
 
   #cc-main .cm__btns > .cm__btn-group + .cm__btn-group {

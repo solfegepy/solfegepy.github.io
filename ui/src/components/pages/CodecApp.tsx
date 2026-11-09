@@ -410,7 +410,7 @@ export function CodecApp(props: CodecAppProps) {
           <aside
             data-testid="mobile-drawer"
             aria-label="Tools"
-            className="border-line bg-panel shadow-drawer relative flex h-dvh w-drawer flex-col border-r"
+            className="border-line bg-panel shadow-drawer w-drawer relative flex h-dvh flex-col border-r"
           >
             <div className="border-line flex min-h-16 items-center justify-between border-b px-4">
               <span className="font-display text-section-title font-semibold">Tools</span>
@@ -455,10 +455,10 @@ export function CodecApp(props: CodecAppProps) {
           className="mb-6"
         >
           <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <span
                 data-testid="page-identity-icon"
-                className={`rounded-control mt-1 inline-flex size-11 shrink-0 items-center justify-center border ${pagePresentation.accentClasses}`}
+                className={`rounded-control inline-flex size-(--text-page-title) shrink-0 items-center justify-center border ${pagePresentation.accentClasses}`}
               >
                 <PageIcon aria-hidden="true" size={21} strokeWidth={1.8} />
               </span>

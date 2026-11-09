@@ -100,7 +100,7 @@ text. Theme roles keep identical meaning in light and dark modes.
   navigation footer locations; avoid a full-width stretched button or a separate label row.
 - Consent: concise copy and compact layout using the existing library. Preserve disclosure of Google analytics and
   personalised advertising, IP/browser information, exclusion of converter input, and how to change or withdraw
-  consent. Keep the policy link for full details. Accept all and Reject all retain equal prominence; Manage choices
+  consent. Keep the policy link for full details. Accept all and Reject all retain equal size; Reject all uses the secondary background. Manage choices
   stays visible. Keep existing categories, tracker gating, cookie lifetimes, revision and settings behaviour.
   Use library layout options before scoped CSS; preserve keyboard access and allow internal scrolling on short screens.
 - Documentation uses open sections with 2rem separation and a 1px line divider; examples, command snippets and
