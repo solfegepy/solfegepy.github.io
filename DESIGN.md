@@ -11,50 +11,129 @@
 
 ## Color
 
-All names below are semantic utilities emitted by `ui/src/styles/globals.css`. Components use these names, never
-raw palette colors. Light and dark values use Tailwind CSS 4 default swatches except the mixed dark output panel.
+### Families
 
-| Token                      | Light / dark                                           | Use                                     |
-| -------------------------- | ------------------------------------------------------ | --------------------------------------- |
-| `paper`                    | `stone-50` / `slate-950`                               | Page canvas, disabled fill              |
-| `panel`                    | `stone-100` / `slate-900`                              | Navigation and grouped surfaces         |
-| `field`                    | `white` / `slate-800`                                  | Editable fields and active surfaces     |
-| `ink`                      | `stone-950` / `slate-50`                               | Primary text and headings               |
-| `muted`                    | `stone-600` / `slate-300`                              | Supporting text and inactive controls   |
-| `line`                     | `stone-500` / `slate-400`                              | Borders, dividers, control boundaries   |
-| `primary`                  | `blue-700` / `blue-300`                                | Primary action, selection, links, focus |
-| `primary-strong`           | `blue-800` / `blue-200`                                | Primary hover and emphasis              |
-| `primary-soft`             | `blue-50` / `blue-950`                                 | Selected and informative backgrounds    |
-| `accent`                   | `violet-700` / `violet-200`                            | Secondary emphasis                      |
-| `accent-strong`            | `violet-800` / `violet-200`                            | Brand numerals and secondary text       |
-| `success` / `success-soft` | `green-700` on `green-50` / `green-300` on `green-950` | Completed operations                    |
-| `warning` / `warning-soft` | `amber-800` on `amber-50` / `amber-300` on `amber-950` | Unverified or caution states            |
-| `danger` / `danger-soft`   | `red-700` on `red-50` / `red-300` on `red-950`         | Errors and destructive states           |
+Measured with `palette.py hues` (OKLCH hue at shade 500):
 
-The approved themes are **Linen** (light) and **Blue Hour** (dark). Linen uses one stone neutral family;
-Blue Hour uses one slate neutral family. Blue primary actions and violet secondary regions use analogous harmony:
-Tailwind shade-500 hue anchors are blue 259.8° and violet 292.7° (32.9° apart). Cyan was considered but violet
-preserves the selected Blue Hour identity. Aim for 80% neutral, 15% violet-tinted regions, and 5% blue actions.
-No third brand accent. Status and tool identity colors remain sparse functional layers.
+- Neutral: `gray` (264.4°) in both themes.
+- Primary: `sky` (237.3°), confirmed brand "Clear Sky". Stock Tailwind family; no generated brand scale.
+- Secondary: `teal` (182.5°), −55° from primary.
+- Accent: `violet` (292.7°), +55° from primary; semantic role name `highlight` because HeroUI's `--accent` is the primary action color.
+- Status: `red` danger, `amber` warning, `green` success, `blue` info (blue, not sky, so info never reads as the primary).
 
-`panel-target` maps to `violet-50` in Linen and a 40% `violet-950` / 60% `slate-900` Oklab mix in Blue Hour for
-conversion output regions. Their text uses `ink` and `muted`; source fields remain neutral. Primary button text uses
-`paper`, including cookie-consent buttons. Existing semantic token names remain the theme contract in
-`ui/src/styles/globals.css`.
+Harmony: analogous on both sides of sky. Teal and violet sit equidistant from sky, so all three families share a cool temperature and similar chroma while keeping distinct jobs. Rejected alternative: "Blue Hour Plus" (violet secondary, amber highlight) — warmer highlight with more pop, but the user preferred the all-cool, quieter Lagoon.
 
-Measured WCAG contrast (sRGB, palette skill): Linen body on panel 18.11:1, muted on violet output 6.97:1,
-button text 6.54:1 (hover 8.47:1), violet emphasis on panel 8.40:1. Blue Hour body on output 16.05:1,
-muted on output 11.30:1, button text 11.14:1 (hover 14.18:1), violet emphasis on panel 12.83:1.
-Output borders are 4.38:1 in Linen and 6.39:1 in Blue Hour; borders require 3:1 and are not text colors.
+### Usage
 
-Tool identity uses a foreground, soft background, and matching border for each tool: Base64 `cyan-800/50` and
-`cyan-300/950`; URL `blue-700/50` and `blue-300/950`; Query `amber-800/50` and `amber-300/950`; JWT
-`rose-700/50` and `rose-300/950`; Python `emerald-700/50` and `emerald-300/950`; Timestamp `violet-700/50`
-and `violet-300/950`; FAQ `sky-800/50` and `sky-300/950`. Identity color never carries state meaning alone.
+| Role             | Token                                                                              | Surfaces / components                                                               | Dosage             |
+| ---------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------ |
+| Neutral canvas   | `paper`                                                                            | page background, disabled fill                                                      | ~80% total neutral |
+| Neutral surface  | `panel`                                                                            | sidebar, header, grouped surfaces, Shortcuts strip base                             |                    |
+| Neutral field    | `field`                                                                            | editable fields, quiet buttons                                                      |                    |
+| Text             | `ink`, `muted`                                                                     | all text                                                                            |                    |
+| Boundary         | `line`                                                                             | borders, dividers, control boundaries                                               |                    |
+| Secondary region | `panel-target`                                                                     | converter target region, JWT output panels                                          | ~12% teal          |
+| Secondary        | `secondary`, `secondary-soft`, `secondary-soft-foreground`, `secondary-foreground` | tool icons in nav, page-header and FAQ icon tiles, Swap button, cookie "Reject all" |                    |
+| Primary          | `primary`, `primary-strong`, `primary-soft`                                        | Convert, active nav, links, focus, toggles, quiet hover                             | ~6% sky            |
+| Highlight        | `highlight`                                                                        | brand "64", editor footer counts, list markers, 404 "Error 404" eyebrow             | ~2% violet         |
+| Status           | `danger*`, `warning*`, `success*`, `info*`                                         | inline status, JWT warning, privacy notice, env banner                              | sparse             |
 
-Normal text and interactive states must meet WCAG AA: 4.5:1 for normal text and 3:1 for large text, icons,
-focus indicators, and control boundaries. `accent` is decorative or large/bold only; use `accent-strong` for normal
-text. Theme roles keep identical meaning in light and dark modes.
+Colored regions: output panels and icon tiles are the deliberate teal regions; source editors stay neutral; the active nav item is the only sky-tinted region in navigation.
+
+States:
+
+- Primary button: default `primary` fill + `paper` text; hover `primary-strong`; focus 2px `primary` outline, 2px offset; active no color change; disabled `paper` fill, `muted` text, `line` border.
+- Secondary button (Swap, Reject all): default `secondary-soft` fill, `secondary-soft-foreground` text, `secondary` border; hover `secondary` fill + `secondary-foreground` text; focus as primary; disabled as primary.
+- Quiet button / icon button: default `field` (quiet ActionButton keeps `panel`) fill, `ink` text, `line` border; hover `primary` border + text; active `primary-soft` fill; focus as primary.
+- Inputs/selects: `field` fill, `line` border, focus 2px `primary` outline.
+- Links: `primary` text with underline; hover `primary-strong`.
+- Navigation: default `ink` text, `secondary` icon; active `primary-soft` fill, `primary` text and icon, weight 600, `aria-current`.
+
+### Semantic Tokens
+
+Target stylesheet: `ui/src/styles/globals.css`. Runtime variables set in `:root` (light) and `:root[data-theme="dark"]`, exposed through `@theme static` as `--color-<token>: var(--<token>)`.
+
+| Token                       | Light        | Dark         |
+| --------------------------- | ------------ | ------------ |
+| `paper`                     | `gray-50`    | `gray-950`   |
+| `panel`                     | `gray-100`   | `gray-900`   |
+| `field`                     | `white`      | `gray-800`   |
+| `ink`                       | `gray-950`   | `gray-50`    |
+| `muted`                     | `gray-600`   | `gray-300`   |
+| `line`                      | `gray-500`   | `gray-400`   |
+| `primary`                   | `sky-700`    | `sky-400`    |
+| `primary-strong`            | `sky-800`    | `sky-300`    |
+| `primary-soft`              | `sky-50`     | `sky-950`    |
+| `panel-target`              | `teal-50`    | `teal-950`   |
+| `secondary`                 | `teal-700`   | `teal-400`   |
+| `secondary-foreground`      | `white`      | `teal-950`   |
+| `secondary-soft`            | `teal-50`    | `teal-950`   |
+| `secondary-soft-foreground` | `teal-800`   | `teal-200`   |
+| `highlight`                 | `violet-600` | `violet-400` |
+| `danger`                    | `red-700`    | `red-400`    |
+| `danger-foreground`         | `white`      | `red-950`    |
+| `danger-soft`               | `red-50`     | `red-950`    |
+| `danger-soft-foreground`    | `red-800`    | `red-200`    |
+| `success`                   | `green-700`  | `green-400`  |
+| `success-foreground`        | `white`      | `green-950`  |
+| `success-soft`              | `green-50`   | `green-950`  |
+| `success-soft-foreground`   | `green-800`  | `green-200`  |
+| `warning`                   | `amber-400`  | `amber-400`  |
+| `warning-foreground`        | `amber-950`  | `amber-950`  |
+| `warning-soft`              | `amber-50`   | `amber-950`  |
+| `warning-soft-foreground`   | `amber-900`  | `amber-200`  |
+| `info-soft`                 | `blue-50`    | `blue-950`   |
+| `info-soft-foreground`      | `blue-800`   | `blue-200`   |
+
+Primary button text uses `paper` (existing rule). Status messages use `border-<s>-soft-foreground bg-<s>-soft text-<s>-soft-foreground`.
+
+HeroUI v3 contract (variables HeroUI owns; set them, do not shadow them with other meanings), in both theme blocks:
+
+- `--accent: var(--primary)`, `--accent-foreground: var(--paper)`, `--focus: var(--primary)`, `--link: var(--primary)`.
+- `--background: var(--paper)`, `--foreground: var(--ink)`, `--surface: var(--panel)`, `--field-background: var(--field)`, `--border: var(--line)`, `--muted` = project muted value.
+- `--danger`, `--success`, `--warning` and their `-foreground`, `-soft`, `-soft-foreground` forms carry the values above directly (names match HeroUI).
+
+The project's own `--accent` (violet) and `--accent-strong` are retired in favour of `highlight`.
+
+### Contrast
+
+Computed with `palette.py contrast` (foreground:background).
+
+Light: `ink` on `white` 20.13, on `panel` 18.29, on `panel-target` 19.32; `muted` on `white` 7.56, on `panel` 6.87, on `panel-target` 7.26; `paper` on `primary` 5.61, on `primary-strong` 7.20; `primary` on `white` 5.85, on `panel` 5.32, on `primary-soft` 5.49; `secondary` icon on `panel` 4.90, on `secondary-soft` 5.17; `secondary-soft-foreground` on `secondary-soft` 7.23; `secondary-foreground` on `secondary` 5.39; `highlight` on `white` 5.88, on `panel` 5.34, on `panel-target` 5.65; `line` on `white` 4.84, on `panel` 4.39; `danger-soft-foreground` on `danger-soft` 7.67; `success-soft-foreground` 6.78; `warning-soft-foreground` 8.77; `info-soft-foreground` 8.11; `danger-foreground` on `danger` 6.42; `warning-foreground` on `warning` 8.73.
+
+Dark: `ink` on `field` 14.07, on `panel` 17.00, on `panel-target` 13.87; `muted` on `field` 9.98, on `panel` 12.06, on `panel-target` 9.83; `paper` on `primary` 9.22, on `primary-strong` 12.08; `primary` on `panel` 8.13, on `field` 6.73, on `primary-soft` 6.37; `primary` focus ring on `paper` 9.22; `secondary` icon on `panel` 9.51, on `secondary-soft` 7.76; `secondary-soft-foreground` on `secondary-soft` 11.50; `secondary-foreground` on `secondary` 7.76; `highlight` on `panel` 6.22, on `panel-target` 5.08; `line` on `field` 5.64, on `panel` 6.82, on `panel-target` 5.56; `danger-soft-foreground` 11.14; `success-soft-foreground` 12.32; `warning-soft-foreground` 12.03; `info-soft-foreground` 10.35; `danger-foreground` on `danger` 5.58.
+
+Non-color signals: danger/success/warning/info keep their lucide icon and text plus `role=alert` or polite status; active nav keeps weight 600 and `aria-current`; focus is an outline (shape), not a color shift; tools keep icon + label; output region keeps its "Target" header and separator.
+
+### Redesign Plan
+
+Audit summary (rendered at 375 and 1280 px, light and dark, all 14 routes): components already use semantic tokens (only `lib/tailwind.ts` has literals, which is tool data). Problems solved: (1) brand near-invisible — sky now owns actions/links/focus and teal regions add character; (2) rainbow tool identity — retired for one teal identity; (3) HeroUI variable collisions — mapped into HeroUI's contract; (4) violet with no clear job — now `highlight` only. Survives: violet-free semantic token names `paper`, `panel`, `field`, `ink`, `muted`, `line`, `primary`, `primary-strong`, `primary-soft`, `panel-target`; status soft tints; focus rule; disabled rule.
+
+Per file:
+
+- `ui/src/styles/globals.css`: replace light/dark values; add `secondary*`, `highlight`, `*-soft-foreground`, `*-foreground`, `info-soft*` tokens; remove `accent`, `accent-strong`, all 24 `tool-*` tokens; add HeroUI mappings; cookie banner secondary button → secondary roles.
+- `ui/src/lib/presentation.ts`: drop per-tool `accentClasses`; one shared identity class string.
+- `ui/src/components/pages/CodecApp.tsx`: nav icons `text-secondary` (active: `text-primary`); brand "64" `text-highlight`; page-identity tile secondary classes; privacy notice success → info; list markers `marker:text-highlight`.
+- `ui/src/components/pages/FaqContent.tsx`: icon tile → shared identity classes.
+- `ui/src/components/pages/JwtTool.tsx`: `text-tool-jwt` → `text-secondary`; warning → soft-foreground pattern.
+- `ui/src/components/pages/AboutContent.tsx`: `marker:text-accent` → `marker:text-highlight`.
+- `ui/src/pages/404.astro`: `text-accent-strong`, `text-accent` → `text-highlight`.
+- `ui/src/components/ui/ActionButton.tsx`: add `secondary` tone; `ui/src/components/shared/CodecWorkspace.tsx`: Swap uses it; footer counts `text-highlight`.
+- `ui/src/components/ui/InlineStatus.tsx`, `ui/src/components/pages/TailwindTool.tsx`, `ui/src/components/shared/EnvBanner.tsx`: status soft-foreground pattern.
+
+Retired tokens and consumers: `accent`/`accent-strong` (CodecApp, AboutContent, 404.astro); `tool-*` (presentation.ts, JwtTool.tsx). Migrate consumers before deleting definitions.
+
+### Rationale
+
+- Brand alternatives beaten: Signal Teal (first pick, later changed), Terminal Indigo, Linen Blue (current), Byte Cyan, Codec Violet and seven warmer options. Sky won for a friendly, low-learning-curve feel that still reads technical.
+- Provenance: `ui-ux-pro-max --design-system` suggested orange operation color on dark; used only as mood input. Final families come from the measured-hue harmony procedure and 12-candidate showcases (`.aidd/colors-brand.html`, `.aidd/colors-palette-*.html`).
+- Teal and violet flank sky at ±55°, so the palette stays cool and calm (fits a utility) while giving secondary regions and highlights distinct, non-status jobs.
+
+Decisions intentionally deferred:
+
+- A softer decorative divider token (e.g. `gray-200`) separate from `line`; `line` keeps 3:1 everywhere for now.
+- Separate `primary-active` fill shade; primary active state keeps no movement and no extra color.
+- HeroUI component adoption; only variable mapping is done now.
 
 ## Typography
 
@@ -164,7 +243,7 @@ text. Theme roles keep identical meaning in light and dark modes.
 - Keep --default-transition-duration at 120ms; define --duration-overlay:180ms. Keep existing easing variable.
 - HeroUI owns --radius and --field-radius: set both to var(--radius-control) after imports, in both themes;
   set --surface-shadow and --field-shadow to none, --overlay-shadow to var(--shadow-drawer).
-  Do not override HeroUI color variables. Verify these names against installed HeroUI styles before editing.
+  Map HeroUI color variables as listed in `## Color`. Verify these names against installed HeroUI styles before editing.
 - Consent radius bindings already use project tokens; retain them. Presentation changes are confined to consent copy,
   library layout options and scoped globals.css rules; no tracker/category, consent revision or policy change is needed.
 - Theme fallback lives once in lib/theme.ts and is shared by readTheme and THEME_BOOTSTRAP_SCRIPT.
