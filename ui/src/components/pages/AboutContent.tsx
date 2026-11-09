@@ -12,7 +12,7 @@ export function AboutContent() {
           Codec64 is a set of free encoding and conversion tools for developers. Every conversion runs in your browser,
           so what you enter never leaves your device.
         </p>
-        <ul className="marker:text-accent list-disc pl-5">
+        <ul className="marker:text-highlight list-disc pl-5">
           {TOOLS.map((tool) => (
             <li key={tool.id}>
               <a data-testid="about-tool-link" href={tool.route} className={LINK_CLASSES}>

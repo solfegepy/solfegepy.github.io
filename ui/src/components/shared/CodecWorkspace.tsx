@@ -105,8 +105,12 @@ function EditorMetadata({ name, channel, value }: EditorMetadataProps) {
       data-testid={`${name}-${channel}-metadata`}
       className="border-line text-muted text-meta flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 border-t px-4 py-2 font-mono"
     >
-      <span>{`${lines} ${lines === 1 ? "line" : "lines"}`}</span>
-      <span>{`${bytes} ${bytes === 1 ? "byte" : "bytes"}`}</span>
+      <span>
+        <span className="text-highlight">{lines}</span> {lines === 1 ? "line" : "lines"}
+      </span>
+      <span>
+        <span className="text-highlight">{bytes}</span> {bytes === 1 ? "byte" : "bytes"}
+      </span>
       <span>UTF-8</span>
     </footer>
   );

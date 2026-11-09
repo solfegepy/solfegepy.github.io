@@ -27,7 +27,7 @@ const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold
 const NAV_GROUP_CLASSES = "mb-5";
 const NAV_GROUP_LABEL_CLASSES =
   "mx-3 flex min-h-11 items-center justify-between gap-2 rounded-control px-2 text-meta font-semibold text-muted transition hover:bg-field hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
-const BRAND_SUFFIX_CLASSES = "text-accent-strong";
+const BRAND_SUFFIX_CLASSES = "text-highlight";
 const ICON_BUTTON_CLASSES = "icon-button";
 // The active link sets text-primary, so its icon drops the secondary color and inherits it.
 const navIconClasses = (current: boolean) => (current ? "shrink-0" : "shrink-0 text-secondary");
@@ -525,7 +525,7 @@ export function CodecApp(props: CodecAppProps) {
             <div data-testid="tool-description" className="text-muted max-w-reading text-control mt-2 text-pretty">
               <p>{descriptionSummary}</p>
               {descriptionDetails.length > 0 && (
-                <ul className="marker:text-accent mt-1 flex list-disc flex-wrap gap-x-6 gap-y-1 pl-4">
+                <ul className="marker:text-highlight mt-1 flex list-disc flex-wrap gap-x-6 gap-y-1 pl-4">
                   {descriptionDetails.map((detail) => (
                     <li key={detail}>{detail}</li>
                   ))}

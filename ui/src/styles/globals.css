@@ -12,8 +12,6 @@
   --color-primary: var(--primary);
   --color-primary-strong: var(--primary-strong);
   --color-primary-soft: var(--primary-soft);
-  --color-accent: var(--highlight);
-  --color-accent-strong: var(--highlight);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-soft: var(--secondary-soft);
@@ -33,30 +31,6 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --color-tool-base64: var(--tool-base64);
-  --color-tool-base64-soft: var(--tool-base64-soft);
-  --color-tool-base64-border: var(--tool-base64-border);
-  --color-tool-url: var(--tool-url);
-  --color-tool-url-soft: var(--tool-url-soft);
-  --color-tool-url-border: var(--tool-url-border);
-  --color-tool-query: var(--tool-query);
-  --color-tool-query-soft: var(--tool-query-soft);
-  --color-tool-query-border: var(--tool-query-border);
-  --color-tool-jwt: var(--tool-jwt);
-  --color-tool-jwt-soft: var(--tool-jwt-soft);
-  --color-tool-jwt-border: var(--tool-jwt-border);
-  --color-tool-python: var(--tool-python);
-  --color-tool-python-soft: var(--tool-python-soft);
-  --color-tool-python-border: var(--tool-python-border);
-  --color-tool-timestamp: var(--tool-timestamp);
-  --color-tool-timestamp-soft: var(--tool-timestamp-soft);
-  --color-tool-timestamp-border: var(--tool-timestamp-border);
-  --color-tool-faq: var(--tool-faq);
-  --color-tool-faq-soft: var(--tool-faq-soft);
-  --color-tool-faq-border: var(--tool-faq-border);
-  --color-tool-privacy: var(--tool-privacy);
-  --color-tool-privacy-soft: var(--tool-privacy-soft);
-  --color-tool-privacy-border: var(--tool-privacy-border);
 }
 
 @theme {
@@ -142,30 +116,6 @@
   --surface: var(--panel);
   --field-background: var(--field);
   --border: var(--line);
-  --tool-base64: var(--color-cyan-800);
-  --tool-base64-soft: var(--color-cyan-50);
-  --tool-base64-border: var(--color-cyan-800);
-  --tool-url: var(--color-blue-700);
-  --tool-url-soft: var(--color-blue-50);
-  --tool-url-border: var(--color-blue-700);
-  --tool-query: var(--color-amber-800);
-  --tool-query-soft: var(--color-amber-50);
-  --tool-query-border: var(--color-amber-800);
-  --tool-jwt: var(--color-rose-700);
-  --tool-jwt-soft: var(--color-rose-50);
-  --tool-jwt-border: var(--color-rose-700);
-  --tool-python: var(--color-emerald-700);
-  --tool-python-soft: var(--color-emerald-50);
-  --tool-python-border: var(--color-emerald-700);
-  --tool-timestamp: var(--color-violet-700);
-  --tool-timestamp-soft: var(--color-violet-50);
-  --tool-timestamp-border: var(--color-violet-700);
-  --tool-faq: var(--color-sky-800);
-  --tool-faq-soft: var(--color-sky-50);
-  --tool-faq-border: var(--color-sky-800);
-  --tool-privacy: var(--color-zinc-700);
-  --tool-privacy-soft: var(--color-zinc-50);
-  --tool-privacy-border: var(--color-zinc-700);
   color-scheme: light;
 }
 
@@ -213,30 +163,6 @@
   --surface: var(--panel);
   --field-background: var(--field);
   --border: var(--line);
-  --tool-base64: var(--color-cyan-300);
-  --tool-base64-soft: var(--color-cyan-950);
-  --tool-base64-border: var(--color-cyan-300);
-  --tool-url: var(--color-blue-300);
-  --tool-url-soft: var(--color-blue-950);
-  --tool-url-border: var(--color-blue-300);
-  --tool-query: var(--color-amber-300);
-  --tool-query-soft: var(--color-amber-950);
-  --tool-query-border: var(--color-amber-300);
-  --tool-jwt: var(--color-rose-300);
-  --tool-jwt-soft: var(--color-rose-950);
-  --tool-jwt-border: var(--color-rose-300);
-  --tool-python: var(--color-emerald-300);
-  --tool-python-soft: var(--color-emerald-950);
-  --tool-python-border: var(--color-emerald-300);
-  --tool-timestamp: var(--color-violet-300);
-  --tool-timestamp-soft: var(--color-violet-950);
-  --tool-timestamp-border: var(--color-violet-300);
-  --tool-faq: var(--color-sky-300);
-  --tool-faq-soft: var(--color-sky-950);
-  --tool-faq-border: var(--color-sky-300);
-  --tool-privacy: var(--color-zinc-300);
-  --tool-privacy-soft: var(--color-zinc-950);
-  --tool-privacy-border: var(--color-zinc-300);
   color-scheme: dark;
 }
 
