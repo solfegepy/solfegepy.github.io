@@ -1,0 +1,4 @@
+/* The environment banner only appears in development builds; keep it out of the visual contract. */
+[data-testid="env-banner"] {
+  display: none;
+}

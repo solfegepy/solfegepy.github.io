@@ -12,7 +12,7 @@ const testResultsDir = path.resolve(import.meta.dirname, "test-results/playwrigh
 export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
-  expect: { timeout: 5_000 },
+  expect: { timeout: 5_000, toHaveScreenshot: { stylePath: path.join(import.meta.dirname, "e2e/screenshot.css") } },
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
