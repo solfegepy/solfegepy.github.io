@@ -51,9 +51,9 @@ interface FormatSelectProps {
 }
 
 const SELECT_CLASSES =
-  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-sm font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
-const CHANNEL_LABEL_CLASSES = "text-muted shrink-0 font-mono text-xs font-semibold tracking-widest uppercase";
-const CHANNEL_HEADER_CLASSES = "border-line flex items-center justify-between gap-3 border-b p-3";
+  "border-line bg-field text-ink focus:border-primary focus:ring-primary/15 min-h-11 w-full rounded-control border px-3 py-2 font-mono text-control font-semibold outline-none transition-colors focus:ring-3 md:w-auto md:min-w-44";
+const CHANNEL_LABEL_CLASSES = "text-muted shrink-0 text-meta font-semibold";
+const CHANNEL_HEADER_CLASSES = "border-line flex flex-wrap items-center justify-between gap-3 border-b p-3";
 
 const isChannelFormat = (value: unknown, formats: FormatOptions): value is ChannelFormat =>
   formats.some((format) => format.value === value);
@@ -65,7 +65,7 @@ function FormatSelect({ channel, formats, name, value, onChange }: FormatSelectP
     return (
       <span
         data-testid={`${name}-${channel.toLowerCase()}-format`}
-        className="text-ink font-mono text-sm font-semibold"
+        className="text-ink text-control font-mono font-semibold"
       >
         {label}
       </span>
@@ -103,7 +103,7 @@ function EditorMetadata({ name, channel, value }: EditorMetadataProps) {
   return (
     <footer
       data-testid={`${name}-${channel}-metadata`}
-      className="border-line text-muted flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 border-t px-4 py-2 font-mono text-xs"
+      className="border-line text-muted text-meta flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1 border-t px-4 py-2 font-mono"
     >
       <span>{`${lines} ${lines === 1 ? "line" : "lines"}`}</span>
       <span>{`${bytes} ${bytes === 1 ? "byte" : "bytes"}`}</span>
@@ -215,32 +215,10 @@ export function CodecWorkspace({
       aria-label={`${name} converter`}
       onKeyDown={handleShortcut}
     >
-      <div data-testid="codec-workspace-channels" className="workspace-grid">
-        <div
-          data-testid={`${name}-top-channel`}
-          className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface grid min-w-0 overflow-hidden border transition-colors focus-within:ring-3"
-          role="group"
-          aria-labelledby={`${name}-top-label`}
-        >
-          <div className={CHANNEL_HEADER_CLASSES}>
-            <span id={`${name}-top-label`} className={CHANNEL_LABEL_CLASSES}>
-              Source
-            </span>
-            <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
-          </div>
-          <TextareaField
-            ariaLabel="Source input"
-            value={input}
-            onChange={changeInput}
-            placeholder={inputPlaceholder}
-            testId={`${name}-input`}
-            variant="editor"
-          />
-          <EditorMetadata name={name} channel="source" value={input} />
-        </div>
+      <div className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface overflow-hidden border focus-within:ring-3">
         <div
           data-testid="codec-workspace-actions"
-          className="workspace-actions flex flex-wrap items-center justify-center gap-2"
+          className="border-line flex flex-wrap items-center justify-center gap-2 border-b p-3"
           role="group"
           aria-label="Conversion actions"
         >
@@ -263,47 +241,73 @@ export function CodecWorkspace({
             Clear
           </ActionButton>
         </div>
-        <div
-          data-testid={`${name}-bottom-channel`}
-          className="border-line bg-panel-target rounded-surface grid min-w-0 overflow-hidden border transition-colors"
-          role="group"
-          aria-labelledby={`${name}-bottom-label`}
-        >
-          <div className={CHANNEL_HEADER_CLASSES}>
-            <span id={`${name}-bottom-label`} className={CHANNEL_LABEL_CLASSES}>
-              Target
-            </span>
-            <FormatSelect
-              channel="Bottom"
-              formats={formats}
-              name={name}
-              value={bottomFormat}
-              onChange={changeBottomFormat}
-            />
-          </div>
-          <div className="relative min-w-0">
+        <div data-testid="codec-workspace-channels" className="workspace-grid">
+          <div
+            data-testid={`${name}-top-channel`}
+            className="workspace-source-channel grid min-w-0 overflow-hidden"
+            role="group"
+            aria-labelledby={`${name}-top-label`}
+          >
+            <div className={CHANNEL_HEADER_CLASSES}>
+              <span id={`${name}-top-label`} className={CHANNEL_LABEL_CLASSES}>
+                Source
+              </span>
+              <FormatSelect channel="Top" formats={formats} name={name} value={topFormat} onChange={changeTopFormat} />
+            </div>
             <TextareaField
-              ariaLabel="Target output"
-              value={output}
-              placeholder="Conversion appears here"
-              disabled
-              testId={`${name}-output`}
-              className="disabled:bg-panel-target pr-16"
+              ariaLabel="Source input"
+              value={input}
+              onChange={changeInput}
+              placeholder={inputPlaceholder}
+              testId={`${name}-input`}
               variant="editor"
             />
-            <button
-              data-testid="codec-workspace-copy"
-              type="button"
-              aria-label="Copy output"
-              title="Copy output"
-              onClick={copy}
-              disabled={!output}
-              className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control absolute top-3 right-3 inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
-            >
-              <CopyIcon aria-hidden="true" size={18} strokeWidth={1.8} />
-            </button>
+            <EditorMetadata name={name} channel="source" value={input} />
           </div>
-          <EditorMetadata name={name} channel="target" value={output} />
+          <div
+            data-testid={`${name}-bottom-channel`}
+            className="workspace-target-channel bg-panel-target grid min-w-0 overflow-hidden"
+            role="group"
+            aria-labelledby={`${name}-bottom-label`}
+          >
+            <div data-testid="codec-workspace-target-header" className={CHANNEL_HEADER_CLASSES}>
+              <span id={`${name}-bottom-label`} className={CHANNEL_LABEL_CLASSES}>
+                Target
+              </span>
+              <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+                <FormatSelect
+                  channel="Bottom"
+                  formats={formats}
+                  name={name}
+                  value={bottomFormat}
+                  onChange={changeBottomFormat}
+                />
+                <button
+                  data-testid="codec-workspace-copy"
+                  type="button"
+                  aria-label="Copy output"
+                  title="Copy output"
+                  onClick={copy}
+                  disabled={!output}
+                  className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control inline-flex size-11 appearance-none items-center justify-center border-0 bg-transparent p-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+                >
+                  <CopyIcon aria-hidden="true" size={18} strokeWidth={1.8} />
+                </button>
+              </div>
+            </div>
+            <div className="relative min-w-0">
+              <TextareaField
+                ariaLabel="Target output"
+                value={output}
+                placeholder="Conversion appears here"
+                readOnly
+                testId={`${name}-output`}
+                className="read-only:bg-panel-target"
+                variant="editor"
+              />
+            </div>
+            <EditorMetadata name={name} channel="target" value={output} />
+          </div>
         </div>
       </div>
       <InlineStatus error={error} status={status} />

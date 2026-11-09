@@ -3,6 +3,50 @@ import { expect, test } from "@playwright/test";
 import { CodecPage } from "../pages/CodecPage";
 import { CookieBanner } from "../pages/CookieBanner";
 
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 390, height: 844 },
+]) {
+  test(`fresh consent banner keeps the Base64 workspace visible at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    const codec = new CodecPage(page);
+    const cookies = new CookieBanner(page);
+    await page.setViewportSize(viewport);
+    await cookies.install();
+    await codec.open();
+
+    await expect(cookies.banner).toBeVisible();
+    const banner = await cookies.dimensions();
+    expect(banner?.height).toBeLessThanOrEqual(viewport.height / 2);
+    expect(await cookies.toolHeadingAndSourceAreAboveBanner()).toBe(true);
+    const choiceWidths = await cookies.primaryChoiceWidths();
+    expect(Math.abs(choiceWidths.accept - choiceWidths.reject)).toBeLessThanOrEqual(1);
+    await expect(cookies.banner.getByRole("link", { name: "Privacy & cookies" })).toBeVisible();
+    expect(await cookies.tabToManageChoices()).toBe(true);
+    await cookies.activateFocusedManageChoices();
+    await expect(cookies.settings).toBeVisible();
+  });
+}
+
+test("short consent stays scrollable and reachable at 320px with 200% text", async ({ page }) => {
+  const codec = new CodecPage(page);
+  const cookies = new CookieBanner(page);
+  await page.setViewportSize({ width: 320, height: 360 });
+  await cookies.install();
+  await codec.open();
+  await codec.useLargeText();
+
+  await expect(cookies.banner).toBeVisible();
+  expect(await cookies.hasInternalScrolling()).toBe(true);
+  expect((await cookies.actionTargetHeights()).every((height) => height >= 44)).toBe(true);
+  await expect(cookies.banner.getByRole("button", { name: "Accept all" })).toBeVisible();
+  await expect(cookies.banner.getByRole("button", { name: "Reject all" })).toBeVisible();
+  await expect(cookies.banner.getByRole("button", { name: "Manage choices" })).toBeVisible();
+  await cookies.banner.getByRole("link", { name: "Privacy & cookies" }).scrollIntoViewIfNeeded();
+  await expect(cookies.banner.getByRole("link", { name: "Privacy & cookies" })).toBeVisible();
+});
+
 test("reject all hides the banner for good and loads no tracker", async ({ page }) => {
   const codec = new CodecPage(page);
   const cookies = new CookieBanner(page);

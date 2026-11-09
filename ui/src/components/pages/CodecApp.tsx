@@ -21,12 +21,14 @@ import { TailwindTool } from "./TailwindTool";
 import { UrlTool } from "./UrlTool";
 
 const NAV_LINK_CLASSES =
-  "group mx-3 flex min-h-11 items-center gap-3 rounded-lg border border-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
+  "group mx-3 flex min-h-11 items-center gap-3 rounded-control border border-transparent px-3 text-control font-medium text-muted transition hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
 const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold text-primary";
 const NAV_GROUP_CLASSES = "mb-5";
-const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 font-mono text-xs font-semibold tracking-widest uppercase";
+const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 text-meta font-semibold";
 const BRAND_SUFFIX_CLASSES = "text-accent-strong";
 const ICON_BUTTON_CLASSES = "icon-button";
+const iconAccentClass = (accentClasses: string) =>
+  accentClasses.split(" ").find((className) => className.startsWith("text-")) ?? "text-muted";
 
 type InfoPage = "faq" | "privacy" | "about" | "ascii" | "openssl" | "ssh";
 
@@ -59,11 +61,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
                   className={`${NAV_LINK_CLASSES} ${current ? ACTIVE_NAV_LINK_CLASSES : ""}`}
                   onClick={onNavigate}
                 >
-                  <span
-                    className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${accentClasses}`}
-                  >
-                    <Icon aria-hidden="true" size={16} strokeWidth={1.8} />
-                  </span>
+                  <Icon
+                    aria-hidden="true"
+                    className={`shrink-0 ${iconAccentClass(accentClasses)}`}
+                    size={16}
+                    strokeWidth={2}
+                  />
                   {tool.label}
                 </a>
               );
@@ -77,11 +80,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
                 className={`${NAV_LINK_CLASSES} ${asciiCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
                 onClick={onNavigate}
               >
-                <span
-                  className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.ascii.accentClasses}`}
-                >
-                  <TOOL_PRESENTATION.ascii.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
-                </span>
+                <TOOL_PRESENTATION.ascii.Icon
+                  aria-hidden="true"
+                  className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.ascii.accentClasses)}`}
+                  size={16}
+                  strokeWidth={2}
+                />
                 ASCII &amp; Latin Codes
               </a>
             )}
@@ -98,11 +102,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${currentPage === "openssl" ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <span
-            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.openssl.accentClasses}`}
-          >
-            <TOOL_PRESENTATION.openssl.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
-          </span>
+          <TOOL_PRESENTATION.openssl.Icon
+            aria-hidden="true"
+            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.openssl.accentClasses)}`}
+            size={16}
+            strokeWidth={2}
+          />
           OpenSSL
         </a>
         <a
@@ -113,11 +118,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${currentPage === "ssh" ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <span
-            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.ssh.accentClasses}`}
-          >
-            <TOOL_PRESENTATION.ssh.Icon aria-hidden="true" size={16} strokeWidth={1.8} />
-          </span>
+          <TOOL_PRESENTATION.ssh.Icon
+            aria-hidden="true"
+            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.ssh.accentClasses)}`}
+            size={16}
+            strokeWidth={2}
+          />
           SSH
         </a>
       </section>
@@ -131,11 +137,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <span
-            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.faq.accentClasses}`}
-          >
-            <CircleHelpIcon aria-hidden="true" size={16} strokeWidth={1.8} />
-          </span>
+          <CircleHelpIcon
+            aria-hidden="true"
+            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.faq.accentClasses)}`}
+            size={16}
+            strokeWidth={2}
+          />
           FAQ
         </a>
         <a
@@ -146,11 +153,12 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${aboutCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <span
-            className={`rounded-control inline-flex size-8 shrink-0 items-center justify-center border ${TOOL_PRESENTATION.about.accentClasses}`}
-          >
-            <InfoIcon aria-hidden="true" size={16} strokeWidth={1.8} />
-          </span>
+          <InfoIcon
+            aria-hidden="true"
+            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.about.accentClasses)}`}
+            size={16}
+            strokeWidth={2}
+          />
           About
         </a>
       </section>
@@ -158,7 +166,8 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
   );
 }
 
-const FOOTER_LINK_CLASSES = "text-muted hover:text-primary min-h-11 text-sm font-medium underline underline-offset-2";
+const FOOTER_LINK_CLASSES =
+  "text-muted hover:text-primary min-h-11 text-control font-medium underline underline-offset-2";
 
 function openCookieSettings(): void {
   void import("../../lib/analytics").then((m) => m.showCookieSettings());
@@ -305,7 +314,7 @@ export function CodecApp(props: CodecAppProps) {
       </a>
       <aside
         data-testid="desktop-sidebar"
-        className="border-line bg-panel sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r shadow-sm md:flex"
+        className="border-line bg-panel w-sidebar sticky top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto border-r md:flex"
       >
         <a
           data-testid="desktop-home-link"
@@ -320,22 +329,23 @@ export function CodecApp(props: CodecAppProps) {
         <ToolNavigation activeTool={props.toolId} currentPage={props.page} />
         <footer
           data-testid="sidebar-footer"
-          className="border-line mt-auto flex flex-col items-stretch gap-3 border-t p-4"
+          className="border-line mt-auto flex flex-col items-start gap-3 border-t p-4"
         >
-          <span className="text-muted text-sm font-medium whitespace-nowrap">Appearance</span>
-          <ThemeControl dark={theme === "dark"} onToggle={toggleTheme} />
           <FooterLegalLinks />
+          <div className="flex w-full justify-end">
+            <ThemeControl dark={theme === "dark"} onToggle={toggleTheme} />
+          </div>
         </footer>
       </aside>
 
       <header
         data-testid="mobile-header"
-        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 shadow-sm md:hidden"
+        className="border-line bg-panel sticky top-0 z-20 flex min-h-16 items-center justify-between gap-2 border-b px-4 md:hidden"
       >
         <a
           data-testid="mobile-home-link"
           href="/"
-          className="font-display inline-flex min-h-11 min-w-0 items-center gap-2 text-base font-extrabold tracking-tight"
+          className="font-display text-section-title inline-flex min-h-11 min-w-0 items-center gap-2 font-bold tracking-normal"
         >
           <BrandLogo />
           <span>
@@ -400,10 +410,10 @@ export function CodecApp(props: CodecAppProps) {
           <aside
             data-testid="mobile-drawer"
             aria-label="Tools"
-            className="border-line bg-panel relative flex h-dvh w-4/5 max-w-80 flex-col border-r shadow-lg"
+            className="border-line bg-panel shadow-drawer relative flex h-dvh w-drawer flex-col border-r"
           >
             <div className="border-line flex min-h-16 items-center justify-between border-b px-4">
-              <span className="font-display text-lg font-bold">Tools</span>
+              <span className="font-display text-section-title font-semibold">Tools</span>
               <button
                 ref={closeRef}
                 data-testid="drawer-close"
@@ -437,7 +447,7 @@ export function CodecApp(props: CodecAppProps) {
       <main
         id="main-content"
         data-testid="app-main"
-        className="mx-auto max-w-7xl min-w-0 flex-1 px-4 pt-5 pb-12 md:px-6 md:pt-8"
+        className="max-w-workbench mx-auto min-w-0 flex-1 px-4 pt-5 pb-12 md:px-8 md:pt-8"
       >
         <header
           data-testid={props.page ? `${props.page}-header` : "tool-header"}
@@ -452,14 +462,14 @@ export function CodecApp(props: CodecAppProps) {
               >
                 <PageIcon aria-hidden="true" size={21} strokeWidth={1.8} />
               </span>
-              <h1 className="font-display text-ink min-w-0 text-3xl leading-tight font-extrabold tracking-tight text-balance md:text-4xl">
+              <h1 className="font-display text-ink text-page-title min-w-0 font-bold tracking-normal text-balance">
                 {infoPage ? infoPage.heading : tool?.title}
               </h1>
             </div>
             {!infoPage && (
               <p
                 data-testid="tool-privacy"
-                className="border-success bg-success-soft text-success rounded-control flex shrink-0 items-center gap-2 border px-3 py-2 text-sm font-semibold"
+                className="border-success bg-success-soft text-success rounded-control text-control flex shrink-0 items-center gap-2 border px-3 py-2 font-semibold"
               >
                 <ShieldCheckIcon aria-hidden="true" size={18} strokeWidth={1.8} />
                 Your data stays in this browser.
@@ -467,11 +477,11 @@ export function CodecApp(props: CodecAppProps) {
             )}
           </div>
           {infoPage ? (
-            <p data-testid={`${props.page}-lead`} className="text-muted mt-3 max-w-prose text-pretty">
+            <p data-testid={`${props.page}-lead`} className="text-muted max-w-reading mt-3 text-pretty">
               {infoPage.lead}
             </p>
           ) : (
-            <div data-testid="tool-description" className="text-muted mt-2 max-w-prose text-sm leading-6 text-pretty">
+            <div data-testid="tool-description" className="text-muted max-w-reading text-control mt-2 text-pretty">
               <p>{descriptionSummary}</p>
               {descriptionDetails.length > 0 && (
                 <ul className="marker:text-accent mt-1 flex list-disc flex-wrap gap-x-6 gap-y-1 pl-4">

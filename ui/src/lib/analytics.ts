@@ -78,11 +78,10 @@ export function runCookieConsent(): Promise<void> {
           consentModal: {
             title: "We value your privacy",
             description:
-              "With your permission, we and Google use cookies and process data such as your IP address and " +
-              "browser information to measure how Codec64 is used, and to personalise the advertising you " +
-              "see, including our ads on other sites. Nothing you enter in the tools is ever included. You can " +
-              "change or withdraw your consent at any time with <strong>Cookie settings</strong> in the site " +
-              `menu or on our <a href="${PRIVACY_PATH}">privacy page</a>.`,
+              "With your consent, we and Google use cookies and information such as your IP address and browser " +
+              "to measure Codec64 use and personalise advertising, including ads on other sites. Tool input is " +
+              "never included. Change or withdraw consent in <strong>Cookie settings</strong> or on our " +
+              `<a href="${PRIVACY_PATH}">privacy page</a>.`,
             acceptAllBtn: "Accept all",
             acceptNecessaryBtn: "Reject all",
             showPreferencesBtn: "Manage choices",

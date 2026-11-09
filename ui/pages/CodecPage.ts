@@ -138,6 +138,11 @@ export class CodecPage {
         document.querySelector('[data-testid="not-found-page"]') !== null,
     );
   }
+  async openBeforeHydration(path = "/"): Promise<void> {
+    await this.page.route("**/_astro/**", (route) => route.abort());
+    await this.page.goto(path);
+    await this.page.unroute("**/_astro/**");
+  }
   async loadedWebFonts(): Promise<string[]> {
     return this.page.evaluate(async () => {
       await document.fonts.ready;
@@ -329,6 +334,35 @@ export class CodecPage {
   convert(): Locator {
     return this.page.getByRole("button", { name: "Convert", exact: true });
   }
+  copyOutput(): Locator {
+    return this.page.getByRole("button", { name: "Copy output", exact: true });
+  }
+  async navigateBackwardTo(target: Locator): Promise<void> {
+    const controls = this.page.locator(
+      "a[href], button:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+    );
+    const controlCount = await controls.count();
+    for (let step = 0; step < controlCount; step++) {
+      await this.page.keyboard.press("Shift+Tab");
+      if (await target.evaluate((element) => element === document.activeElement)) return;
+    }
+  }
+  async navigateForwardTo(target: Locator): Promise<void> {
+    const controls = this.page.locator(
+      "a[href], button:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+    );
+    const controlCount = await controls.count();
+    for (let step = 0; step < controlCount; step++) {
+      await this.page.keyboard.press("Tab");
+      if (await target.evaluate((element) => element === document.activeElement)) return;
+    }
+  }
+  async pressEnter(): Promise<void> {
+    await this.page.keyboard.press("Enter");
+  }
+  async selectFocusedText(): Promise<void> {
+    await this.page.keyboard.press("Control+A");
+  }
   async chooseTopFormat(toolId: ToolId, format: ChannelFormat): Promise<void> {
     await this.format(toolId, "top").selectOption(format);
   }
@@ -395,8 +429,8 @@ export class CodecPage {
   channel(toolId: ToolId, channel: Channel): Locator {
     return this.page.getByTestId(`${toolId}-${channel}-channel`);
   }
-  workspaceActions(): Locator {
-    return this.page.getByTestId("codec-workspace-actions");
+  workspace(toolId: ToolId): Locator {
+    return this.page.getByTestId(`${toolId}-workspace`);
   }
   metadata(name: string): Locator {
     return this.page.locator(`meta[property="${name}"], meta[name="${name}"]`);

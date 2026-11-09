@@ -34,6 +34,54 @@ export class CookieBanner {
     await this.banner.getByRole("button", { name: "Reject all" }).click();
   }
 
+  async dimensions(): Promise<{ width: number; height: number } | null> {
+    return this.banner.boundingBox();
+  }
+
+  async primaryChoiceWidths(): Promise<{ accept: number; reject: number }> {
+    const accept = await this.banner
+      .getByRole("button", { name: "Accept all" })
+      .evaluate((button) => button.getBoundingClientRect().width);
+    const reject = await this.banner
+      .getByRole("button", { name: "Reject all" })
+      .evaluate((button) => button.getBoundingClientRect().width);
+    return { accept, reject };
+  }
+
+  async actionTargetHeights(): Promise<number[]> {
+    return Promise.all(
+      ["Accept all", "Reject all", "Manage choices"].map(async (name) =>
+        this.banner.getByRole("button", { name }).evaluate((button) => button.getBoundingClientRect().height),
+      ),
+    );
+  }
+
+  async hasInternalScrolling(): Promise<boolean> {
+    return this.banner.evaluate((modal) => modal.scrollHeight > modal.clientHeight);
+  }
+
+  async toolHeadingAndSourceAreAboveBanner(): Promise<boolean> {
+    const banner = await this.banner.boundingBox();
+    const heading = await this.page.getByTestId("tool-header").getByRole("heading", { level: 1 }).boundingBox();
+    const source = await this.page.getByText("Source", { exact: true }).boundingBox();
+    return Boolean(
+      banner && heading && source && heading.y + heading.height <= banner.y && source.y + source.height <= banner.y,
+    );
+  }
+
+  async tabToManageChoices(): Promise<boolean> {
+    const manageChoices = this.banner.getByRole("button", { name: "Manage choices" });
+    for (let tab = 0; tab < 80; tab += 1) {
+      if (await manageChoices.evaluate((button) => button === document.activeElement)) return true;
+      await this.page.keyboard.press("Tab");
+    }
+    return manageChoices.evaluate((button) => button === document.activeElement);
+  }
+
+  async activateFocusedManageChoices(): Promise<void> {
+    await this.page.keyboard.press("Space");
+  }
+
   async followPolicyLink(): Promise<void> {
     await this.banner.getByRole("link", { name: "Privacy & cookies" }).click();
   }

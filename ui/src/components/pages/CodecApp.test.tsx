@@ -294,20 +294,20 @@ describe("CodecApp", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("JWT must contain three segments.");
   });
 
-  it("defaults to dark and toggles a persisted light/dark theme", async () => {
+  it("follows the system theme and toggles a persisted light/dark theme", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);
 
-    const light = await waitFor(() => screen.getAllByRole("button", { name: "Use light theme" })[0]!);
-    expect(light).toHaveAttribute("data-testid", "theme-control");
+    const dark = await waitFor(() => screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
+    expect(dark).toHaveAttribute("data-testid", "theme-control");
     expect(screen.queryByRole("button", { name: /system/i })).toBeNull();
-    await user.click(light);
-    expect(localStorage.getItem("codec-bench-theme")).toBe("light");
-    expect(document.documentElement.dataset.theme).toBe("light");
-
-    await user.click(screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
+    await user.click(dark);
     expect(localStorage.getItem("codec-bench-theme")).toBe("dark");
     expect(document.documentElement.dataset.theme).toBe("dark");
+
+    await user.click(screen.getAllByRole("button", { name: "Use light theme" })[0]!);
+    expect(localStorage.getItem("codec-bench-theme")).toBe("light");
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
   it("renders grouped routed navigation and active tool", () => {
     render(<CodecApp toolId="base64" />);
@@ -572,7 +572,7 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("base64-input")).toHaveValue("Hello, world!");
     expect(screen.getByTestId("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
     expect(screen.getByTestId("base64-input")).toBeEnabled();
-    expect(screen.getByTestId("base64-output")).toBeDisabled();
+    expect(screen.getByTestId("base64-output")).toHaveAttribute("readonly");
     expect(screen.getByTestId("base64-input")).toHaveAccessibleName("Source input");
     expect(screen.getByTestId("base64-output")).toHaveAccessibleName("Target output");
     expect(screen.queryByText("Top channel")).not.toBeInTheDocument();
@@ -814,6 +814,36 @@ describe("CodecApp", () => {
     expect(convert).toBeEnabled();
   });
 
+  it("keeps converted output read-only, focusable, and selectable after clipboard denial", async () => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    const input = screen.getByTestId("base64-input");
+    const output = screen.getByTestId("base64-output");
+
+    await user.clear(input);
+    await user.type(input, "keyboard");
+    await user.click(screen.getByRole("button", { name: "Convert" }));
+    expect(output).toHaveValue("a2V5Ym9hcmQ=");
+    expect(output).toHaveAttribute("readonly");
+    expect(output).not.toBeDisabled();
+
+    await user.click(output);
+    await user.keyboard("cannot edit");
+    expect(output).toHaveValue("a2V5Ym9hcmQ=");
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) },
+    });
+    await user.click(screen.getByRole("button", { name: "Copy output" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Clipboard unavailable. Select output and copy manually.");
+    await user.click(output);
+    await user.keyboard("{Control>}a{/Control}");
+    expect(output).toHaveFocus();
+    expect((output as HTMLTextAreaElement).selectionStart).toBe(0);
+    expect((output as HTMLTextAreaElement).selectionEnd).toBe("a2V5Ym9hcmQ=".length);
+  });
+
   it("renders Base64 and URL descriptions as explanatory bullet lists", () => {
     const base64 = render(<CodecApp toolId="base64" />);
     expect(screen.getByText("Convert plain text, Base64, or Base64url:")).toBeInTheDocument();
@@ -879,19 +909,19 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("base64-output")).toHaveValue("Y2Fmw6kg8J+OtQ==");
     await user.click(screen.getByRole("button", { name: "Copy output" }));
     expect(screen.getByRole("status")).toHaveTextContent("Copied");
-    const channels = screen.getByTestId("codec-workspace-channels");
     const actions = screen.getByTestId("codec-workspace-actions");
     const swapButton = screen.getByTestId("codec-workspace-swap");
     const copyButton = screen.getByRole("button", { name: "Copy output" });
-    expect(channels.children[1]).toBe(actions);
+    const targetHeader = screen.getByTestId("codec-workspace-target-header");
+    expect(actions).toHaveAccessibleName("Conversion actions");
     expect([...actions.querySelectorAll("button")]).toEqual([
       screen.getByRole("button", { name: "Convert" }),
       swapButton,
       screen.getByRole("button", { name: "Clear" }),
     ]);
     expect(copyButton).toHaveAttribute("data-testid", "codec-workspace-copy");
-    expect(copyButton).toHaveClass("absolute", "top-3", "right-3");
-    expect(screen.getByTestId("base64-output")).toHaveClass("pr-16");
+    expect(targetHeader).toContainElement(copyButton);
+    expect(screen.getByTestId("base64-output")).not.toHaveClass("pr-16");
     expect(screen.getByTestId("base64-input")).not.toHaveClass("pr-16");
     expect(copyButton).not.toHaveClass("icon-button", "bg-panel");
     expect(screen.getByTestId("base64-bottom-channel")).toContainElement(copyButton);
@@ -998,7 +1028,7 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("url-input")).toHaveValue("https://example.com/search?q=hello world~");
     expect(screen.getByTestId("url-output")).toHaveValue("https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Dhello%20world~");
     expect(screen.getByTestId("url-input")).toBeEnabled();
-    expect(screen.getByTestId("url-output")).toBeDisabled();
+    expect(screen.getByTestId("url-output")).toHaveAttribute("readonly");
     expect(screen.getByRole("button", { name: "Copy output" })).toBeEnabled();
   });
 
@@ -1083,7 +1113,7 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
     expect(screen.getByTestId("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
     expect(screen.getByTestId("query-input")).toBeEnabled();
-    expect(screen.getByTestId("query-output")).toBeDisabled();
+    expect(screen.getByTestId("query-output")).toHaveAttribute("readonly");
     expect(screen.getByRole("button", { name: "Convert" })).toBeInTheDocument();
     expect(screen.queryByText("Example:")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Try .* example/ })).not.toBeInTheDocument();
@@ -1097,7 +1127,7 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
     expect(screen.getByTestId("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
     expect(screen.getByTestId("python-input")).toBeEnabled();
-    expect(screen.getByTestId("python-output")).toBeDisabled();
+    expect(screen.getByTestId("python-output")).toHaveAttribute("readonly");
     expect(screen.getByRole("button", { name: "Convert" })).toBeInTheDocument();
     expect(screen.queryByText("Example:")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Try .* example/ })).not.toBeInTheDocument();

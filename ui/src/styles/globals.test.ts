@@ -77,12 +77,18 @@ describe("Tailwind theme contract", () => {
   });
 
   it("maps theme colors only to Tailwind palette tokens", () => {
-    const declarations = [...css.matchAll(/^\s+--([\w-]+): (var\(--color-[\w-]+\));$/gm)].filter(([, name]) =>
+    const declarations = [...css.matchAll(/^\s+--([\w-]+): (.+);$/gm)].filter(([, name]) =>
       SEMANTIC_COLORS.includes(name as (typeof SEMANTIC_COLORS)[number]),
     );
+    const panelTarget = declarations.filter(([, name]) => name === "panel-target");
+    const paletteDeclarations = declarations.filter(([, name]) => name !== "panel-target");
 
     expect(declarations).toHaveLength(SEMANTIC_COLORS.length * 2);
-    for (const [, , value] of declarations) expect(value).toMatch(APPROVED_COLOR_TOKENS);
+    expect(panelTarget.map(([, , value]) => value)).toEqual([
+      "var(--color-violet-50)",
+      "color-mix(in oklab, var(--color-violet-950) 40%, var(--color-slate-900))",
+    ]);
+    for (const [, , value] of paletteDeclarations) expect(value).toMatch(APPROVED_COLOR_TOKENS);
     expect(css).not.toMatch(/#[\da-f]{3,8}\b|\b(?:rgb|hsl)a?\(/i);
   });
 

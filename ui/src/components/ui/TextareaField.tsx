@@ -40,7 +40,7 @@ export function TextareaField({
       <textarea
         data-testid={testId}
         aria-label={ariaLabel}
-        className={`text-ink placeholder:text-muted disabled:text-muted w-full min-w-0 resize-y overflow-auto font-mono text-sm leading-6 transition-colors outline-none disabled:cursor-not-allowed disabled:resize-none ${HEIGHT_CLASSES[height]} ${variant === "editor" ? EDITOR_CLASSES : FIELD_CLASSES} ${className}`}
+        className={`text-ink placeholder:text-muted disabled:text-muted text-control w-full min-w-0 resize-y overflow-auto font-mono transition-colors outline-none disabled:cursor-not-allowed disabled:resize-none ${HEIGHT_CLASSES[height]} ${variant === "editor" ? EDITOR_CLASSES : FIELD_CLASSES} ${className}`}
         value={value}
         onChange={onChange}
         placeholder={placeholder}

@@ -79,7 +79,7 @@ test("font traffic uses approved origins and excludes converter input", async ({
   expect(JSON.stringify(traffic)).not.toContain(token);
 });
 
-test("responsive layout matrix preserves order, target size, and page containment", async ({ page }) => {
+test("responsive layout matrix preserves workspace behavior and page containment", async ({ page }) => {
   const codec = new CodecPage(page);
   for (const [width, height] of [
     [375, 812],
@@ -90,11 +90,6 @@ test("responsive layout matrix preserves order, target size, and page containmen
     await codec.setViewport(width, height);
     await codec.open();
     expect(await codec.hasHorizontalOverflow(), `${width}x${height}`).toBe(false);
-    expect(
-      await page
-        .getByTestId("codec-workspace-channels")
-        .evaluate((channels) => [...channels.children].map((child) => child.getAttribute("data-testid"))),
-    ).toEqual(["base64-top-channel", "codec-workspace-actions", "base64-bottom-channel"]);
     for (const size of await page
       .getByTestId("codec-app")
       .getByRole("button")
@@ -106,6 +101,40 @@ test("responsive layout matrix preserves order, target size, and page containmen
       )) {
       expect(size.width).toBeGreaterThanOrEqual(44);
       expect(size.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+
+  for (const [containerWidth, split] of [
+    [703, false],
+    [704, true],
+    [705, true],
+  ] as const) {
+    await codec.setViewport(1000, 900);
+    await codec.open();
+    const initialWidth = (await codec.workspace("base64").boundingBox())!.width;
+    await codec.setViewport(1000 + containerWidth - initialWidth, 900);
+
+    const workspace = await codec.workspace("base64").boundingBox();
+    const source = await codec.channel("base64", "top").boundingBox();
+    const target = await codec.channel("base64", "bottom").boundingBox();
+    expect(workspace?.width).toBe(containerWidth);
+    expect(source && target).toBeTruthy();
+
+    if (split) {
+      expect(Math.abs(source!.y - target!.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(source!.width - target!.width)).toBeLessThanOrEqual(1);
+      expect(source!.width + target!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
+    } else {
+      expect(source!.y).toBeLessThan(target!.y);
+    }
+
+    for (const action of ["Convert", "Swap source and target", "Clear"]) {
+      const button = page.getByRole("button", { name: action, exact: true });
+      const bounds = await button.boundingBox();
+      expect(bounds, `${action} is reachable at ${containerWidth}px`).toBeTruthy();
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(workspace!.x + workspace!.width + 1);
+      expect(bounds!.y).toBeGreaterThanOrEqual(workspace!.y);
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(workspace!.y + workspace!.height + 1);
     }
   }
 });
@@ -208,6 +237,35 @@ test("unsupported and rejected WebMCP registration preserve human flows", async 
   await expect(codec.alert()).toHaveText("JWT must contain three segments.");
 });
 
+test("Base64 converts, selects, and copies output through keyboard navigation", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const codec = new CodecPage(page);
+  await codec.open();
+  await codec.fill("base64-input", "keyboard");
+  await codec.navigateBackwardTo(codec.convert());
+  await expect(codec.convert()).toBeFocused();
+  await codec.pressEnter();
+
+  const output = codec.output("base64-output");
+  await expect(output).toHaveValue("a2V5Ym9hcmQ=");
+  await codec.navigateForwardTo(output);
+  await expect(output).toBeFocused();
+  await codec.selectFocusedText();
+  expect(
+    await output.evaluate((node) =>
+      (node as HTMLTextAreaElement).value.slice(
+        (node as HTMLTextAreaElement).selectionStart,
+        (node as HTMLTextAreaElement).selectionEnd,
+      ),
+    ),
+  ).toBe("a2V5Ym9hcmQ=");
+
+  await codec.navigateBackwardTo(codec.copyOutput());
+  await expect(codec.copyOutput()).toBeFocused();
+  await codec.pressEnter();
+  expect(await codec.clipboardText()).toBe("a2V5Ym9hcmQ=");
+});
+
 test("FAQ navigation, static disclosures, route isolation, and converter links", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.installWebMcpMock();
@@ -250,6 +308,7 @@ test("FAQ navigation, static disclosures, route isolation, and converter links",
 
 test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", async ({ page }) => {
   const codec = new CodecPage(page);
+  await page.emulateMedia({ colorScheme: "dark" });
   await codec.setMobileViewport();
   await codec.open();
   await codec.openDrawer();
@@ -327,47 +386,56 @@ test("404 fallback fits 320px with large text", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("404 fallback uses stored theme and defaults to dark", async ({ page }) => {
+test("404 fallback follows system theme and stored choice wins", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open("/missing");
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
-  const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-
-  await page.evaluate(() => localStorage.setItem("codec-bench-theme", "light"));
-  await page.reload();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+
+  await page.evaluate(() => localStorage.setItem("codec-bench-theme", "dark"));
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   expect(lightBackground).not.toBe(darkBackground);
 });
 
-test("every route hydrates default dark without browser errors", async ({ page }) => {
+test("every route follows system light before hydration without browser errors", async ({ page }) => {
   const codec = new CodecPage(page);
-  const errors = codec.trackBrowserErrors();
   await page.emulateMedia({ colorScheme: "light" });
+  await codec.openBeforeHydration();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await expect(codec.app()).not.toHaveAttribute("data-hydrated", "true");
+  const errors = codec.trackBrowserErrors();
+
   for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/"]) {
     await codec.open(route);
     await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
     await expect(codec.app()).not.toHaveAttribute("inert");
     await expect(codec.app()).toHaveAttribute("aria-busy", "false");
-    await expect(codec.root()).toHaveAttribute("data-theme", "dark");
-    await expect(codec.themeControl()).toHaveAccessibleName("Use light theme");
+    await expect(codec.root()).toHaveAttribute("data-theme", "light");
+    await expect(codec.themeControl()).toHaveAccessibleName("Use dark theme");
     expect(errors, route).toEqual([]);
   }
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await codec.openBeforeHydration();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await expect(codec.app()).not.toHaveAttribute("data-hydrated", "true");
 });
 
 test("explicit theme persists across reload and route navigation", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open();
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
   await codec.chooseOppositeTheme();
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
-  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("light");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("dark");
   await page.reload();
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   await codec.chooseTool("URL");
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
 });
 
 test("blocked theme storage keeps controls usable", async ({ page }) => {
@@ -381,9 +449,9 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open();
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
-  await codec.chooseOppositeTheme();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
 });
 
 test("every route fits 320px at 200 percent text", async ({ page }) => {
@@ -484,22 +552,22 @@ test("light and dark workbench states keep readable contrast and visible reduced
   ).toBeLessThanOrEqual(0.00001);
 });
 
-test("desktop shell is full width with fixed-size sticky sidebar", async ({ page }) => {
+test("desktop shell gives the workspace its available width", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.open();
   await expect(codec.sidebar()).toBeVisible();
-  expect(await codec.sidebar().evaluate((node) => getComputedStyle(node).width)).toBe("256px");
+  expect(await codec.sidebar().evaluate((node) => getComputedStyle(node).width)).toBe("240px");
   expect(await codec.sidebar().evaluate((node) => getComputedStyle(node).position)).toBe("sticky");
   expect(await page.getByTestId("codec-app").evaluate((node) => node.getBoundingClientRect().width)).toBe(
     await page.evaluate(() => innerWidth),
   );
+  const workspace = await codec.workspace("base64").boundingBox();
   const source = await codec.channel("base64", "top").boundingBox();
   const target = await codec.channel("base64", "bottom").boundingBox();
-  const actions = await codec.workspaceActions().boundingBox();
-  expect(source && target && actions).toBeTruthy();
-  expect(source!.y).toBe(target!.y);
-  expect(actions!.x).toBeGreaterThan(source!.x + source!.width);
-  expect(actions!.x + actions!.width).toBeLessThanOrEqual(target!.x);
+  expect(workspace && source && target).toBeTruthy();
+  expect(Math.abs(source!.y - target!.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(source!.width - target!.width)).toBeLessThanOrEqual(1);
+  expect(source!.width + target!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
 });
 
 test("mobile drawer traps focus, closes, and fits large text at 320px", async ({ page }) => {
@@ -542,7 +610,7 @@ test("mobile drawer traps focus, closes, and fits large text at 320px", async ({
   await codec.input("query-input").focus();
   await page.keyboard.press("End");
   await page.keyboard.type("&lang=en");
-  await page.keyboard.press("Tab");
+  await codec.navigateBackwardTo(codec.convert());
   await expect(page.getByRole("button", { name: "Convert" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByTestId("codec-workspace-swap")).toBeFocused();

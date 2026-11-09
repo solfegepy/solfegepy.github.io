@@ -12,12 +12,12 @@ export function ThemeControl({ dark, onToggle }: ThemeControlProps) {
     <button
       data-testid="theme-control"
       type="button"
-      className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control inline-flex size-11 items-center justify-center border transition focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control text-control inline-flex size-11 items-center justify-center border font-sans transition focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={onToggle}
       aria-label={label}
       title={label}
     >
-      <Icon aria-hidden="true" size={18} />
+      <Icon aria-hidden="true" size={16} />
     </button>
   );
 }
