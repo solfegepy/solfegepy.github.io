@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strictest",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["../docs"],
+  "exclude": ["../docs", "node_modules", ".pnpm-store", "dist", "test-results"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "types": ["vitest/globals", "@testing-library/jest-dom"]
