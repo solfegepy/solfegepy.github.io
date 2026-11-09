@@ -2,6 +2,7 @@
 import { Font } from "astro:assets";
 import "../styles/globals.css";
 import { THEME_BOOTSTRAP_SCRIPT } from "../lib/theme";
+import { EnvBanner } from "../components/shared/EnvBanner";
 
 interface Props {
   title: string;
@@ -36,6 +37,7 @@ const serializedStructuredData = structuredData ? JSON.stringify(structuredData)
     <script is:inline set:html={THEME_BOOTSTRAP_SCRIPT} />
   </head>
   <body>
+    <EnvBanner />
     <slot />
     <script>
       // Loaded on demand so the cookie banner code stays out of the critical path.

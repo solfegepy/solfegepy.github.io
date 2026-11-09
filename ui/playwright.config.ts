@@ -52,7 +52,7 @@ export default defineConfig({
     url: testUrl,
     // ponytail: astro 7.2 auto-backgrounds preview/dev under agentic CLIs (am-i-vibing);
     // this env var forces normal foreground behavior so Playwright can manage the process.
-    env: { ASTRO_PREVIEW_BACKGROUND: "1" },
+    env: { ASTRO_PREVIEW_BACKGROUND: "1", ENV: "development" },
     gracefulShutdown: { signal: "SIGTERM", timeout: 5_000 },
     reuseExistingServer: false,
     timeout: 30_000,

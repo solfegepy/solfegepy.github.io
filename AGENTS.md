@@ -32,6 +32,10 @@ Keep implementation minimal. Reuse platform features and installed dependencies 
 
 Use Vitest with Testing Library for unit and component behavior. Use Playwright page objects for browser flows; tests express intent and own assertions. Follow red-green-refactor. During debugging, stop at first failure with `pnpm test -- --bail=1` or Playwright `--max-failures=1`. Add regression tests beside every bug fix.
 
+## Feature Flags
+
+`ui/src/lib/features.ts` defines the `Feature` constants and the `ENV` values enabling each; gate code with `isFeatureEnabled(Feature.<Flag>)`. `ENV` is read at build time through `astro:env` and inlined into the static bundle, so changing it needs a rebuild. In `ENV=development`, `EnvBanner` shows the environment and enabled flags above the page.
+
 ## Git & Deploy
 
 Never run GIT commit or deploy, unless you are executing a list of multiple tasts (e.g. in .aidd/task.md). The user will review changes before deploying.

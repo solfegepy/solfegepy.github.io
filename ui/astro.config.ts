@@ -3,7 +3,7 @@ import path from "node:path";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig, fontProviders } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 import { loadEnv } from "vite";
 
 import { requirePositiveInteger } from "./config-env";
@@ -31,6 +31,12 @@ function selfHostedFamily(name: string, cssVariable: string, fallbacks: string[]
 
 export default defineConfig({
   devToolbar: { enabled: false },
+  env: {
+    schema: {
+      // Selects feature flags in `src/lib/features.ts`; inlined into the static build.
+      ENV: envField.string({ context: "client", access: "public", optional: true }),
+    },
+  },
   fonts: [
     ...selfHostedFamily("IBM Plex Sans", "--font-ibm-plex-sans", [
       "Segoe UI",
