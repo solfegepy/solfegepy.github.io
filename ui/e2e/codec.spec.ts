@@ -126,6 +126,7 @@ test("responsive layout matrix preserves workspace behavior and page containment
       expect(source!.width + target!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
     } else {
       expect(source!.y).toBeLessThan(target!.y);
+      expect(await codec.targetResize("base64")).toBe("none");
     }
 
     for (const action of ["Convert", "Swap source and target", "Clear"]) {
