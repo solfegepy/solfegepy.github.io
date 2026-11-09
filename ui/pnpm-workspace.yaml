@@ -11,6 +11,8 @@ trustPolicyExclude:
 allowBuilds:
   esbuild: true
 
+# The 7-day delay also delays security patches. To install an urgent fix sooner,
+# exempt that one package by listing it under minimumReleaseAgeExclude.
 minimumReleaseAge: 10080
 minimumReleaseAgeIgnoreMissingTime: true
 minimumReleaseAgeStrict: false
