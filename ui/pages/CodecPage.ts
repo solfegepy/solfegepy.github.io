@@ -1,5 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 
+type BoundingBox = NonNullable<Awaited<ReturnType<Locator["boundingBox"]>>>;
+
 type ToolName = "Base64" | "URL" | "Query Params" | "JWT" | "Python → JSON" | "Timestamp";
 type ToolId = "base64" | "url" | "query" | "jwt" | "python" | "timestamp";
 type JwtSegment = "Header" | "Payload" | "Signature";
@@ -258,6 +260,40 @@ export class CodecPage {
         metadata: metadata.textContent ?? "",
       };
     }, toolId);
+  }
+  /** Returns workspace edge boxes. @param toolId Converter name. @returns Measured boxes. */
+  async paneEdges(toolId: ToolId): Promise<{
+    sourceHeader: BoundingBox | null;
+    targetHeader: BoundingBox | null;
+    sourceTextarea: BoundingBox | null;
+    targetTextarea: BoundingBox | null;
+    sourceActions: BoundingBox | null;
+    sourceMetadata: BoundingBox | null;
+    targetMetadata: BoundingBox | null;
+  }> {
+    return {
+      sourceHeader: await this.page.getByTestId("codec-workspace-source-header").boundingBox(),
+      targetHeader: await this.page.getByTestId("codec-workspace-target-header").boundingBox(),
+      sourceTextarea: await this.page.getByTestId(`${toolId}-input`).boundingBox(),
+      targetTextarea: await this.page.getByTestId(`${toolId}-output`).boundingBox(),
+      sourceActions: await this.page.getByTestId("codec-workspace-actions").boundingBox(),
+      sourceMetadata: await this.page.getByTestId(`${toolId}-source-metadata`).boundingBox(),
+      targetMetadata: await this.page.getByTestId(`${toolId}-target-metadata`).boundingBox(),
+    };
+  }
+  /** Resizes source textarea. @param toolId Converter name. @param deltaY Vertical drag. @returns Resolves after drag. */
+  async resizeSource(toolId: ToolId, deltaY: number): Promise<void> {
+    const bounds = (await this.page.getByTestId(`${toolId}-input`).boundingBox())!;
+    const x = bounds.x + bounds.width - 2;
+    const y = bounds.y + bounds.height - 2;
+    await this.page.mouse.move(x, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(x, y + deltaY);
+    await this.page.mouse.up();
+  }
+  /** Returns the target textarea resize mode. @param toolId Converter name. @returns Computed resize mode. */
+  async targetResize(toolId: ToolId): Promise<string> {
+    return this.page.getByTestId(`${toolId}-output`).evaluate((textarea) => getComputedStyle(textarea).resize);
   }
   /** Applies 200% text size to the current page. @returns Resolves after style is applied. */
   async useLargeText(): Promise<void> {

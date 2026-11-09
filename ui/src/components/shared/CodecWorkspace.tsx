@@ -227,7 +227,7 @@ export function CodecWorkspace({
             role="group"
             aria-labelledby={`${name}-top-label`}
           >
-            <div className={CHANNEL_HEADER_CLASSES}>
+            <div data-testid="codec-workspace-source-header" className={CHANNEL_HEADER_CLASSES}>
               <span id={`${name}-top-label`} className={CHANNEL_LABEL_CLASSES}>
                 Source
               </span>
@@ -298,7 +298,7 @@ export function CodecWorkspace({
                 </button>
               </div>
             </div>
-            <div className="relative min-w-0">
+            <div className="workspace-target-editor relative flex min-w-0 flex-col">
               <TextareaField
                 ariaLabel="Target output"
                 value={output}

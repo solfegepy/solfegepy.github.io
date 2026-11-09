@@ -139,6 +139,74 @@ test("responsive layout matrix preserves workspace behavior and page containment
   }
 });
 
+test("Base64 panes align and resize together on desktop", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(1440, 900);
+  await codec.open();
+
+  const initial = await codec.paneEdges("base64");
+  expect(initial.sourceHeader && initial.targetHeader).toBeTruthy();
+  expect(initial.sourceTextarea && initial.targetTextarea).toBeTruthy();
+  expect(initial.sourceActions && initial.sourceMetadata && initial.targetMetadata).toBeTruthy();
+  expect(
+    Math.abs(
+      initial.sourceHeader!.y + initial.sourceHeader!.height - initial.targetHeader!.y - initial.targetHeader!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(
+      initial.sourceActions!.y +
+        initial.sourceActions!.height -
+        initial.targetTextarea!.y -
+        initial.targetTextarea!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(Math.abs(initial.sourceMetadata!.y - initial.targetMetadata!.y)).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(
+      initial.sourceMetadata!.y +
+        initial.sourceMetadata!.height -
+        initial.targetMetadata!.y -
+        initial.targetMetadata!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(await codec.targetResize("base64")).toBe("none");
+
+  await codec.resizeSource("base64", 120);
+  const resized = await codec.paneEdges("base64");
+  expect(
+    Math.abs(
+      resized.sourceHeader!.y + resized.sourceHeader!.height - resized.targetHeader!.y - resized.targetHeader!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(resized.sourceTextarea && resized.targetTextarea).toBeTruthy();
+  expect(resized.sourceTextarea!.height).toBeGreaterThan(initial.sourceTextarea!.height);
+  expect(
+    Math.abs(
+      resized.sourceTextarea!.height -
+        initial.sourceTextarea!.height -
+        (resized.targetTextarea!.height - initial.targetTextarea!.height),
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(
+      resized.sourceActions!.y +
+        resized.sourceActions!.height -
+        resized.targetTextarea!.y -
+        resized.targetTextarea!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+  expect(Math.abs(resized.sourceMetadata!.y - resized.targetMetadata!.y)).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(
+      resized.sourceMetadata!.y +
+        resized.sourceMetadata!.height -
+        resized.targetMetadata!.y -
+        resized.targetMetadata!.height,
+    ),
+  ).toBeLessThanOrEqual(1);
+});
+
 test("WebMCP decoding tools are route-local and return exact contracts", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.installWebMcpMock();
