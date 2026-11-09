@@ -17,11 +17,11 @@ import {
 const FAMILIES = [...new Set(TAILWIND_PALETTE.map(({ family }) => family))];
 const SHADES = [...new Set(TAILWIND_PALETTE.flatMap(({ shade }) => (shade === null ? [] : [shade])))];
 const FIELD_CLASSES =
-  "border-line bg-field text-ink focus-visible:ring-primary min-h-11 w-full rounded-control border font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  "border-line bg-field text-ink focus-visible:ring-primary min-h-11 w-full rounded-control border font-mono text-control outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 const SELECT_CLASSES = `${FIELD_CLASSES} px-3`;
 const PREVIEW_CLASSES = "rounded-control border-line bg-paper h-16 border";
-const GROUP_LABEL_CLASSES = "text-ink mb-2 block font-semibold";
-const FIELD_LABEL_CLASSES = "text-muted mb-1 block text-sm";
+const GROUP_LABEL_CLASSES = "text-ink text-subheading mb-2 block font-semibold";
+const FIELD_LABEL_CLASSES = "text-muted text-meta mb-1 block";
 
 function entryFor(family: TailwindFamily, shade: number | null) {
   return TAILWIND_PALETTE.find((entry) => entry.family === family && entry.shade === shade)!;
@@ -99,7 +99,7 @@ export function TailwindTool() {
                 placeholder="#3b82f6"
                 className={`${FIELD_CLASSES} px-3`}
               />
-              <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
+              <div className="text-control mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <p id="tailwind-hex-help" className="text-muted">
                   A three or six digit hex color.
                 </p>
@@ -174,17 +174,14 @@ export function TailwindTool() {
           </section>
 
           {result.status === "empty" ? (
-            <p
-              data-testid="tailwind-inspection-prompt"
-              className="text-muted rounded-control border-line bg-panel border p-4"
-            >
+            <p data-testid="tailwind-inspection-prompt" className="text-muted text-control py-2">
               Select a Tailwind color or enter a hex value to inspect it.
             </p>
           ) : result.status === "invalid" ? (
             <p
               data-testid="tailwind-input-error"
               role="alert"
-              className="text-danger rounded-control border-danger bg-danger-soft border p-3 text-sm"
+              className="text-danger rounded-control border-danger bg-danger-soft text-control border p-3"
             >
               A three or six digit hex color.
             </p>
@@ -195,7 +192,7 @@ export function TailwindTool() {
               className="rounded-surface border-line bg-panel space-y-4 border p-4"
             >
               <div aria-live="polite" className="space-y-2">
-                <p data-testid="tailwind-match-kind" className="text-muted text-sm">
+                <p data-testid="tailwind-match-kind" className="text-muted text-meta">
                   {result.match === "exact" ? "Exact match" : "Closest match"}
                 </p>
                 <div aria-hidden="true" className={PREVIEW_CLASSES} style={{ backgroundColor: result.entry.hex }} />
@@ -251,11 +248,11 @@ export function TailwindTool() {
         </section>
       </div>
 
-      <p className="text-muted max-w-prose text-sm">
+      <p className="text-muted max-w-reading text-body">
         Closest colors are selected using OKLab distance, which estimates perceived color difference. Hex values are
         sRGB approximations of Tailwind&apos;s OKLCH colors.
       </p>
-      <p className="text-muted text-sm">
+      <p className="text-muted text-control">
         Includes colors introduced in{" "}
         <a
           data-testid="tailwind-version-link"
@@ -283,8 +280,8 @@ interface ResultRowProps {
 function ResultRow({ id, label, value, copyLabel, onCopy }: ResultRowProps) {
   return (
     <div className="flex items-center gap-3">
-      <dt className="text-muted w-14 shrink-0 text-sm">{label}</dt>
-      <dd data-testid={`tailwind-${id}`} className="text-ink min-w-0 flex-1 font-mono text-sm break-all">
+      <dt className="text-muted text-meta w-14 shrink-0">{label}</dt>
+      <dd data-testid={`tailwind-${id}`} className="text-ink text-control min-w-0 flex-1 font-mono break-all">
         {value}
       </dd>
       <CopyButton testId={`tailwind-copy-${id}`} label={copyLabel} onClick={onCopy} />

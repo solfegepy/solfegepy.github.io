@@ -32,10 +32,10 @@ const RING_GAP = 0.012;
 const CANVAS_CLASSES = "block aspect-square w-full";
 const PANEL_CLASSES = "border-line bg-panel min-w-0 rounded-surface border p-3";
 const VIEW_BUTTON_CLASSES =
-  "focus-visible:outline-primary min-h-11 min-w-11 px-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2";
+  "focus-visible:outline-primary text-control min-h-11 min-w-11 px-3 font-sans focus-visible:outline-2 focus-visible:outline-offset-2";
 const VIEWS = ["2D", "3D OKLCH", "3D HSL"] as const;
 const ANCHOR_BUTTON_CLASSES =
-  "border-line bg-field text-ink focus-visible:ring-primary flex min-h-11 min-w-11 items-center gap-2 rounded-control border px-3 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  "border-line bg-field text-ink focus-visible:ring-primary text-control flex min-h-11 min-w-11 items-center gap-2 rounded-control border px-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
 type WheelView = (typeof VIEWS)[number];
 type ColorModel = "oklch" | "hsl";
@@ -54,12 +54,12 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
 
   return (
     <figure data-testid={`tailwind-${kind}-wheel`} className={PANEL_CLASSES}>
-      <figcaption className="mb-2 flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
-        <span className="text-ink font-semibold">{title}</span>
+      <figcaption className="mb-2 flex flex-col items-start gap-2 md:flex-row md:flex-wrap md:items-center md:justify-between">
+        <span className="text-ink text-subheading font-semibold">{title}</span>
         <div
           role="group"
           aria-label={`${title} view`}
-          className="border-line rounded-control w-full border md:flex md:w-auto md:overflow-hidden"
+          className="border-line rounded-control flex w-full flex-wrap border md:w-auto"
         >
           {VIEWS.map((option) => (
             <button
@@ -69,7 +69,7 @@ export function TailwindWheel({ kind, selected, onSelect }: TailwindWheelProps) 
               title={`Show ${option} view`}
               aria-pressed={view === option}
               onClick={() => setView(option)}
-              className={`${VIEW_BUTTON_CLASSES} w-full whitespace-normal md:w-auto md:whitespace-nowrap ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
+              className={`${VIEW_BUTTON_CLASSES} w-full whitespace-normal md:w-auto ${view === option ? "bg-primary-soft text-primary font-semibold" : "bg-field text-muted hover:text-ink"}`}
             >
               {option}
             </button>
@@ -207,7 +207,7 @@ export function TailwindAnchorSwatches({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="text-ink text-sm font-semibold">Black and white</legend>
+      <legend className="text-ink text-meta font-semibold">Black and white</legend>
       <div className="flex flex-wrap gap-2">
         {(["black", "white"] as const).map((family) => {
           const entry = TAILWIND_PALETTE.find((candidate) => candidate.family === family)!;

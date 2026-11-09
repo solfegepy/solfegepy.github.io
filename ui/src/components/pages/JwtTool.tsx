@@ -38,7 +38,7 @@ const OUTPUT_ICONS = {
   Payload: FileJsonIcon,
   Signature: FingerprintIcon,
 } as const satisfies Record<JwtOutputFieldProps["label"], LucideIcon>;
-const OUTPUT_HEADING_CLASSES = "text-ink font-display flex items-center gap-2 text-lg font-bold";
+const OUTPUT_HEADING_CLASSES = "text-ink font-display text-subheading flex items-center gap-2 font-semibold";
 const JWT_ICON_CLASSES = "text-tool-jwt";
 
 const formatOutput = ({ header, payload, signature }: DecodedJwt): JwtOutput => ({
@@ -62,7 +62,7 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
   return (
     <section
       data-testid={`jwt-${id}-group`}
-      className={`border-line bg-field rounded-surface grid min-w-0 overflow-hidden border ${compact ? "md:col-span-2" : ""}`}
+      className={`border-line bg-panel-target rounded-surface grid min-w-0 overflow-hidden border ${compact ? "md:col-span-2" : ""}`}
     >
       <div className="border-line flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2">
         <h2 className={OUTPUT_HEADING_CLASSES}>
@@ -76,7 +76,7 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
           title={`Copy ${label}`}
           onClick={onCopy}
           disabled={!value}
-          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control inline-flex min-h-11 items-center gap-2 px-3 font-mono text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control text-control inline-flex min-h-11 items-center gap-2 px-3 font-sans font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         >
           <CopyIcon aria-hidden="true" size={17} />
           Copy
@@ -139,7 +139,7 @@ export function JwtTool() {
   };
 
   return (
-    <section data-testid="jwt-tool" aria-label="JWT decoder" className="min-w-0 space-y-4">
+    <section data-testid="jwt-tool" aria-label="JWT decoder" className="min-w-0 space-y-6">
       <div className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface overflow-hidden border transition-colors focus-within:ring-3">
         <div className="border-line flex min-h-12 items-center border-b px-4">
           <h2 className={OUTPUT_HEADING_CLASSES}>
@@ -157,9 +157,7 @@ export function JwtTool() {
           variant="editor"
           height="medium"
         />
-      </div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div data-testid="jwt-actions" className="flex flex-wrap gap-2">
+        <div data-testid="jwt-actions" className="border-line flex flex-wrap gap-2 border-t p-3">
           <ActionButton
             data-testid="jwt-decode"
             title="Decode"
@@ -175,14 +173,14 @@ export function JwtTool() {
             Clear
           </ActionButton>
         </div>
-        <aside
-          data-testid="jwt-guidance"
-          className="border-warning bg-warning-soft text-warning rounded-control flex items-start gap-2 border px-4 py-2 text-sm font-medium"
-        >
-          <CircleAlertIcon aria-hidden="true" className="mt-1 shrink-0" size={17} />
-          <p data-testid="jwt-warning">Decoded only. Signature not verified.</p>
-        </aside>
       </div>
+      <aside
+        data-testid="jwt-guidance"
+        className="border-warning bg-warning-soft text-warning rounded-control text-control flex items-start gap-2 border px-4 py-2 font-medium"
+      >
+        <CircleAlertIcon aria-hidden="true" className="mt-1 shrink-0" size={17} />
+        <p data-testid="jwt-warning">Decoded only. Signature not verified.</p>
+      </aside>
       <div className="grid gap-4 md:grid-cols-2">
         <JwtOutputField label="Header" value={output.header} onCopy={() => copy("Header", output.header)} />
         <JwtOutputField label="Payload" value={output.payload} onCopy={() => copy("Payload", output.payload)} />

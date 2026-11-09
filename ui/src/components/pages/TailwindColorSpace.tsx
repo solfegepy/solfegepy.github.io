@@ -64,7 +64,7 @@ const OUTLINE_COLOR = "#64748b";
 const CLICK_TOLERANCE = 5;
 const CANVAS_CLASSES = "block aspect-square w-full cursor-grab active:cursor-grabbing";
 const CAMERA_BUTTON_CLASSES =
-  "border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control min-h-11 min-w-11 border px-3 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2";
+  "border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:outline-primary rounded-control text-control min-h-11 min-w-11 border px-3 transition focus-visible:outline-2 focus-visible:outline-offset-2";
 // Camera angle from the top of the lightness axis, in radians.
 const CAMERA_VIEWS = [
   ["Bottom", Math.PI],
