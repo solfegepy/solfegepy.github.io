@@ -858,6 +858,7 @@ test("invalid Base64 remains rejected", async ({ page }) => {
 test("Timestamp converts every format privately and remains accessible", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
+  await page.emulateMedia({ colorScheme: "dark" });
   const codec = new CodecPage(page);
   await codec.open();
   const beforeLoad = Math.floor(Date.now() / 1_000);
