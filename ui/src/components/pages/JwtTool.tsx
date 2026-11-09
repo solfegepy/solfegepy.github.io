@@ -76,10 +76,9 @@ function JwtOutputField({ label, value, onCopy }: JwtOutputFieldProps) {
           title={`Copy ${label}`}
           onClick={onCopy}
           disabled={!value}
-          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control text-control inline-flex min-h-11 items-center gap-2 px-3 font-sans font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
+          className="text-muted hover:text-primary focus-visible:outline-primary disabled:bg-paper rounded-control inline-flex size-11 shrink-0 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
         >
           <CopyIcon aria-hidden="true" size={17} />
-          Copy
         </button>
       </div>
       <TextareaField
