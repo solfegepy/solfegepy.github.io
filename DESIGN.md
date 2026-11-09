@@ -82,10 +82,9 @@ text. Theme roles keep identical meaning in light and dark modes.
 
 ## Interaction
 
-- Shared converter: one outside surface with source, result and compact Convert/Swap/Clear actions; Copy output
-  stays in the target header. A full-width top toolbar is the starting prototype, not a fixed tab-order requirement.
-  In the early Base64 review, compare source-adjacent actions if reaching Convert after editing requires awkward
-  backtracking. Select and document the arrangement before extending it; keep visual, DOM and tab order aligned.
+- Shared converter: one outside surface with source, result and compact Convert/Swap/Clear actions. Place actions
+  directly after the source editor and before its metadata, so Tab from edited input reaches Convert. Copy output
+  stays in the target header. Keep visual, DOM and tab order aligned.
   Preserve existing accessible labels, test IDs and Ctrl/Cmd+Enter, with a visible shortcut hint.
 - Below container width 44rem editors stack; at 44rem use two equal minmax(0, 1fr) columns without an action rail.
   Each editor retains its format header and metadata footer. Use internal separators and existing field/panel-target roles.

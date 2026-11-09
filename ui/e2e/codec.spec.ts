@@ -242,7 +242,7 @@ test("Base64 converts, selects, and copies output through keyboard navigation", 
   const codec = new CodecPage(page);
   await codec.open();
   await codec.fill("base64-input", "keyboard");
-  await codec.navigateBackwardTo(codec.convert());
+  await codec.pressTab();
   await expect(codec.convert()).toBeFocused();
   await codec.pressEnter();
 

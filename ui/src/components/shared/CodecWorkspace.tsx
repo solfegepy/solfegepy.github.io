@@ -216,31 +216,6 @@ export function CodecWorkspace({
       onKeyDown={handleShortcut}
     >
       <div className="border-line bg-field focus-within:border-primary focus-within:ring-primary/15 rounded-surface overflow-hidden border focus-within:ring-3">
-        <div
-          data-testid="codec-workspace-actions"
-          className="border-line flex flex-wrap items-center justify-center gap-2 border-b p-3"
-          role="group"
-          aria-label="Conversion actions"
-        >
-          <ActionButton title="Convert" tone="primary" onClick={convert} disabled={!needsConversion}>
-            <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
-            Convert
-          </ActionButton>
-          <button
-            data-testid="codec-workspace-swap"
-            type="button"
-            aria-label="Swap source and target"
-            title="Swap source and target"
-            onClick={swap}
-            className="icon-button"
-          >
-            <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
-          </button>
-          <ActionButton title="Clear" onClick={clear}>
-            <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
-            Clear
-          </ActionButton>
-        </div>
         <div data-testid="codec-workspace-channels" className="workspace-grid">
           <div
             data-testid={`${name}-top-channel`}
@@ -262,6 +237,31 @@ export function CodecWorkspace({
               testId={`${name}-input`}
               variant="editor"
             />
+            <div
+              data-testid="codec-workspace-actions"
+              className="border-line flex flex-wrap items-center justify-center gap-2 border-t p-3"
+              role="group"
+              aria-label="Conversion actions"
+            >
+              <ActionButton title="Convert" tone="primary" onClick={convert} disabled={!needsConversion}>
+                <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
+                Convert
+              </ActionButton>
+              <button
+                data-testid="codec-workspace-swap"
+                type="button"
+                aria-label="Swap source and target"
+                title="Swap source and target"
+                onClick={swap}
+                className="icon-button"
+              >
+                <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
+              </button>
+              <ActionButton title="Clear" onClick={clear}>
+                <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
+                Clear
+              </ActionButton>
+            </div>
             <EditorMetadata name={name} channel="source" value={input} />
           </div>
           <div

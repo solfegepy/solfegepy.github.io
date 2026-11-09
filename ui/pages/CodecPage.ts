@@ -360,6 +360,9 @@ export class CodecPage {
   async pressEnter(): Promise<void> {
     await this.page.keyboard.press("Enter");
   }
+  async pressTab(): Promise<void> {
+    await this.page.keyboard.press("Tab");
+  }
   async selectFocusedText(): Promise<void> {
     await this.page.keyboard.press("Control+A");
   }
