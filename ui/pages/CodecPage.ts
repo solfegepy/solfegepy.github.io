@@ -130,7 +130,7 @@ export class CodecPage {
       { toolName: name, toolInput: input },
     );
   }
-  async open(path = "/"): Promise<void> {
+  async open(path = "/base64/"): Promise<void> {
     await this.page.goto(path);
     await this.page.waitForFunction(
       () =>
@@ -138,7 +138,7 @@ export class CodecPage {
         document.querySelector('[data-testid="not-found-page"]') !== null,
     );
   }
-  async openBeforeHydration(path = "/"): Promise<void> {
+  async openBeforeHydration(path = "/base64/"): Promise<void> {
     await this.page.route("**/_astro/**", (route) => route.abort());
     await this.page.goto(path);
     await this.page.unroute("**/_astro/**");

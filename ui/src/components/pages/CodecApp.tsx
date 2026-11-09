@@ -318,7 +318,7 @@ export function CodecApp(props: CodecAppProps) {
       >
         <a
           data-testid="desktop-home-link"
-          href="/"
+          href="/base64/"
           className="border-line flex min-h-20 items-center gap-3 border-b px-5"
         >
           <BrandLogo />
@@ -344,7 +344,7 @@ export function CodecApp(props: CodecAppProps) {
       >
         <a
           data-testid="mobile-home-link"
-          href="/"
+          href="/base64/"
           className="font-display text-section-title inline-flex min-h-11 min-w-0 items-center gap-2 font-bold tracking-normal"
         >
           <BrandLogo />

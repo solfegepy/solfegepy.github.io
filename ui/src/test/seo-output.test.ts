@@ -8,10 +8,10 @@ import { TOOLS } from "../lib/tools";
 const TITLE = "Base64 Decode and Encode | Codec64";
 const DESCRIPTION =
   "Free Base64 encoder and decoder. Convert UTF-8 text to and from standard Base64 or unpadded Base64url in your browser.";
-const URL = "https://codec64.com/";
+const URL = "https://codec64.com/base64/";
 
 function productionDocument(): Document {
-  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/index.html"), "utf8");
+  const html = readFileSync(resolve(import.meta.dirname, "../../../docs/base64/index.html"), "utf8");
   return new DOMParser().parseFromString(html, "text/html");
 }
 
@@ -76,7 +76,7 @@ function notFoundDocument(): Document {
 }
 
 const ROUTES = [
-  "/",
+  "/base64/",
   "/url/",
   "/query/",
   "/jwt/",
@@ -106,8 +106,14 @@ describe("production homepage SEO", () => {
       expect(document.querySelector('meta[property="og:site_name"]')?.getAttribute("content"), route).toBe("Codec64");
       const schema = document.querySelector('script[type="application/ld+json"]');
       if (schema) {
-        const parsed = JSON.parse(schema.textContent ?? "") as { "@graph"?: { url: string }[]; url?: string };
-        for (const entity of parsed["@graph"] ?? [parsed]) expect(entity.url, route).toBe(canonical);
+        const parsed = JSON.parse(schema.textContent ?? "") as {
+          "@graph"?: { "@type": string; url: string }[];
+          "@type"?: string;
+          url?: string;
+        };
+        for (const entity of parsed["@graph"] ?? [parsed]) {
+          expect(entity.url, route).toBe(entity["@type"] === "WebSite" ? "https://codec64.com/" : canonical);
+        }
       }
 
       for (const link of document.querySelectorAll('a[href^="/"]')) {
@@ -138,7 +144,7 @@ describe("production homepage SEO", () => {
 
   it("serves web fonts from the site's own origin", () => {
     const pages = [
-      "",
+      "base64/",
       "url/",
       "query/",
       "jwt/",
@@ -177,7 +183,7 @@ describe("production homepage SEO", () => {
   });
 
   it("links the favicon from every built page", () => {
-    const pages = ["", "url/", "faq/", "cheatsheets/ssh/"].map((page) => `${page}index.html`);
+    const pages = ["base64/", "url/", "faq/", "cheatsheets/ssh/"].map((page) => `${page}index.html`);
     for (const page of [...pages, "404.html"]) {
       const html = readFileSync(resolve(import.meta.dirname, "../../../docs", page), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
@@ -187,7 +193,7 @@ describe("production homepage SEO", () => {
 
   it("renders every registered route with unique metadata and one heading", () => {
     for (const tool of TOOLS) {
-      const output = tool.route === "/" ? "index.html" : `${tool.route.slice(1)}index.html`;
+      const output = `${tool.route.slice(1)}index.html`;
       const html = readFileSync(resolve(import.meta.dirname, `../../../docs/${output}`), "utf8");
       const document = new DOMParser().parseFromString(html, "text/html");
       expect(document.title).toBe(`${tool.title} | Codec64`);
@@ -248,7 +254,7 @@ describe("production homepage SEO", () => {
     expect(schema).toEqual({
       "@context": "https://schema.org",
       "@graph": [
-        { "@type": "WebSite", name: "Codec64", url: URL },
+        { "@type": "WebSite", name: "Codec64", url: "https://codec64.com/" },
         {
           "@type": "WebApplication",
           name: "Codec64 Base64 Encoder and Decoder",
@@ -412,7 +418,7 @@ describe("production FAQ SEO", () => {
     expect(document.body.textContent).toContain("precision below one millisecond is truncated");
     expect(
       [...document.querySelectorAll('[data-testid="faq-tool-link"]')].map((link) => link.getAttribute("href")),
-    ).toEqual(["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]);
+    ).toEqual(["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]);
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
     expect(document.documentElement.innerHTML).not.toMatch(/FAQPage|QAPage/);
   });
@@ -526,7 +532,9 @@ describe("production 404", () => {
     expect(document.body.textContent).toContain("This page could not be found");
     expect(document.body.textContent).toContain("Codec64");
     expect(
-      [...document.querySelectorAll('a[href="/"]')].some((link) => link.textContent?.includes("Back to Codec64")),
+      [...document.querySelectorAll('a[href="/base64/"]')].some((link) =>
+        link.textContent?.includes("Back to Codec64"),
+      ),
     ).toBe(true);
     expect(document.querySelector('link[rel="canonical"]')).toBeNull();
     expect(document.querySelector('meta[property="og:url"]')).toBeNull();

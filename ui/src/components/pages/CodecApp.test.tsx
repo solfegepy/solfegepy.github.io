@@ -32,7 +32,7 @@ afterEach(() => {
 const FAQ_SECTIONS = [
   {
     heading: "Base64",
-    route: "/",
+    route: "/base64/",
     link: "Open Base64 encoder and decoder",
     questions: [
       "How do I encode text to Base64?",
@@ -337,7 +337,7 @@ describe("CodecApp", () => {
   });
 
   it.each([
-    ["base64", "/", "Base64", "Base64 Decode and Encode"],
+    ["base64", "/base64/", "Base64", "Base64 Decode and Encode"],
     ["url", "/url/", "URL", "URL Encode and Decode"],
     ["query", "/query/", "Query Params", "Query Parameter Editor"],
     ["jwt", "/jwt/", "JWT", "JWT Decoder"],
@@ -533,10 +533,10 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="base64" />);
     const menu = screen.getByTestId("menu-button");
     expect(screen.getByTestId("skip-link")).toHaveAttribute("href", "#main-content");
-    expect(screen.getByTestId("desktop-home-link")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("desktop-home-link")).toHaveAttribute("href", "/base64/");
     expect(screen.getByTestId("desktop-home-link")).not.toHaveAttribute("aria-label");
     expect(screen.getByTestId("desktop-home-link")).toHaveAccessibleName("Codec64");
-    expect(screen.getByTestId("mobile-home-link")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("mobile-home-link")).toHaveAttribute("href", "/base64/");
     expect(screen.getByTestId("mobile-home-link")).toHaveAccessibleName("Codec64");
     expect(menu).toHaveAttribute("title", "Open tools menu");
     await user.click(menu);

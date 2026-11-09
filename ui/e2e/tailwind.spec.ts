@@ -12,7 +12,7 @@ test("direct and desktop navigation discover the Tailwind converter", async ({ p
   await expect(tailwind.versionLabel()).toBeVisible();
   await expect(tailwind.inspectionPrompt()).toBeVisible();
 
-  await tailwind.open("/");
+  await tailwind.open("/base64/");
   await tailwind.chooseDesktopTailwind();
   await expect(page).toHaveURL(/\/tailwind\/$/);
   await expect(tailwind.activeNavigation()).toBeVisible();
@@ -21,7 +21,7 @@ test("direct and desktop navigation discover the Tailwind converter", async ({ p
 test("mobile drawer navigation opens the converter", async ({ page }) => {
   const tailwind = new TailwindPage(page);
   await tailwind.setViewport(390, 844);
-  await tailwind.open("/");
+  await tailwind.open("/base64/");
   await tailwind.chooseMobileTailwind();
 
   await expect(page).toHaveURL(/\/tailwind\/$/);

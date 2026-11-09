@@ -22,7 +22,7 @@ const SECTION_CLASSES = "border-line min-w-0 border-t pt-8 first:border-t-0 firs
 const FAQ_SECTIONS: readonly FaqSectionData[] = [
   {
     heading: "Base64",
-    route: "/",
+    route: "/base64/",
     linkLabel: "Open Base64 encoder and decoder",
     items: [
       {

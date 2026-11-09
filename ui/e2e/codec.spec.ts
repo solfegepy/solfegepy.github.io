@@ -269,7 +269,7 @@ test("Base64 converts, selects, and copies output through keyboard navigation", 
 test("FAQ navigation, static disclosures, route isolation, and converter links", async ({ page }) => {
   const codec = new CodecPage(page);
   await codec.installWebMcpMock();
-  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]) {
+  for (const route of ["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/"]) {
     await codec.open(route);
     await expect(codec.faqNavigation(), route).toHaveAttribute("href", "/faq/");
   }
@@ -302,7 +302,7 @@ test("FAQ navigation, static disclosures, route isolation, and converter links",
   await expect(codec.faqItems().nth(2)).toHaveAttribute("open");
   expect(traffic).toEqual([]);
   await codec.followFaqCategoryTool("Open Base64 encoder and decoder");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/base64\/$/);
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
 });
 
@@ -346,9 +346,10 @@ test("FAQ and brand links expose 44px touch targets", async ({ page }) => {
 
 test("publishes route metadata and navigates with browser history", async ({ page }) => {
   const codec = new CodecPage(page);
-  await codec.open();
+  await codec.open("/");
+  await expect(page).toHaveURL(/\/base64\/$/);
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
-  await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/");
+  await expect(codec.canonical()).toHaveAttribute("href", "https://codec64.com/base64/");
   await expect(codec.staticSection("Base64 FAQ")).toHaveCount(0);
   await codec.chooseTool("URL");
   await expect(page).toHaveURL(/\/url\/$/);
@@ -372,7 +373,7 @@ test("unknown route renders branded fallback and recovers home", async ({ page }
   await expect(codec.notFoundHome()).toBeFocused();
   expect(await codec.notFoundHome().evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
   await codec.recoverFromNotFound();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/base64\/$/);
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
 });
 
@@ -408,7 +409,7 @@ test("every route follows system light before hydration without browser errors",
   await expect(codec.app()).not.toHaveAttribute("data-hydrated", "true");
   const errors = codec.trackBrowserErrors();
 
-  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/"]) {
+  for (const route of ["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/"]) {
     await codec.open(route);
     await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
     await expect(codec.app()).not.toHaveAttribute("inert");
@@ -456,7 +457,7 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
 
 test("every route fits 320px at 200 percent text", async ({ page }) => {
   const codec = new CodecPage(page);
-  for (const route of ["/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/missing"]) {
+  for (const route of ["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/missing"]) {
     await codec.open(route);
     await page.addStyleTag({ content: "html { font-size: 200%; }" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);

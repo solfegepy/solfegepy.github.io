@@ -6,7 +6,7 @@ export interface ToolDefinition {
   id: ToolId;
   group: ToolGroup;
   label: string;
-  route: "/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/" | "/tailwind/";
+  route: "/base64/" | "/url/" | "/query/" | "/jwt/" | "/python-json/" | "/timestamp/" | "/tailwind/";
   title: string;
   description: readonly [summary: string, ...details: string[]];
   /** Search snippet for the page `<meta name="description">`; keep it under 160 characters. */
@@ -18,7 +18,7 @@ export const TOOLS = [
     id: "base64",
     group: "Encoding",
     label: "Base64",
-    route: "/",
+    route: "/base64/",
     title: "Base64 Decode and Encode",
     description: [
       "Convert plain text, Base64, or Base64url:",
