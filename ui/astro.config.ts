@@ -57,7 +57,7 @@ export default defineConfig({
       repoRoot,
       ".cache",
       "vite",
-      process.env.ENVIRONMENT ?? "development",
+      process.env.ENV ?? "development",
       process.env.NODE_ENV ?? "development",
     ),
     plugins: [tailwindcss()],
