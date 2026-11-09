@@ -324,6 +324,31 @@ describe("CodecApp", () => {
     expect(screen.getByTestId("sidebar-footer")).not.toHaveTextContent(/local only|no uploads/i);
   });
 
+  it.each([
+    ["Encoding", "Base64"],
+    ["Conversion", "Query Params"],
+    ["Cheatsheets", "OpenSSL"],
+    ["Help", "FAQ"],
+  ])("collapses and reopens %s independently with mouse and keyboard", async (group, linkName) => {
+    const user = userEvent.setup();
+    render(<CodecApp toolId="base64" />);
+    const navigation = within(screen.getByTestId("tool-navigation"));
+    const toggle = navigation.getByRole("button", { name: group });
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(navigation.getByRole("link", { name: linkName })).toBeVisible();
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(navigation.queryByRole("link", { name: linkName })).not.toBeInTheDocument();
+    expect(navigation.getByRole("link", { name: group === "Help" ? "Base64" : "FAQ" })).toBeVisible();
+
+    await user.keyboard("{Enter}");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(navigation.getByRole("link", { name: linkName })).toBeVisible();
+    await user.keyboard(" ");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("shows inactive Help/FAQ navigation on every tool identity", () => {
     for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
       const view = render(<CodecApp toolId={toolId} />);

@@ -1,5 +1,5 @@
-import { CircleHelpIcon, InfoIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ChevronDownIcon, CircleHelpIcon, InfoIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { TOOL_PRESENTATION } from "../../lib/presentation";
 import { applyTheme, readTheme, writeTheme, type Theme } from "../../lib/theme";
@@ -24,13 +24,45 @@ const NAV_LINK_CLASSES =
   "group mx-3 flex min-h-11 items-center gap-3 rounded-control border border-transparent px-3 text-control font-medium text-muted transition hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
 const ACTIVE_NAV_LINK_CLASSES = "border-primary/20 bg-primary-soft font-semibold text-primary";
 const NAV_GROUP_CLASSES = "mb-5";
-const NAV_GROUP_LABEL_CLASSES = "text-muted px-5 pb-2 text-meta font-semibold";
+const NAV_GROUP_LABEL_CLASSES =
+  "mx-3 flex min-h-11 items-center justify-between gap-2 rounded-control px-2 text-meta font-semibold text-muted transition hover:bg-field hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
 const BRAND_SUFFIX_CLASSES = "text-accent-strong";
 const ICON_BUTTON_CLASSES = "icon-button";
 const iconAccentClass = (accentClasses: string) =>
   accentClasses.split(" ").find((className) => className.startsWith("text-")) ?? "text-muted";
 
 type InfoPage = "faq" | "privacy" | "about" | "ascii" | "openssl" | "ssh";
+
+interface NavigationGroupProps {
+  label: string;
+  testId: string;
+  children: ReactNode;
+}
+
+/** Group links under an independently collapsible, keyboard-accessible control. */
+function NavigationGroup({ label, testId, children }: NavigationGroupProps) {
+  const [expanded, setExpanded] = useState(true);
+  const contentId = useId();
+  return (
+    <section data-testid={testId} className={`${NAV_GROUP_CLASSES} flex flex-col`}>
+      <button
+        data-testid={`navigation-toggle-${label.toLowerCase()}`}
+        type="button"
+        className={NAV_GROUP_LABEL_CLASSES}
+        title={`${expanded ? "Collapse" : "Expand"} ${label}`}
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        onClick={() => setExpanded(!expanded)}
+      >
+        {label}
+        <ChevronDownIcon aria-hidden="true" size={16} className={expanded ? "" : "-rotate-90"} />
+      </button>
+      <div id={contentId} hidden={!expanded}>
+        {children}
+      </div>
+    </section>
+  );
+}
 
 interface ToolNavigationProps {
   activeTool: ToolId | undefined;
@@ -45,8 +77,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
   return (
     <nav data-testid="tool-navigation" aria-label="Tools and help" className="flex flex-1 flex-col py-5">
       {TOOL_GROUPS.map((group) => (
-        <section data-testid="tool-navigation-group" key={group} className={NAV_GROUP_CLASSES}>
-          <p className={NAV_GROUP_LABEL_CLASSES}>{group}</p>
+        <NavigationGroup label={group} testId="tool-navigation-group" key={group}>
           <div>
             {TOOLS.filter((tool) => tool.group === group).map((tool) => {
               const { Icon, accentClasses } = TOOL_PRESENTATION[tool.id];
@@ -90,10 +121,9 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
               </a>
             )}
           </div>
-        </section>
+        </NavigationGroup>
       ))}
-      <section data-testid="cheatsheets-navigation-group" className={NAV_GROUP_CLASSES}>
-        <p className={NAV_GROUP_LABEL_CLASSES}>Cheatsheets</p>
+      <NavigationGroup label="Cheatsheets" testId="cheatsheets-navigation-group">
         <a
           data-testid="cheatsheet-link-openssl"
           data-accent="openssl"
@@ -126,9 +156,8 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           />
           SSH
         </a>
-      </section>
-      <section data-testid="help-navigation-group" className={NAV_GROUP_CLASSES}>
-        <p className={NAV_GROUP_LABEL_CLASSES}>Help</p>
+      </NavigationGroup>
+      <NavigationGroup label="Help" testId="help-navigation-group">
         <a
           data-testid="faq-link"
           data-accent="faq"
@@ -161,7 +190,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           />
           About
         </a>
-      </section>
+      </NavigationGroup>
     </nav>
   );
 }
