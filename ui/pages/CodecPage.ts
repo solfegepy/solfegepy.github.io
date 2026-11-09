@@ -282,6 +282,28 @@ export class CodecPage {
   /** Opens mobile navigation drawer. @returns Resolves after activation. */
   async openDrawer(): Promise<void> {
     await this.page.getByTestId("menu-button").click();
+    await this.drawer().evaluate((drawer) =>
+      Promise.all(drawer.getAnimations().map((animation) => animation.finished)),
+    );
+  }
+
+  /** Opens and samples the drawer during entry. @returns Layout positions excluding the animated translation. */
+  async sampleDrawerEntry(): Promise<{ left: number; expectedLeft: number }[]> {
+    return this.page.getByTestId("menu-button").evaluate(async (button) => {
+      (button as HTMLButtonElement).click();
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      const drawer = document.querySelector<HTMLElement>('[data-testid="mobile-drawer"]')!;
+      const animation = drawer.getAnimations()[0]!;
+      animation.pause();
+      const samples = [0, 50, 100, 199].map((time) => {
+        animation.currentTime = time;
+        const translation = new DOMMatrixReadOnly(getComputedStyle(drawer).transform).m41;
+        const bounds = drawer.getBoundingClientRect();
+        return { left: bounds.left - translation, expectedLeft: innerWidth - bounds.width };
+      });
+      animation.finish();
+      return samples;
+    });
   }
 
   /** Closes mobile navigation drawer. @returns Resolves after activation. */

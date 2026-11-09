@@ -571,6 +571,15 @@ test("desktop shell gives the workspace its available width", async ({ page }) =
   expect(source!.width + target!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
 });
 
+test("mobile drawer stays anchored right throughout its entry transition", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(390, 844);
+  await codec.open();
+  for (const sample of await codec.sampleDrawerEntry()) {
+    expect(sample.left).toBeCloseTo(sample.expectedLeft, 1);
+  }
+});
+
 test("mobile drawer traps focus, closes, and fits large text at 320px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 812 });
   const codec = new CodecPage(page);

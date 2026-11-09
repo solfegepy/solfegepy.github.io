@@ -321,8 +321,17 @@ code {
   transform: translateY(0);
 }
 
+.mobile-drawer-dialog {
+  /* Prevent focus from scrolling the dialog toward the drawer while it slides in. */
+  overflow: clip;
+}
+
 .mobile-drawer-dialog::backdrop {
   background: transparent;
+}
+
+.mobile-drawer-panel {
+  overflow-y: auto;
 }
 
 @media (prefers-reduced-motion: no-preference) {
