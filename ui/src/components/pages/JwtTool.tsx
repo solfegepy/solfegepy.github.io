@@ -39,7 +39,7 @@ const OUTPUT_ICONS = {
   Signature: FingerprintIcon,
 } as const satisfies Record<JwtOutputFieldProps["label"], LucideIcon>;
 const OUTPUT_HEADING_CLASSES = "text-ink font-display text-subheading flex items-center gap-2 font-semibold";
-const JWT_ICON_CLASSES = "text-tool-jwt";
+const JWT_ICON_CLASSES = "text-secondary";
 
 const formatOutput = ({ header, payload, signature }: DecodedJwt): JwtOutput => ({
   header: JSON.stringify(header, null, 2),

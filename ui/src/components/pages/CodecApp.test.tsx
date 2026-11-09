@@ -377,6 +377,7 @@ describe("CodecApp", () => {
     expect(active).toHaveAttribute("aria-current", "page");
     expect(active).toHaveAttribute("data-accent", toolId);
     expect(active.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByTestId("page-identity-icon")).toHaveClass("bg-secondary-soft");
     expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
   });
 

@@ -1,7 +1,7 @@
 import { ArrowUpRightIcon, ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { TOOL_PRESENTATION } from "../../lib/presentation";
+import { TOOL_IDENTITY_CLASSES, TOOL_PRESENTATION } from "../../lib/presentation";
 import { TOOLS } from "../../lib/tools";
 
 interface FaqItemData {
@@ -350,7 +350,7 @@ interface FaqCategoryProps {
 function FaqCategory({ section }: FaqCategoryProps) {
   const accordionName = `faq-${section.heading.toLowerCase().replaceAll(" ", "-")}`;
   const toolId = TOOLS.find((tool) => tool.route === section.route)!.id;
-  const { Icon, accentClasses } = TOOL_PRESENTATION[toolId];
+  const { Icon } = TOOL_PRESENTATION[toolId];
 
   return (
     <section data-testid="faq-category" className={SECTION_CLASSES}>
@@ -358,7 +358,7 @@ function FaqCategory({ section }: FaqCategoryProps) {
         <div className="flex min-w-0 items-center gap-3">
           <span
             data-testid="faq-category-icon"
-            className={`rounded-control inline-flex size-11 shrink-0 items-center justify-center border ${accentClasses}`}
+            className={`rounded-control inline-flex size-11 shrink-0 items-center justify-center border ${TOOL_IDENTITY_CLASSES}`}
           >
             <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
           </span>

@@ -1,7 +1,7 @@
 import { ChevronDownIcon, CircleHelpIcon, InfoIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-import { TOOL_PRESENTATION } from "../../lib/presentation";
+import { TOOL_IDENTITY_CLASSES, TOOL_PRESENTATION } from "../../lib/presentation";
 import { applyTheme, readTheme, writeTheme, type Theme } from "../../lib/theme";
 import { getTool, TOOL_GROUPS, TOOLS, type ToolId } from "../../lib/tools";
 import { BrandLogo } from "../ui/BrandLogo";
@@ -29,8 +29,8 @@ const NAV_GROUP_LABEL_CLASSES =
   "mx-3 flex min-h-11 items-center justify-between gap-2 rounded-control px-2 text-meta font-semibold text-muted transition hover:bg-field hover:text-ink focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
 const BRAND_SUFFIX_CLASSES = "text-accent-strong";
 const ICON_BUTTON_CLASSES = "icon-button";
-const iconAccentClass = (accentClasses: string) =>
-  accentClasses.split(" ").find((className) => className.startsWith("text-")) ?? "text-muted";
+// The active link sets text-primary, so its icon drops the secondary color and inherits it.
+const navIconClasses = (current: boolean) => (current ? "shrink-0" : "shrink-0 text-secondary");
 
 type InfoPage = "faq" | "privacy" | "about" | "ascii" | "openssl" | "ssh";
 
@@ -81,7 +81,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
         <NavigationGroup label={group} testId="tool-navigation-group" key={group}>
           <div>
             {TOOLS.filter((tool) => tool.group === group).map((tool) => {
-              const { Icon, accentClasses } = TOOL_PRESENTATION[tool.id];
+              const { Icon } = TOOL_PRESENTATION[tool.id];
               const current = tool.id === activeTool;
               return (
                 <a
@@ -93,12 +93,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
                   className={`${NAV_LINK_CLASSES} ${current ? ACTIVE_NAV_LINK_CLASSES : ""}`}
                   onClick={onNavigate}
                 >
-                  <Icon
-                    aria-hidden="true"
-                    className={`shrink-0 ${iconAccentClass(accentClasses)}`}
-                    size={16}
-                    strokeWidth={2}
-                  />
+                  <Icon aria-hidden="true" className={navIconClasses(current)} size={16} strokeWidth={2} />
                   {tool.label}
                 </a>
               );
@@ -114,7 +109,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
               >
                 <TOOL_PRESENTATION.ascii.Icon
                   aria-hidden="true"
-                  className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.ascii.accentClasses)}`}
+                  className={navIconClasses(asciiCurrent)}
                   size={16}
                   strokeWidth={2}
                 />
@@ -135,7 +130,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
         >
           <TOOL_PRESENTATION.openssl.Icon
             aria-hidden="true"
-            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.openssl.accentClasses)}`}
+            className={navIconClasses(currentPage === "openssl")}
             size={16}
             strokeWidth={2}
           />
@@ -151,7 +146,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
         >
           <TOOL_PRESENTATION.ssh.Icon
             aria-hidden="true"
-            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.ssh.accentClasses)}`}
+            className={navIconClasses(currentPage === "ssh")}
             size={16}
             strokeWidth={2}
           />
@@ -167,12 +162,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${faqCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <CircleHelpIcon
-            aria-hidden="true"
-            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.faq.accentClasses)}`}
-            size={16}
-            strokeWidth={2}
-          />
+          <CircleHelpIcon aria-hidden="true" className={navIconClasses(faqCurrent)} size={16} strokeWidth={2} />
           FAQ
         </a>
         <a
@@ -183,12 +173,7 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
           className={`${NAV_LINK_CLASSES} ${aboutCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
           onClick={onNavigate}
         >
-          <InfoIcon
-            aria-hidden="true"
-            className={`shrink-0 ${iconAccentClass(TOOL_PRESENTATION.about.accentClasses)}`}
-            size={16}
-            strokeWidth={2}
-          />
+          <InfoIcon aria-hidden="true" className={navIconClasses(aboutCurrent)} size={16} strokeWidth={2} />
           About
         </a>
       </NavigationGroup>
@@ -514,7 +499,7 @@ export function CodecApp(props: CodecAppProps) {
             <div className="flex min-w-0 items-center gap-3">
               <span
                 data-testid="page-identity-icon"
-                className={`rounded-control inline-flex size-(--text-page-title) shrink-0 items-center justify-center border ${pagePresentation.accentClasses}`}
+                className={`rounded-control inline-flex size-(--text-page-title) shrink-0 items-center justify-center border ${TOOL_IDENTITY_CLASSES}`}
               >
                 <PageIcon aria-hidden="true" size={21} strokeWidth={1.8} />
               </span>

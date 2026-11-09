@@ -19,35 +19,32 @@ export type PresentationId = ToolId | "faq" | "privacy" | "about" | "ascii" | "o
 
 interface ToolPresentation {
   Icon: LucideIcon;
-  accentClasses: string;
 }
 
-/** UI-only icon and semantic accent metadata for tool identities. */
+/** Shared secondary (teal) identity tile classes used by every tool and info page. */
+export const TOOL_IDENTITY_CLASSES = "border-secondary bg-secondary-soft text-secondary";
+
+/** UI-only icon metadata for tool identities. */
 export const TOOL_PRESENTATION = {
   base64: {
     Icon: BracesIcon,
-    accentClasses: "border-tool-base64-border bg-tool-base64-soft text-tool-base64",
   },
-  url: { Icon: LinkIcon, accentClasses: "border-tool-url-border bg-tool-url-soft text-tool-url" },
-  query: { Icon: CodeXmlIcon, accentClasses: "border-tool-query-border bg-tool-query-soft text-tool-query" },
-  jwt: { Icon: KeyRoundIcon, accentClasses: "border-tool-jwt-border bg-tool-jwt-soft text-tool-jwt" },
-  python: { Icon: BracesIcon, accentClasses: "border-tool-python-border bg-tool-python-soft text-tool-python" },
+  url: { Icon: LinkIcon },
+  query: { Icon: CodeXmlIcon },
+  jwt: { Icon: KeyRoundIcon },
+  python: { Icon: BracesIcon },
   timestamp: {
     Icon: ClockIcon,
-    accentClasses: "border-tool-timestamp-border bg-tool-timestamp-soft text-tool-timestamp",
   },
   tailwind: {
     Icon: PaletteIcon,
-    accentClasses: "border-tool-query-border bg-tool-query-soft text-tool-query",
   },
-  faq: { Icon: CircleHelpIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
+  faq: { Icon: CircleHelpIcon },
   privacy: {
     Icon: CookieIcon,
-    accentClasses: "border-tool-privacy-border bg-tool-privacy-soft text-tool-privacy",
   },
-  // About shares the Help group's accent with the FAQ.
-  about: { Icon: InfoIcon, accentClasses: "border-tool-faq-border bg-tool-faq-soft text-tool-faq" },
-  ascii: { Icon: BinaryIcon, accentClasses: "border-tool-url-border bg-tool-url-soft text-tool-url" },
-  openssl: { Icon: TerminalIcon, accentClasses: "border-tool-python-border bg-tool-python-soft text-tool-python" },
-  ssh: { Icon: TerminalIcon, accentClasses: "border-tool-python-border bg-tool-python-soft text-tool-python" },
+  about: { Icon: InfoIcon },
+  ascii: { Icon: BinaryIcon },
+  openssl: { Icon: TerminalIcon },
+  ssh: { Icon: TerminalIcon },
 } as const satisfies Record<PresentationId, ToolPresentation>;
