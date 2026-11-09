@@ -454,7 +454,7 @@ export function CodecApp(props: CodecAppProps) {
           data-accent={props.page ?? props.toolId}
           className="mb-6"
         >
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-start md:justify-between">
             <div className="flex min-w-0 items-start gap-3">
               <span
                 data-testid="page-identity-icon"
