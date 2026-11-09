@@ -34,7 +34,7 @@ Use Vitest with Testing Library for unit and component behavior. Use Playwright 
 
 ## Git & Deploy
 
-Never run GIT commit or deploy. The user will review changes before deploying.
+Never run GIT commit or deploy, unless you are executing a list of multiple tasts (e.g. in .aidd/task.md). The user will review changes before deploying.
 
 ## Security & Deployment
 
