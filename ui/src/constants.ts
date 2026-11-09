@@ -9,7 +9,7 @@ export const CONVERSION_EXAMPLES = {
   },
   query: {
     forward: "https://example.com/?name=Ada&active=true",
-    reverse: '{\n  "name": "Ada",\n  "active": "true"\n}',
+    reverse: '{\n  "name": "Ada",\n  "active": true\n}',
   },
   python: {
     forward: "{'name': 'Ada', 'active': True}",
