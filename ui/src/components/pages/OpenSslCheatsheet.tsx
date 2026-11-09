@@ -45,8 +45,8 @@ export function OpenSslCheatsheet() {
         </h2>
         <CommandSnippet command={HEX_COMMAND} prompt="$" label="Copy hexadecimal secret command" />
         <p className="text-muted">
-          OpenSSL generates 32 random bytes (256 bits) in hexadecimal. Hex is longer than Base64URL for the same
-          randomness.
+          OpenSSL generates 32 random bytes (256 bits) in hexadecimal. Note that Hex is longer than Base64URL for the
+          same randomness.
         </p>
       </section>
 

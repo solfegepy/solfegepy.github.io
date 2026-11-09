@@ -68,10 +68,6 @@ export function SshCheatsheet() {
           <h3 className="text-ink mb-2 font-semibold">PowerShell 7.3+</h3>
           <CommandSnippet command={POWERSHELL_KEY_COMMAND} prompt="PS>" label="Copy PowerShell key command" />
         </div>
-        <p className="text-muted">
-          Choose a fresh output filename and customize the comment and key name. If the file already exists, decline the
-          overwrite prompt unless you intend to replace that key. Do not suppress the prompt or force an overwrite.
-        </p>
         <div data-testid="ssh-flags">
           <h3 className="text-ink mb-2 font-semibold">Understand the options</h3>
           <ul className="text-muted list-inside list-disc space-y-2">
