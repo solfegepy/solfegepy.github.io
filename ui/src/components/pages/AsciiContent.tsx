@@ -17,7 +17,7 @@ export function AsciiContent() {
   return (
     <div className="min-w-0" data-testid="ascii-content">
       <header data-testid="ascii-description" className="mb-6 space-y-3">
-        <p className="text-muted max-w-prose">
+        <p className="text-muted text-body max-w-reading">
           ASCII covers U+0000–U+007F. The remaining entries are Unicode Latin characters, not one universal extended
           ASCII encoding. Code values identify Unicode code points; URL values show each character encoded as UTF-8.
         </p>
@@ -37,7 +37,7 @@ export function AsciiContent() {
               onChange={(event) => setQuery(event.currentTarget.value)}
               aria-describedby="ascii-search-help"
               placeholder="e.g. 5E, U+005E, %5E, or e"
-              className="border-line bg-field text-ink placeholder:text-muted focus-visible:ring-primary rounded-control min-h-11 min-w-0 flex-1 border px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="border-line bg-field text-ink placeholder:text-muted focus-visible:ring-primary rounded-control text-control min-h-11 min-w-0 flex-1 border px-3 font-mono outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             />
             {query !== "" && (
               <button
@@ -46,25 +46,25 @@ export function AsciiContent() {
                 aria-label="Clear search"
                 title="Clear search"
                 onClick={() => setQuery("")}
-                className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:ring-primary rounded-control min-h-11 min-w-11 border px-3 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                className="border-line bg-field text-ink hover:border-primary hover:text-primary focus-visible:ring-primary rounded-control text-control min-h-11 min-w-11 border px-3 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               >
                 Clear
               </button>
             )}
           </div>
-          <p id="ascii-search-help" className="text-muted mt-2 text-sm">
+          <p id="ascii-search-help" className="text-muted text-control mt-2">
             {HELP_TEXT} Examples: <code>5E</code>, <code>U+005E</code>, <code>%5E</code>, or <code>é</code>.
           </p>
         </div>
 
-        <p className="text-muted text-sm" role="status" aria-live="polite" data-testid="ascii-result-count">
+        <p className="text-muted text-control" role="status" aria-live="polite" data-testid="ascii-result-count">
           {rows.length} {rows.length === 1 ? "result" : "results"} {query.trim() === "" && `of ${allRows.length}`}
         </p>
 
         {rows.length === 0 ? (
-          <div className="border-line bg-panel rounded-surface border p-4" data-testid="ascii-empty-state">
+          <div data-testid="ascii-empty-state">
             <p className="text-ink font-semibold">No matches</p>
-            <p className="text-muted mt-1 text-sm">{HELP_TEXT}</p>
+            <p className="text-muted text-control mt-1">{HELP_TEXT}</p>
           </div>
         ) : (
           <div

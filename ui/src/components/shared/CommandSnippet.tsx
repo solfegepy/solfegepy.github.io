@@ -45,7 +45,7 @@ export function CommandSnippet({ command, label, prompt }: CommandSnippetProps) 
         >
           <Copy aria-hidden="true" size={17} />
         </button>
-        <pre className="rounded-control border-line bg-panel text-ink overflow-x-auto border p-4 pr-14 font-mono text-sm">
+        <pre className="rounded-control border-line bg-panel text-ink text-control overflow-x-auto border p-4 pr-14 font-mono">
           {/* Keep the prompt out of manual selections so pasted commands run as-is. */}
           <span data-testid="command-snippet-prompt" aria-hidden="true" className="text-muted mr-2 select-none">
             {prompt}

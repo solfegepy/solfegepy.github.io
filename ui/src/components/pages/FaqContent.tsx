@@ -16,8 +16,8 @@ interface FaqSectionData {
   items: readonly FaqItemData[];
 }
 
-const CODE_CLASSES = "break-all font-mono text-sm text-ink";
-const SECTION_CLASSES = "border-line bg-panel min-w-0 rounded-surface border p-4 shadow-sm md:p-6";
+const CODE_CLASSES = "break-all font-mono text-control text-ink";
+const SECTION_CLASSES = "border-line min-w-0 border-t pt-8 first:border-t-0 first:pt-0";
 
 const FAQ_SECTIONS: readonly FaqSectionData[] = [
   {
@@ -324,19 +324,19 @@ interface FaqItemProps {
 
 function FaqItem({ accordionName, item }: FaqItemProps) {
   return (
-    <details data-testid="faq-item" name={accordionName} className="bg-panel open:bg-field group transition-colors">
+    <details data-testid="faq-item" name={accordionName} className="group">
       <summary
         data-testid="faq-summary"
-        className="hover:bg-field focus-visible:outline-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
+        className="hover:bg-field focus-visible:outline-primary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
       >
-        <h3 className="font-display text-ink min-w-0 text-xl leading-7 font-bold">{item.question}</h3>
+        <h3 className="font-display text-ink text-subheading min-w-0 font-semibold">{item.question}</h3>
         <ChevronDownIcon
           aria-hidden="true"
           className="text-muted size-5 shrink-0 transition-transform duration-200 group-open:rotate-180"
           strokeWidth={2}
         />
       </summary>
-      <p data-testid="faq-answer" className="text-muted max-w-prose px-4 pt-1 pb-5 leading-7 break-words md:pr-12">
+      <p data-testid="faq-answer" className="text-muted text-body max-w-reading pt-1 pb-5 break-words">
         {item.answer}
       </p>
     </details>
@@ -362,21 +362,18 @@ function FaqCategory({ section }: FaqCategoryProps) {
           >
             <Icon aria-hidden="true" size={20} strokeWidth={1.8} />
           </span>
-          <h2 className="font-display text-ink text-2xl font-bold tracking-tight">{section.heading}</h2>
+          <h2 className="font-display text-ink text-section-title font-semibold">{section.heading}</h2>
         </div>
         <a
           data-testid="faq-tool-link"
           href={section.route}
-          className="text-primary focus-visible:outline-primary inline-flex min-h-11 items-center gap-2 text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="text-primary focus-visible:outline-primary text-control inline-flex min-h-11 items-center gap-2 font-semibold underline decoration-2 underline-offset-4 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {section.linkLabel}
           <ArrowUpRightIcon aria-hidden="true" size={16} />
         </a>
       </div>
-      <div
-        data-testid="faq-accordion"
-        className="border-line bg-panel divide-line rounded-control divide-y overflow-hidden border"
-      >
+      <div data-testid="faq-accordion" className="divide-line divide-y">
         {section.items.map((item) => (
           <FaqItem key={item.question} accordionName={accordionName} item={item} />
         ))}
@@ -388,7 +385,7 @@ function FaqCategory({ section }: FaqCategoryProps) {
 /** Renders static FAQ categories and native disclosure items. */
 export function FaqContent() {
   return (
-    <div data-testid="faq-content" className="grid gap-5">
+    <div data-testid="faq-content" className="space-y-8">
       {FAQ_SECTIONS.map((section) => (
         <FaqCategory key={section.heading} section={section} />
       ))}

@@ -15,32 +15,29 @@ const HEX_COMMAND = "openssl rand -hex 32";
 /** Documents local commands for creating an unpadded Base64URL or hexadecimal secret. */
 export function OpenSslCheatsheet() {
   return (
-    <article
-      data-testid="openssl-cheatsheet"
-      className="[&>section]:border-line max-w-prose min-w-0 space-y-8 [&>section]:border-t [&>section]:pt-8 [&>section>h2]:text-2xl"
-    >
+    <article data-testid="openssl-cheatsheet" className="max-w-reading min-w-0 space-y-8">
       <section data-testid="openssl-base64url" aria-labelledby="openssl-base64url" className="space-y-4">
-        <h2 id="openssl-base64url" className="text-ink text-xl font-bold">
+        <h2 id="openssl-base64url" className="text-ink text-section-title font-semibold">
           Base64URL secret
         </h2>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
           <CommandSnippet command={POSIX_COMMAND} prompt="$" label="Copy macOS/Linux command" />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">Windows PowerShell</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">Windows PowerShell</h3>
           <CommandSnippet command={POWERSHELL_COMMAND} prompt="PS>" label="Copy PowerShell command" />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">What the command returns</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">What the command returns</h3>
           <p className="text-muted">
             OpenSSL generates 32 random bytes (256 bits) Base64-encoded, then it is converted to Base64URL.
           </p>
         </div>
       </section>
 
-      <section data-testid="openssl-hex" aria-labelledby="openssl-hex" className="space-y-4">
-        <h2 id="openssl-hex" className="text-ink text-xl font-bold">
+      <section data-testid="openssl-hex" aria-labelledby="openssl-hex" className="border-line space-y-4 border-t">
+        <h2 id="openssl-hex" className="text-ink text-section-title font-semibold">
           Hexadecimal secret
         </h2>
         <CommandSnippet command={HEX_COMMAND} prompt="$" label="Copy hexadecimal secret command" />
@@ -50,11 +47,11 @@ export function OpenSslCheatsheet() {
         </p>
       </section>
 
-      <section data-testid="openssl-references" aria-labelledby="openssl-references">
-        <h2 id="openssl-references" className="text-ink mb-2 text-xl font-bold">
+      <section data-testid="openssl-references" aria-labelledby="openssl-references" className="border-line border-t">
+        <h2 id="openssl-references" className="text-ink text-section-title mb-2 font-semibold">
           References
         </h2>
-        <ul className="text-muted list-inside list-disc space-y-2">
+        <ul className="text-muted text-body list-inside list-disc space-y-2">
           <li>
             <a
               data-testid="openssl-reference-openssl"

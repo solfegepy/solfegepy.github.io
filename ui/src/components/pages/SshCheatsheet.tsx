@@ -34,20 +34,17 @@ const POWERSHELL_COPY_ID_COMMAND = [
 /** Documents local OpenSSH commands for creating and inspecting an Ed25519 key pair. */
 export function SshCheatsheet() {
   return (
-    <article
-      data-testid="ssh-cheatsheet"
-      className="[&>section]:border-line max-w-prose min-w-0 space-y-8 [&>section]:border-t [&>section]:pt-8 [&>section>h2]:text-2xl"
-    >
+    <article data-testid="ssh-cheatsheet" className="max-w-reading min-w-0 space-y-8">
       <section data-testid="ssh-directory" aria-labelledby="ssh-directory" className="space-y-4">
-        <h2 id="ssh-directory" className="text-ink text-xl font-bold">
+        <h2 id="ssh-directory" className="text-ink text-section-title font-semibold">
           Prepare the directory if needed
         </h2>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
           <CommandSnippet command={POSIX_DIRECTORY_COMMAND} prompt="$" label="Copy macOS/Linux directory command" />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">PowerShell 7.3+</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">PowerShell 7.3+</h3>
           <CommandSnippet
             command={POWERSHELL_DIRECTORY_COMMAND}
             prompt="PS>"
@@ -56,20 +53,20 @@ export function SshCheatsheet() {
         </div>
       </section>
 
-      <section data-testid="ssh-generation" aria-labelledby="ssh-generation" className="space-y-4">
-        <h2 id="ssh-generation" className="text-ink text-xl font-bold">
+      <section data-testid="ssh-generation" aria-labelledby="ssh-generation" className="border-line space-y-4 border-t">
+        <h2 id="ssh-generation" className="text-ink text-section-title font-semibold">
           Generate a key pair
         </h2>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
           <CommandSnippet command={POSIX_KEY_COMMAND} prompt="$" label="Copy macOS/Linux key command" />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">PowerShell 7.3+</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">PowerShell 7.3+</h3>
           <CommandSnippet command={POWERSHELL_KEY_COMMAND} prompt="PS>" label="Copy PowerShell key command" />
         </div>
         <div data-testid="ssh-flags">
-          <h3 className="text-ink mb-2 font-semibold">Understand the options</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">Understand the options</h3>
           <ul className="text-muted list-inside list-disc space-y-2">
             <li>
               <code>-t ed25519</code> selects the Ed25519 key type.
@@ -93,8 +90,8 @@ export function SshCheatsheet() {
         </div>
       </section>
 
-      <section data-testid="ssh-files" aria-labelledby="ssh-files" className="space-y-4">
-        <h2 id="ssh-files" className="text-ink text-xl font-bold">
+      <section data-testid="ssh-files" aria-labelledby="ssh-files" className="border-line space-y-4 border-t">
+        <h2 id="ssh-files" className="text-ink text-section-title font-semibold">
           Share the public key
         </h2>
         <p className="text-muted">
@@ -103,7 +100,7 @@ export function SshCheatsheet() {
           display private-key contents.
         </p>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
           <CommandSnippet
             command={POSIX_PUBLIC_KEY_COMMAND}
             prompt="$"
@@ -111,7 +108,7 @@ export function SshCheatsheet() {
           />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">PowerShell 7.3+</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">PowerShell 7.3+</h3>
           <CommandSnippet
             command={POWERSHELL_PUBLIC_KEY_COMMAND}
             prompt="PS>"
@@ -120,8 +117,8 @@ export function SshCheatsheet() {
         </div>
       </section>
 
-      <section data-testid="ssh-copy-id" aria-labelledby="ssh-copy-id" className="space-y-4">
-        <h2 id="ssh-copy-id" className="text-ink text-xl font-bold">
+      <section data-testid="ssh-copy-id" aria-labelledby="ssh-copy-id" className="border-line space-y-4 border-t">
+        <h2 id="ssh-copy-id" className="text-ink text-section-title font-semibold">
           Install the public key on a server
         </h2>
         <p className="text-muted">
@@ -130,11 +127,11 @@ export function SshCheatsheet() {
           once. For GitHub or another service, paste the <code>.pub</code> contents into its key settings instead.
         </p>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">macOS / Linux (POSIX shell)</h3>
           <CommandSnippet command={POSIX_COPY_ID_COMMAND} prompt="$" label="Copy macOS/Linux ssh-copy-id command" />
         </div>
         <div>
-          <h3 className="text-ink mb-2 font-semibold">PowerShell 7.3+</h3>
+          <h3 className="text-ink text-subheading mb-2 font-semibold">PowerShell 7.3+</h3>
           <CommandSnippet
             command={POWERSHELL_COPY_ID_COMMAND}
             prompt="PS>"
@@ -143,11 +140,11 @@ export function SshCheatsheet() {
         </div>
       </section>
 
-      <section data-testid="ssh-references" aria-labelledby="ssh-references">
-        <h2 id="ssh-references" className="text-ink mb-2 text-xl font-bold">
+      <section data-testid="ssh-references" aria-labelledby="ssh-references" className="border-line border-t">
+        <h2 id="ssh-references" className="text-ink text-section-title mb-2 font-semibold">
           References
         </h2>
-        <ul className="text-muted list-inside list-disc space-y-2">
+        <ul className="text-muted text-body list-inside list-disc space-y-2">
           <li>
             <a
               data-testid="ssh-reference-openssh"

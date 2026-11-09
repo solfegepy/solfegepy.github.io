@@ -140,7 +140,7 @@ export function PrivacyContent() {
           when you accept the category that uses them.
         </p>
         <div className="border-line rounded-control max-w-full overflow-x-auto border">
-          <table data-testid="privacy-cookie-table" className="w-full text-left text-sm">
+          <table data-testid="privacy-cookie-table" className="text-body w-full text-left">
             <caption className="sr-only">Cookies Codec64 sets</caption>
             <thead className="bg-field text-ink">
               <tr>
