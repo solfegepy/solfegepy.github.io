@@ -475,7 +475,7 @@ test("light and dark workbench states keep readable contrast and visible reduced
 
   const contrast = async (
     locator: Locator,
-    foregroundProperty: "color" | "borderColor" | "outlineColor" = "color",
+    foregroundProperty: "color" | "borderColor" | "borderRightColor" | "outlineColor" = "color",
   ): Promise<number> =>
     locator.evaluate((node, property) => {
       const context = document.createElement("canvas").getContext("2d")!;
@@ -514,21 +514,19 @@ test("light and dark workbench states keep readable contrast and visible reduced
     );
     expect(await contrast(codec.sidebar(), "borderColor"), `${theme} canvas/panel boundary`).toBeGreaterThanOrEqual(3);
     expect(
-      await contrast(codec.channel("base64", "top"), "borderColor"),
+      await contrast(codec.channel("base64", "top"), "borderRightColor"),
       `${theme} panel/field boundary`,
     ).toBeGreaterThanOrEqual(3);
     expect(await contrast(codec.output("base64-output"))).toBeGreaterThanOrEqual(4.5);
     expect(await contrast(page.getByTestId("tool-link-base64").first())).toBeGreaterThanOrEqual(4.5);
     for (const toolId of ["base64", "url", "query", "jwt", "python", "timestamp"] as const) {
-      const tile = page.getByTestId(`tool-link-${toolId}`).first().locator("span");
-      expect(await contrast(tile), `${theme} ${toolId} accent text`).toBeGreaterThanOrEqual(4.5);
-      expect(await contrast(tile, "borderColor"), `${theme} ${toolId} accent border`).toBeGreaterThanOrEqual(3);
+      const icon = page.getByTestId(`tool-link-${toolId}`).first().locator("svg");
+      expect(await contrast(icon), `${theme} ${toolId} navigation icon`).toBeGreaterThanOrEqual(3);
     }
 
     await codec.openFaq();
-    const faqTile = page.getByTestId("faq-link").first().locator("span");
-    expect(await contrast(faqTile), `${theme} faq accent text`).toBeGreaterThanOrEqual(4.5);
-    expect(await contrast(faqTile, "borderColor"), `${theme} faq accent border`).toBeGreaterThanOrEqual(3);
+    const faqIcon = page.getByTestId("faq-link").first().locator("svg");
+    expect(await contrast(faqIcon), `${theme} faq navigation icon`).toBeGreaterThanOrEqual(3);
     await codec.open();
 
     expect(await contrast(codec.convert()), `${theme} disabled`).toBeGreaterThanOrEqual(4.5);
@@ -569,6 +567,32 @@ test("desktop shell gives the workspace its available width", async ({ page }) =
   expect(Math.abs(source!.y - target!.y)).toBeLessThanOrEqual(1);
   expect(Math.abs(source!.width - target!.width)).toBeLessThanOrEqual(1);
   expect(source!.width + target!.width).toBeGreaterThanOrEqual(workspace!.width - 2);
+});
+
+test("tool guidance follows the workspace without a viewport-sized gap", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(1440, 900);
+  for (const toolId of ["base64", "url", "query", "python"] as const) {
+    await codec.open(`/${toolId === "python" ? "python-json" : toolId}/`);
+    expect(await codec.guidanceGap(toolId), toolId).toBeGreaterThanOrEqual(24);
+    expect(await codec.guidanceGap(toolId), toolId).toBeLessThanOrEqual(32);
+  }
+});
+
+test("desktop navigation remains visible when scrolling through URL guidance", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(1440, 900);
+  await codec.open("/url/");
+  await codec.scrollPageToBottom();
+  expect(await codec.navigationTop(false)).toBe(0);
+});
+
+test("mobile header remains visible when scrolling through URL guidance", async ({ page }) => {
+  const codec = new CodecPage(page);
+  await codec.setViewport(390, 844);
+  await codec.open("/url/");
+  await codec.scrollPageToBottom();
+  expect(await codec.navigationTop(true)).toBe(0);
 });
 
 test("mobile drawer stays anchored right throughout its entry transition", async ({ page }) => {
@@ -668,7 +692,7 @@ test("new browser context starts with example workspace", async ({ browser }) =>
   await expect(codec.output("base64-output")).toHaveValue("SGVsbG8sIHdvcmxkIQ==");
   await codec.open("/query/");
   await expect(codec.input("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
-  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
+  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
   await codec.open("/python-json/");
   await expect(codec.input("python-input")).toHaveValue("{'name': 'Ada', 'active': True}");
   await expect(codec.output("python-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
@@ -793,7 +817,7 @@ test("page reload resets DATA workspace", async ({ page }) => {
   await codec.act("Clear");
   await page.reload();
   await expect(codec.input("query-input")).toHaveValue("https://example.com/?name=Ada&active=true");
-  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": "true"\n}');
+  await expect(codec.output("query-output")).toHaveValue('{\n  "name": "Ada",\n  "active": true\n}');
   await expect(codec.format("query", "top")).toHaveText("Query string");
 });
 

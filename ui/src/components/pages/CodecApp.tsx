@@ -19,6 +19,7 @@ import { QueryTool } from "./QueryTool";
 import { TimestampTool } from "./TimestampTool";
 import { TailwindTool } from "./TailwindTool";
 import { UrlTool } from "./UrlTool";
+import { ToolGuidance } from "./ToolGuidance";
 
 const NAV_LINK_CLASSES =
   "group mx-3 flex min-h-11 items-center gap-3 rounded-control border border-transparent px-3 text-control font-medium text-muted transition hover:bg-field hover:text-ink active:translate-y-px focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary";
@@ -549,6 +550,7 @@ export function CodecApp(props: CodecAppProps) {
           )}
         </header>
         {infoPage ? infoPage.content : tool ? tools[tool.id] : null}
+        {tool && <ToolGuidance toolId={tool.id} />}
       </main>
     </div>
   );

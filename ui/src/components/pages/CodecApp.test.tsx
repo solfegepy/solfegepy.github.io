@@ -910,7 +910,7 @@ describe("CodecApp", () => {
     const base64 = render(<CodecApp toolId="base64" />);
     expect(screen.getByText("Convert plain text, Base64, or Base64url:")).toBeInTheDocument();
     expect(
-      within(screen.getByRole("list"))
+      within(within(screen.getByTestId("tool-description")).getByRole("list"))
         .getAllByRole("listitem")
         .map((item) => item.textContent),
     ).toEqual(["Base64: uses +, /, and = padding", "Base64url: uses - and _ without padding."]);
@@ -919,7 +919,7 @@ describe("CodecApp", () => {
     render(<CodecApp toolId="url" />);
     expect(screen.getByText("Encode or decode URL values:")).toBeInTheDocument();
     expect(
-      within(screen.getByRole("list"))
+      within(within(screen.getByTestId("tool-description")).getByRole("list"))
         .getAllByRole("listitem")
         .map((item) => item.textContent),
     ).toEqual([

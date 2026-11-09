@@ -121,6 +121,7 @@ text. Theme roles keep identical meaning in light and dark modes.
 
 - Mobile first; only viewport breakpoint md at 48rem. Workspace container query remains 44rem.
 - Below 48rem retain sticky 4rem brand/header and native modal navigation drawer. Above it use persistent 15rem sidebar.
+- Keep converter guidance inside the main column, 2rem after the workspace, so navigation stays sticky through the full page.
 - Keep the theme icon button and cookie settings in existing shell locations.
 - Action groups wrap with 0.5rem gaps. At 375px editors stack; at 1280px equal source/result columns use recovered space.
 - Review the shell and converters at 768px/1024px and both sides of viewport/container transitions, not just endpoints.

@@ -309,6 +309,28 @@ export class CodecPage {
   /** Closes mobile navigation drawer. @returns Resolves after activation. */
   async closeDrawer(): Promise<void> {
     await this.page.getByTestId("drawer-close").click();
+    await this.drawer().waitFor({ state: "hidden" });
+  }
+
+  /** Measures spacing after a converter. @param toolId Converter name. @returns Gap before its guidance in pixels. */
+  async guidanceGap(toolId: ToolId): Promise<number> {
+    const workspace = await this.workspace(toolId).boundingBox();
+    const guidance = await this.page.getByTestId(`${toolId}-guidance`).boundingBox();
+    return guidance!.y - workspace!.y - workspace!.height;
+  }
+
+  /** Scrolls the document to its end. @returns Resolves after the browser updates sticky positioning. */
+  async scrollPageToBottom(): Promise<void> {
+    await this.page.evaluate(async () => {
+      window.scrollTo(0, document.documentElement.scrollHeight);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    });
+  }
+
+  /** Measures persistent navigation. @param mobile Whether to measure the mobile header. @returns Top edge in pixels. */
+  async navigationTop(mobile: boolean): Promise<number> {
+    const bounds = await this.page.getByTestId(mobile ? "mobile-header" : "desktop-sidebar").boundingBox();
+    return bounds!.y;
   }
 
   /** Grants browser clipboard permissions. @returns Resolves after permissions are granted. */
