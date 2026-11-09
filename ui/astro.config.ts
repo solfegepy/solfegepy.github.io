@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
@@ -8,6 +10,7 @@ import { requirePositiveInteger } from "./config-env";
 
 const env = loadEnv("development", "../.devcontainer", "");
 const port = requirePositiveInteger(env, "UI_INT_PORT");
+const repoRoot = path.join(import.meta.dirname, "..");
 
 // The npm provider reads one CSS file per family entry and ignores `subsets`, so each weight gets its own entry
 // sharing the family's cssVariable. Fontsource weight files include every subset the package ships.
@@ -44,6 +47,13 @@ export default defineConfig({
   redirects: { "/": "/base64/" },
   server: { host: "0.0.0.0", port },
   vite: {
+    cacheDir: path.join(
+      repoRoot,
+      ".cache",
+      "vite",
+      process.env.ENVIRONMENT ?? "development",
+      process.env.NODE_ENV ?? "development",
+    ),
     plugins: [tailwindcss()],
     build: {
       // three.js alone is about 550 kB minified. It sits in its own chunk that only downloads when a visitor opens a
