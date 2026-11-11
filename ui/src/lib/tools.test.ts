@@ -8,21 +8,21 @@ const README = readFileSync("../README.md", "utf8");
 
 describe("tool registry", () => {
   it("defines every tool once with unique IDs and routes", () => {
-    expect(TOOLS.map(({ id }) => id)).toEqual(["base64", "url", "query", "jwt", "python", "timestamp", "tailwind"]);
+    expect(TOOLS.map(({ id }) => id)).toEqual(["tailwind", "query", "timestamp", "python", "base64", "url", "jwt"]);
     expect(new Set(TOOLS.map(({ id }) => id)).size).toBe(TOOLS.length);
     expect(new Set(TOOLS.map(({ route }) => route)).size).toBe(TOOLS.length);
   });
 
   it("keeps intended group and tool order", () => {
-    expect(TOOL_GROUPS).toEqual(["Encoding", "Conversion"]);
+    expect(TOOL_GROUPS).toEqual(["Conversion", "Encoding"]);
     expect(TOOLS.map(({ group, label }) => [group, label])).toEqual([
+      ["Conversion", "Tailwind colors"],
+      ["Conversion", "Query Params"],
+      ["Conversion", "Timestamp"],
+      ["Conversion", "Python → JSON"],
       ["Encoding", "Base64"],
       ["Encoding", "URL"],
-      ["Conversion", "Query Params"],
       ["Encoding", "JWT"],
-      ["Conversion", "Python → JSON"],
-      ["Conversion", "Timestamp"],
-      ["Conversion", "Tailwind colors"],
     ]);
   });
 

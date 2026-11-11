@@ -1,5 +1,5 @@
 import { ChevronDownIcon, CircleHelpIcon, InfoIcon, MenuIcon, ShieldCheckIcon, XIcon } from "lucide-react";
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { TOOL_IDENTITY_CLASSES, TOOL_PRESENTATION } from "../../lib/presentation";
 import { applyTheme, readTheme, writeTheme, type Theme } from "../../lib/theme";
@@ -84,38 +84,39 @@ function ToolNavigation({ activeTool, currentPage, onNavigate }: ToolNavigationP
               const { Icon } = TOOL_PRESENTATION[tool.id];
               const current = tool.id === activeTool;
               return (
-                <a
-                  data-testid={`tool-link-${tool.id}`}
-                  data-accent={tool.id}
-                  key={tool.id}
-                  href={tool.route}
-                  aria-current={current ? "page" : undefined}
-                  className={`${NAV_LINK_CLASSES} ${current ? ACTIVE_NAV_LINK_CLASSES : ""}`}
-                  onClick={onNavigate}
-                >
-                  <Icon aria-hidden="true" className={navIconClasses(current)} size={16} strokeWidth={2} />
-                  {tool.label}
-                </a>
+                <Fragment key={tool.id}>
+                  <a
+                    data-testid={`tool-link-${tool.id}`}
+                    data-accent={tool.id}
+                    href={tool.route}
+                    aria-current={current ? "page" : undefined}
+                    className={`${NAV_LINK_CLASSES} ${current ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+                    onClick={onNavigate}
+                  >
+                    <Icon aria-hidden="true" className={navIconClasses(current)} size={16} strokeWidth={2} />
+                    {tool.label}
+                  </a>
+                  {tool.id === "base64" && (
+                    <a
+                      data-testid="ascii-link"
+                      data-accent="ascii"
+                      href="/ascii/"
+                      aria-current={asciiCurrent ? "page" : undefined}
+                      className={`${NAV_LINK_CLASSES} ${asciiCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
+                      onClick={onNavigate}
+                    >
+                      <TOOL_PRESENTATION.ascii.Icon
+                        aria-hidden="true"
+                        className={navIconClasses(asciiCurrent)}
+                        size={16}
+                        strokeWidth={2}
+                      />
+                      ASCII &amp; Latin Codes
+                    </a>
+                  )}
+                </Fragment>
               );
             })}
-            {group === "Encoding" && (
-              <a
-                data-testid="ascii-link"
-                data-accent="ascii"
-                href="/ascii/"
-                aria-current={asciiCurrent ? "page" : undefined}
-                className={`${NAV_LINK_CLASSES} ${asciiCurrent ? ACTIVE_NAV_LINK_CLASSES : ""}`}
-                onClick={onNavigate}
-              >
-                <TOOL_PRESENTATION.ascii.Icon
-                  aria-hidden="true"
-                  className={navIconClasses(asciiCurrent)}
-                  size={16}
-                  strokeWidth={2}
-                />
-                ASCII &amp; Latin Codes
-              </a>
-            )}
           </div>
         </NavigationGroup>
       ))}

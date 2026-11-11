@@ -314,10 +314,11 @@ describe("CodecApp", () => {
     expect(screen.getAllByTestId("tool-navigation-group")).toHaveLength(2);
     expect(screen.getAllByText("Encoding")).toHaveLength(1);
     expect(screen.getAllByText("Conversion")).toHaveLength(1);
-    expect(screen.getAllByTestId("tool-navigation-group")[0]).toHaveTextContent("Base64URLJWT");
-    expect(screen.getAllByTestId("tool-navigation-group")[0]).not.toHaveTextContent("Query Params");
+    expect(screen.getAllByTestId("tool-navigation-group")[0]).toHaveTextContent(
+      "ConversionTailwind colorsQuery ParamsTimestampPython → JSON",
+    );
     expect(screen.getAllByTestId("tool-navigation-group")[1]).toHaveTextContent(
-      "Query ParamsPython → JSONTimestampTailwind colors",
+      "EncodingBase64ASCII & Latin CodesURLJWT",
     );
     expect(screen.getAllByTestId("tool-link-base64")[0]).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Base64 Decode");
