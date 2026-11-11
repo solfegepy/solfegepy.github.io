@@ -456,35 +456,45 @@ test("404 fallback fits 320px with large text", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("404 fallback follows system theme and stored choice wins", async ({ page }) => {
+test("404 fallback defaults to dark and stored choice wins", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open("/missing");
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
-  const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-
-  await page.evaluate(() => localStorage.setItem("codec-bench-theme", "dark"));
-  await page.reload();
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(lightBackground).not.toBe(darkBackground);
+
+  await page.evaluate(() => localStorage.setItem("codec-bench-theme", "light"));
+  await page.reload();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(darkBackground).not.toBe(lightBackground);
 });
 
-test("every route follows system light before hydration without browser errors", async ({ page }) => {
+test("every route defaults to dark before hydration without browser errors", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.openBeforeHydration();
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   await expect(codec.app()).not.toHaveAttribute("data-hydrated", "true");
   const errors = codec.trackBrowserErrors();
 
-  for (const route of ["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/"]) {
+  for (const route of [
+    "/",
+    "/tailwind/",
+    "/base64/",
+    "/url/",
+    "/query/",
+    "/jwt/",
+    "/python-json/",
+    "/timestamp/",
+    "/faq/",
+  ]) {
     await codec.open(route);
     await expect(codec.app()).toHaveAttribute("data-hydrated", "true");
     await expect(codec.app()).not.toHaveAttribute("inert");
     await expect(codec.app()).toHaveAttribute("aria-busy", "false");
-    await expect(codec.root()).toHaveAttribute("data-theme", "light");
-    await expect(codec.themeControl()).toHaveAccessibleName("Use dark theme");
+    await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+    await expect(codec.themeControl()).toHaveAccessibleName("Use light theme");
     expect(errors, route).toEqual([]);
   }
 
@@ -498,14 +508,14 @@ test("explicit theme persists across reload and route navigation", async ({ page
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open();
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   await codec.chooseOppositeTheme();
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
-  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("dark");
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
+  expect(await page.evaluate(() => localStorage.getItem("codec-bench-theme"))).toBe("light");
   await page.reload();
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
   await codec.chooseTool("URL");
-  await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
 });
 
 test("blocked theme storage keeps controls usable", async ({ page }) => {
@@ -519,9 +529,9 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.open();
-  await expect(codec.root()).toHaveAttribute("data-theme", "light");
-  await codec.chooseOppositeTheme();
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
+  await codec.chooseOppositeTheme();
+  await expect(codec.root()).toHaveAttribute("data-theme", "light");
 });
 
 test("every route fits 320px at 200 percent text", async ({ page }) => {

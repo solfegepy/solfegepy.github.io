@@ -257,7 +257,7 @@ Decisions intentionally deferred:
 - Rendered/source audit supports wider editors, shorter mobile fields and a clear split between workspaces and reading.
 - The saturated dark output fill was the heaviest element on every converter; a tint keeps the source/result
   distinction without dominating. Light output (violet-50) already reads calm and stays.
-- Following the system theme on first visit is the platform default visitors expect; the stored choice keeps control.
+- Dark mode is the default on first visit; a stored light or dark choice takes precedence.
 - Compact consent improves the first mobile visit while retaining every choice. An icon-only theme control removes
   a redundant label row; its accessible name already explains the action.
 - 48rem viewport breakpoint and 44px targets come from project rules. No new font or component dependency earns its cost.

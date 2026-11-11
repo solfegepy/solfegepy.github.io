@@ -95,6 +95,20 @@ const ROUTES = [
 const FONT_PRELOAD_COUNT = 2 * 6;
 
 describe("production homepage SEO", () => {
+  it("serves the Tailwind converter at both URLs without a redirect", () => {
+    for (const page of ["index.html", "tailwind/index.html"]) {
+      const document = builtDocument(page);
+
+      expect(document.querySelector("h1")?.textContent?.trim(), page).toBe("Tailwind Color Converter");
+      expect(document.querySelector('[data-testid="codec-app"]'), page).not.toBeNull();
+      expect(document.querySelector('meta[http-equiv="refresh"]'), page).toBeNull();
+      expect(document.body.textContent, page).not.toContain("Redirecting");
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute("href"), page).toBe(
+        "https://codec64.com/tailwind/",
+      );
+    }
+  });
+
   it("uses GitHub Pages directory URLs in metadata and internal links", () => {
     for (const route of ROUTES) {
       const html = readFileSync(resolve(import.meta.dirname, "../../../docs", `.${route}index.html`), "utf8");

@@ -1,15 +1,9 @@
 export type Theme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "codec-bench-theme";
-const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
-const SYSTEM_THEME_BY_PREFERENCE = { true: "dark", false: "light" } satisfies Record<string, Theme>;
+const DEFAULT_THEME: Theme = "dark";
 
 type ThemeStorage = Pick<Storage, "getItem" | "setItem">;
-
-function systemTheme(): Theme {
-  const prefersDark = window.matchMedia(SYSTEM_THEME_QUERY).matches;
-  return SYSTEM_THEME_BY_PREFERENCE[String(prefersDark) as keyof typeof SYSTEM_THEME_BY_PREFERENCE];
-}
 
 function browserStorage(): ThemeStorage | undefined {
   try {
@@ -19,14 +13,13 @@ function browserStorage(): ThemeStorage | undefined {
   }
 }
 
-/** Read saved theme; follow the system preference when nothing valid is stored. */
+/** Read saved theme; default to dark when nothing valid is stored. */
 export function readTheme(storage: ThemeStorage | undefined = browserStorage()): Theme {
-  const fallbackTheme = systemTheme();
   try {
     const value = storage?.getItem(THEME_STORAGE_KEY);
-    return value === "light" || value === "dark" ? value : fallbackTheme;
+    return value === "light" || value === "dark" ? value : DEFAULT_THEME;
   } catch {
-    return fallbackTheme;
+    return DEFAULT_THEME;
   }
 }
 
@@ -45,8 +38,7 @@ export function applyTheme(theme: Theme): void {
 }
 
 export const THEME_BOOTSTRAP_SCRIPT = `(() => {
-  const systemThemes = ${JSON.stringify(SYSTEM_THEME_BY_PREFERENCE)};
-  let theme = systemThemes[String(window.matchMedia(${JSON.stringify(SYSTEM_THEME_QUERY)}).matches)];
+  let theme = ${JSON.stringify(DEFAULT_THEME)};
   try {
     const stored = localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});
     if (stored === "light" || stored === "dark") theme = stored;

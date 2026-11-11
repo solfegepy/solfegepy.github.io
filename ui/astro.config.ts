@@ -46,11 +46,10 @@ export default defineConfig({
     ]),
     ...selfHostedFamily("JetBrains Mono", "--font-jetbrains-mono", ["SFMono-Regular", "Consolas", "monospace"]),
   ],
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap({ filter: (page) => page !== "https://codec64.com/" })],
   outDir: "../docs",
   site: "https://codec64.com",
   output: "static",
-  redirects: { "/": "/tailwind/" },
   server: { host: "0.0.0.0", port },
   vite: {
     cacheDir: path.join(

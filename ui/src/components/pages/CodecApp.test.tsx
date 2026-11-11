@@ -294,20 +294,20 @@ describe("CodecApp", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("JWT must contain three segments.");
   });
 
-  it("follows the system theme and toggles a persisted light/dark theme", async () => {
+  it("defaults to dark and toggles a persisted light/dark theme", async () => {
     const user = userEvent.setup();
     render(<CodecApp toolId="base64" />);
 
-    const dark = await waitFor(() => screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
-    expect(dark).toHaveAttribute("data-testid", "theme-control");
+    const light = await waitFor(() => screen.getAllByRole("button", { name: "Use light theme" })[0]!);
+    expect(light).toHaveAttribute("data-testid", "theme-control");
     expect(screen.queryByRole("button", { name: /system/i })).toBeNull();
-    await user.click(dark);
-    expect(localStorage.getItem("codec-bench-theme")).toBe("dark");
-    expect(document.documentElement.dataset.theme).toBe("dark");
-
-    await user.click(screen.getAllByRole("button", { name: "Use light theme" })[0]!);
+    await user.click(light);
     expect(localStorage.getItem("codec-bench-theme")).toBe("light");
     expect(document.documentElement.dataset.theme).toBe("light");
+
+    await user.click(screen.getAllByRole("button", { name: "Use dark theme" })[0]!);
+    expect(localStorage.getItem("codec-bench-theme")).toBe("dark");
+    expect(document.documentElement.dataset.theme).toBe("dark");
   });
   it("renders grouped routed navigation and active tool", () => {
     render(<CodecApp toolId="base64" />);

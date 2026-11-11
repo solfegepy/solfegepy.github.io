@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { readTheme, THEME_STORAGE_KEY, writeTheme } from "./theme";
+import { readTheme, THEME_BOOTSTRAP_SCRIPT, THEME_STORAGE_KEY, writeTheme } from "./theme";
 
 const originalMatchMedia = Object.getOwnPropertyDescriptor(window, "matchMedia");
 
@@ -26,11 +26,21 @@ describe("theme contract", () => {
     expect(layout.indexOf("THEME_BOOTSTRAP_SCRIPT")).toBeLessThan(layout.indexOf("<body>"));
   });
 
-  it("follows the system theme when no preference is stored", () => {
+  it("defaults to dark regardless of system preference when no preference is stored", () => {
     setSystemTheme(true);
     expect(readTheme(localStorage)).toBe("dark");
     setSystemTheme(false);
-    expect(readTheme(localStorage)).toBe("light");
+    expect(readTheme(localStorage)).toBe("dark");
+  });
+
+  it("boots dark before hydration and respects a saved light theme", () => {
+    setSystemTheme(false);
+    window.eval(THEME_BOOTSTRAP_SCRIPT);
+    expect(document.documentElement.dataset.theme).toBe("dark");
+
+    writeTheme("light", localStorage);
+    window.eval(THEME_BOOTSTRAP_SCRIPT);
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
 
   it("uses a valid stored theme ahead of system preference", () => {
@@ -41,7 +51,7 @@ describe("theme contract", () => {
     expect(readTheme(localStorage)).toBe("dark");
   });
 
-  it("falls back to the system theme when storage access is blocked", () => {
+  it("falls back to dark when storage access is blocked", () => {
     setSystemTheme(false);
     const broken = {
       getItem: vi.fn(() => {
@@ -51,7 +61,7 @@ describe("theme contract", () => {
         throw new Error("blocked");
       }),
     };
-    expect(readTheme(broken)).toBe("light");
+    expect(readTheme(broken)).toBe("dark");
     expect(() => writeTheme("light", broken)).not.toThrow();
   });
 });
