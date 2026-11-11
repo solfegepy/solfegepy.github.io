@@ -50,7 +50,7 @@ export default defineConfig({
   outDir: "../docs",
   site: "https://codec64.com",
   output: "static",
-  redirects: { "/": "/base64/" },
+  redirects: { "/": "/tailwind/" },
   server: { host: "0.0.0.0", port },
   vite: {
     cacheDir: path.join(
