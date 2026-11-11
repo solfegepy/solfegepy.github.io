@@ -1,5 +1,9 @@
+import { useEffect } from "react";
+
 import { CONVERSION_EXAMPLES } from "../../constants";
 import { decodeUrl, encodeUrl, type UrlEncodingVariant } from "../../lib/codecs";
+import { registerWebMcpTool } from "../../lib/webmcp";
+import { URL_CONVERT_TOOL } from "../../lib/webmcp-url";
 import { CodecWorkspace, type ChannelFormat } from "../shared/CodecWorkspace";
 
 const ENCODED_FORMATS = [
@@ -20,6 +24,8 @@ function convertUrl(input: string, source: ChannelFormat, target: ChannelFormat)
 }
 
 export function UrlTool() {
+  useEffect(() => registerWebMcpTool(URL_CONVERT_TOOL), []);
+
   return (
     <CodecWorkspace
       name="url"

@@ -33,9 +33,19 @@ interface DocumentWithModelContext extends Document {
   readonly modelContext?: ModelContext;
 }
 
-const INVALID_INPUT = { ok: false, error: "Invalid tool input." } as const;
+/** Result returned when agent-supplied arguments fail validation. */
+export const INVALID_INPUT = { ok: false, error: "Invalid tool input." } as const;
 
-function isExactObject(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+const BASE64_VARIANTS = ["standard", "url-safe"] as const;
+const MAX_BASE64_INPUT_LENGTH = 1_000_000;
+
+/**
+ * Checks untrusted tool arguments for a plain object with exactly the supplied keys.
+ * @param value - Arguments received from an agent.
+ * @param keys - Allowed and required property names.
+ * @returns Whether the value has the required object shape.
+ */
+export function isExactObject(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
   const prototype = Object.getPrototypeOf(value) as unknown;
   if (prototype !== Object.prototype && prototype !== null) return false;
@@ -47,7 +57,7 @@ function isBase64Input(value: unknown): value is { value: string; variant: Base6
   return (
     isExactObject(value, ["value", "variant"]) &&
     typeof value.value === "string" &&
-    (value.variant === "standard" || value.variant === "url-safe")
+    BASE64_VARIANTS.includes(value.variant as Base64Variant)
   );
 }
 
@@ -63,8 +73,8 @@ export const BASE64_DECODE_TOOL = {
   inputSchema: {
     type: "object",
     properties: {
-      value: { type: "string", maxLength: 1_000_000 },
-      variant: { type: "string", enum: ["standard", "url-safe"] },
+      value: { type: "string", maxLength: MAX_BASE64_INPUT_LENGTH },
+      variant: { type: "string", enum: BASE64_VARIANTS },
     },
     required: ["value", "variant"],
     additionalProperties: false,

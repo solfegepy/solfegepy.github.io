@@ -262,7 +262,49 @@ describe("CodecApp", () => {
     expect(options.signal.aborted).toBe(true);
   });
 
-  it.each(["url", "query", "python", "timestamp"] as const)("registers no decoding tool for %s", (toolId) => {
+  it("offers URL conversion to agents and unregisters when leaving the page", async () => {
+    const registerTool = installModelContext();
+    const view = render(<CodecApp toolId="url" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("convert_url");
+    const fields = screen.getAllByRole("textbox");
+    const before = fields.map((field) => (field as HTMLTextAreaElement).value);
+
+    await expect(tool.execute({ value: "a+b c", direction: "encode", variant: "form" })).resolves.toMatchObject({
+      ok: true,
+      value: "a%2Bb+c",
+    });
+    expect(fields.map((field) => (field as HTMLTextAreaElement).value)).toEqual(before);
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    expect(options.signal.aborted).toBe(false);
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it("offers timestamp conversion to agents and unregisters when leaving the page", async () => {
+    const registerTool = installModelContext();
+    const view = render(<CodecApp toolId="timestamp" />);
+
+    expect(registerTool).toHaveBeenCalledOnce();
+    const [tool, options] = registerTool.mock.calls[0] as unknown as [WebMcpTool, { signal: AbortSignal }];
+    expect(tool.name).toBe("convert_timestamp");
+    const fields = screen.getAllByRole("textbox");
+    const before = fields.map((field) => (field as HTMLTextAreaElement).value);
+
+    await expect(tool.execute({ value: "0", source: "timestamp-seconds", target: "ztime" })).resolves.toMatchObject({
+      ok: true,
+      value: "1970-01-01T00:00:00.000Z",
+    });
+    expect(fields.map((field) => (field as HTMLTextAreaElement).value)).toEqual(before);
+    expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+    expect(options.signal.aborted).toBe(false);
+    view.unmount();
+    expect(options.signal.aborted).toBe(true);
+  });
+
+  it.each(["query", "python"] as const)("registers no agent tool for %s", (toolId) => {
     const registerTool = installModelContext();
 
     render(<CodecApp toolId={toolId} />);

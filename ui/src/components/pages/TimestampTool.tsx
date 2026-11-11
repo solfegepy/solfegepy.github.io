@@ -1,7 +1,9 @@
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { CONVERSION_EXAMPLES } from "../../constants";
 import { convertTimestamp, type TimestampFormat } from "../../lib/codecs";
+import { registerWebMcpTool } from "../../lib/webmcp";
+import { TIMESTAMP_CONVERT_TOOL } from "../../lib/webmcp-timestamp";
 import { CodecWorkspace, type ChannelFormat } from "../shared/CodecWorkspace";
 
 const FORMATS = [
@@ -16,6 +18,8 @@ const subscribe = () => () => undefined;
 const getServerExamples = () => EMPTY_EXAMPLES;
 
 export function TimestampTool() {
+  useEffect(() => registerWebMcpTool(TIMESTAMP_CONVERT_TOOL), []);
+
   const [pageLoadExamples] = useState(() =>
     typeof window === "undefined" ? EMPTY_EXAMPLES : CONVERSION_EXAMPLES.timestamp(),
   );
