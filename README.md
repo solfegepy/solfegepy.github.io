@@ -27,6 +27,32 @@ workspace; it documents defaults and is not loaded by the app. `UI_EXT_PORT` and
 `UI_INT_PORT`, `UI_TEST_INT_PORT`, `API_INT_PORT`, and `API_TEST_INT_PORT` select container ports. API ports are
 placeholders for a future service. `ASTRO_TELEMETRY_DISABLED=1` disables Astro telemetry.
 
+### Environment selection
+
+`ENV` selects app feature flags; it is separate from Astro/Vite mode and `NODE_ENV`.
+
+| Set point                                               | `ENV` value   |
+| ------------------------------------------------------- | ------------- |
+| `.devcontainer/compose.devcontainer.yaml` `environment` | `development` |
+| `Makefile` `build` target                               | `production`  |
+| `ui/playwright.config.ts` `webServer.env`               | `development` |
+
+Direct `pnpm` commands inherit `ENV` from the shell; unset `ENV` stays optional and disables every feature flag in
+`ui/src/lib/features.ts`. Rebuild after changing `ENV`, because Astro inlines this client value into the static bundle.
+`ui/astro.config.ts` and `ui/playwright.config.ts` also explicitly call Vite `loadEnv` with mode `development` and
+directory `.devcontainer` to read `UI_INT_PORT` and `UI_TEST_INT_PORT`.
+
+Astro/Vite derive mode from the command: `astro dev` uses `development`; `astro build` and `astro preview` use
+`production`; Vitest defaults to `test`. Unless set by the shell, `NODE_ENV` defaults to `development` for dev,
+`production` for build and preview, and `test` for Vitest. `import.meta.env.MODE` reports mode; `DEV` and `PROD` reflect
+`NODE_ENV`, with `DEV` the inverse of `PROD`. Vite loads `.env`, `.env.local`, `.env.[mode]`, and `.env.[mode].local`
+from `ui/`; mode-specific values override general ones, while process environment values take precedence. Playwright
+builds and previews with `ENV=development`, while its build still uses production mode and `NODE_ENV=production`.
+
+`ui/astro.config.ts` declares `ENV` as a public client variable in Astro's env schema; public values enter client and
+server bundles. Astro's `PUBLIC_` variables are also client-visible. Keep secrets out of `PUBLIC_`, public schema
+fields, and other bundled values.
+
 ## Build and test
 
 Run current workflow from repository root:
