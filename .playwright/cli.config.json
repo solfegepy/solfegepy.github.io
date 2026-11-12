@@ -1,1 +1,9 @@
-{ "outputDir": ".cache/playwright-cli" }
+{
+  "outputDir": ".cache/playwright-cli",
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "executablePath": "/ms-playwright/chromium/chrome-linux64/chrome"
+    }
+  }
+}
