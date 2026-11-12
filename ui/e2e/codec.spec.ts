@@ -397,7 +397,12 @@ test("mobile FAQ drawer, keyboard disclosure, overflow, focus, and themes", asyn
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
 });
 
-test("FAQ and brand links expose 44px touch targets", async ({ page }) => {
+const EXPECTED_NOT_FOUND_ERROR = {
+  message: /Failed to load resource: the server responded with a status of 404 \(Not Found\)/,
+  source: /\/missing(?:\/nested)?$/,
+};
+
+test("FAQ and brand links expose 44px touch targets", async ({ page, expectedBrowserErrors }) => {
   const codec = new CodecPage(page);
   await codec.setMobileViewport();
   await codec.openFaq();
@@ -408,13 +413,14 @@ test("FAQ and brand links expose 44px touch targets", async ({ page }) => {
   }
   expect((await codec.mobileBrandTargetSize()).height).toBeGreaterThanOrEqual(44);
 
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await codec.open("/missing");
   const notFoundBrand = await codec.notFoundBrandTargetSize();
   expect(notFoundBrand.width).toBeGreaterThanOrEqual(44);
   expect(notFoundBrand.height).toBeGreaterThanOrEqual(44);
 });
 
-test("publishes route metadata and navigates with browser history", async ({ page }) => {
+test("publishes route metadata and navigates with browser history", async ({ page, expectedBrowserErrors }) => {
   const codec = new CodecPage(page);
   await codec.open("/");
   await expect(page).toHaveURL(/\/base64\/$/);
@@ -426,12 +432,14 @@ test("publishes route metadata and navigates with browser history", async ({ pag
   await expect(codec.activeTool()).toHaveText("URL");
   await page.goBack();
   await expect(codec.activeTool()).toHaveText("Base64");
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await codec.open("/missing");
   await expect(page.getByText("This page could not be found")).toBeVisible();
 });
 
-test("unknown route renders branded fallback and recovers home", async ({ page }) => {
+test("unknown route renders branded fallback and recovers home", async ({ page, expectedBrowserErrors }) => {
   const codec = new CodecPage(page);
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await codec.open("/missing/nested");
   await expect(codec.notFoundPage()).toBeVisible();
   await expect(page.getByRole("main")).toHaveCount(1);
@@ -447,9 +455,10 @@ test("unknown route renders branded fallback and recovers home", async ({ page }
   await expect(codec.primaryHeading()).toHaveText("Base64 Decode and Encode");
 });
 
-test("404 fallback fits 320px with large text", async ({ page }) => {
+test("404 fallback fits 320px with large text", async ({ page, expectedBrowserErrors }) => {
   await page.setViewportSize({ width: 320, height: 812 });
   const codec = new CodecPage(page);
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await codec.open("/missing");
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   await expect(codec.notFoundPage()).toBeVisible();
@@ -457,14 +466,16 @@ test("404 fallback fits 320px with large text", async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("404 fallback defaults to dark and stored choice wins", async ({ page }) => {
+test("404 fallback defaults to dark and stored choice wins", async ({ page, expectedBrowserErrors }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await codec.open("/missing");
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   const darkBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
   await page.evaluate(() => localStorage.setItem("codec-bench-theme", "light"));
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   await page.reload();
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
   const lightBackground = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
@@ -532,8 +543,9 @@ test("blocked theme storage keeps controls usable", async ({ page }) => {
   await expect(codec.root()).toHaveAttribute("data-theme", "light");
 });
 
-test("every route fits 320px at 200 percent text", async ({ page }) => {
+test("every route fits 320px at 200 percent text", async ({ page, expectedBrowserErrors }) => {
   const codec = new CodecPage(page);
+  expectedBrowserErrors.push(EXPECTED_NOT_FOUND_ERROR);
   for (const route of ["/base64/", "/url/", "/query/", "/jwt/", "/python-json/", "/timestamp/", "/faq/", "/missing"]) {
     await codec.open(route);
     await page.addStyleTag({ content: "html { font-size: 200%; }" });

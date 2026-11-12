@@ -4,7 +4,11 @@ type BrowserError = {
   message: string;
   source: string;
 };
-type TestFixtures = { browserErrors: void };
+type ExpectedBrowserError = {
+  message: RegExp;
+  source: RegExp;
+};
+type TestFixtures = { browserErrors: void; expectedBrowserErrors: ExpectedBrowserError[] };
 
 // Entries must match both message and source. Keep hydration errors visible even if a future entry matches.
 const THIRD_PARTY_ERROR_ALLOWLIST: { message: RegExp; source: RegExp }[] = [];
@@ -15,8 +19,15 @@ function isAllowlistedThirdPartyError({ message, source }: BrowserError): boolea
 }
 
 export const test = base.extend<TestFixtures>({
+  expectedBrowserErrors: [
+    async ({ page: _page }, use) => {
+      void _page;
+      await use([]);
+    },
+    { auto: false },
+  ],
   browserErrors: [
-    async ({ page }, use) => {
+    async ({ page, expectedBrowserErrors }, use) => {
       const errors: BrowserError[] = [];
       const onConsole = (message: ConsoleMessage) => {
         if (message.type() === "error") {
@@ -32,8 +43,20 @@ export const test = base.extend<TestFixtures>({
       await use().finally(() => {
         page.off("console", onConsole);
         page.off("pageerror", onPageError);
-        const unexpected = errors.filter((error) => !isAllowlistedThirdPartyError(error));
-        expect(unexpected.map(({ message, source }) => `${message} (${source})`)).toEqual([]);
+        const remainingErrors = errors.filter((error) => !isAllowlistedThirdPartyError(error));
+        const missingExpected: ExpectedBrowserError[] = [];
+        for (const expected of expectedBrowserErrors) {
+          const index = remainingErrors.findIndex(
+            (error) =>
+              !/hydration/i.test(error.message) &&
+              expected.message.test(error.message) &&
+              expected.source.test(error.source),
+          );
+          if (index < 0) missingExpected.push(expected);
+          else remainingErrors.splice(index, 1);
+        }
+        expect(missingExpected).toEqual([]);
+        expect(remainingErrors.map(({ message, source }) => `${message} (${source})`)).toEqual([]);
       });
     },
     { auto: true },
