@@ -21,7 +21,11 @@ pnpm run dev
 ```
 
 Development binds to `0.0.0.0:$UI_INT_PORT`; `$UI_EXT_PORT` controls host exposure. Playwright preview uses
-the renamed `$UI_TEST_INT_PORT` variable. Defaults live in `.devcontainer/.env`.
+`$UI_TEST_INT_PORT`. The canonical runtime values live in `.devcontainer/.env`, which Make and the Astro and Playwright
+configs read. Change that file to update ports. Copy `.devcontainer/.env.example` as a reference when setting up a
+workspace; it documents defaults and is not loaded by the app. `UI_EXT_PORT` and `API_EXT_PORT` select host ports;
+`UI_INT_PORT`, `UI_TEST_INT_PORT`, `API_INT_PORT`, and `API_TEST_INT_PORT` select container ports. API ports are
+placeholders for a future service. `ASTRO_TELEMETRY_DISABLED=1` disables Astro telemetry.
 
 ## Build and test
 
