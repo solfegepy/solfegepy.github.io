@@ -177,15 +177,15 @@ function FlatWheel({
       />
       {families.map((family, index) => {
         const angle = ((index + 0.5) / families.length) * Math.PI * 2 - Math.PI / 2;
-        const rotation = (angle * 180) / Math.PI + (Math.sin(angle) > 0 ? -90 : 90);
+        const rotation = ((angle * 180) / Math.PI + (Math.sin(angle) > 0 ? -90 : 90)).toFixed(3);
         return (
           <span
             key={family}
             className="text-muted pointer-events-none absolute leading-none whitespace-nowrap"
             style={{
               fontSize: "clamp(0.75rem, 3.5cqw, 0.875rem)",
-              left: `${50 + Math.cos(angle) * 47}%`,
-              top: `${50 + Math.sin(angle) * 47}%`,
+              left: `${(50 + Math.cos(angle) * 47).toFixed(4)}%`,
+              top: `${(50 + Math.sin(angle) * 47).toFixed(4)}%`,
               transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
             }}
           >

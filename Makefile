@@ -1,4 +1,4 @@
-.PHONY: init start-dev-ui deploy clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug \
+.PHONY: init start-dev-ui deploy clean build format lint test test-e2e test-e2e-hydration test-e2e-headed test-e2e-slow test-e2e-debug \
 	test-report test-coverage outdated upgrade zap lighthouse lighthouse-ci audit
 
 include .devcontainer/.env
@@ -66,6 +66,9 @@ test-coverage: ui/node_modules
 
 test-e2e: ui/node_modules
 	cd ui && pnpm exec playwright test --max-failures=1
+
+test-e2e-hydration: ui/node_modules
+	cd ui && pnpm exec playwright test --config playwright.hydration.config.ts --max-failures=1
 
 test-e2e-headed: ui/node_modules
 	cd ui && pnpm exec playwright test --headed --max-failures=1
