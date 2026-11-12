@@ -36,14 +36,6 @@ export class CodecPage {
     );
     return traffic;
   }
-  trackBrowserErrors(): string[] {
-    const errors: string[] = [];
-    this.page.on("console", (message) => {
-      if (message.type() === "error") errors.push(message.text());
-    });
-    this.page.on("pageerror", (error) => errors.push(error.message));
-    return errors;
-  }
   async writeClipboard(value: string): Promise<void> {
     await this.page.evaluate((text) => navigator.clipboard.writeText(text), value);
   }
@@ -141,7 +133,13 @@ export class CodecPage {
     );
   }
   async openBeforeHydration(path = "/base64/"): Promise<void> {
-    await this.page.route("**/_astro/**", (route) => route.abort());
+    await this.page.route("**/_astro/**", async (route) => {
+      if (route.request().resourceType() === "script") {
+        await route.fulfill({ contentType: "application/javascript", body: "" });
+      } else {
+        await route.continue();
+      }
+    });
     await this.page.goto(path);
     await this.page.unroute("**/_astro/**");
   }

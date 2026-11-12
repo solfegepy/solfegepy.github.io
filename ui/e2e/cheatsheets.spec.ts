@@ -1,4 +1,5 @@
-import { expect, test, type TestInfo } from "@playwright/test";
+import { expect, test } from "./fixtures";
+import type { TestInfo } from "@playwright/test";
 
 import { CodecPage } from "../pages/CodecPage";
 import { OpenSslPage } from "../pages/OpenSslPage";

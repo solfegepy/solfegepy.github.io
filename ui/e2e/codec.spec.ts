@@ -1,4 +1,5 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test } from "./fixtures";
+import type { Locator } from "@playwright/test";
 
 import { CodecPage } from "../pages/CodecPage";
 
@@ -470,14 +471,12 @@ test("404 fallback defaults to dark and stored choice wins", async ({ page }) =>
   expect(darkBackground).not.toBe(lightBackground);
 });
 
-test("every route defaults to dark before hydration without browser errors", async ({ page }) => {
+test("every route defaults to dark before hydration", async ({ page }) => {
   const codec = new CodecPage(page);
   await page.emulateMedia({ colorScheme: "light" });
   await codec.openBeforeHydration();
   await expect(codec.root()).toHaveAttribute("data-theme", "dark");
   await expect(codec.app()).not.toHaveAttribute("data-hydrated", "true");
-  const errors = codec.trackBrowserErrors();
-
   for (const route of [
     "/",
     "/tailwind/",
@@ -495,7 +494,6 @@ test("every route defaults to dark before hydration without browser errors", asy
     await expect(codec.app()).toHaveAttribute("aria-busy", "false");
     await expect(codec.root()).toHaveAttribute("data-theme", "dark");
     await expect(codec.themeControl()).toHaveAccessibleName("Use light theme");
-    expect(errors, route).toEqual([]);
   }
 
   await page.emulateMedia({ colorScheme: "dark" });

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import { AsciiPage } from "../pages/AsciiPage";
 import { CodecPage } from "../pages/CodecPage";
