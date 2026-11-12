@@ -684,7 +684,6 @@ describe("CodecApp", () => {
     expect(screen.queryByText("Top channel")).not.toBeInTheDocument();
     expect(screen.queryByText("Bottom channel")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Convert" })).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "Convert" })).toHaveAttribute("data-testid", "action-button");
     expect(screen.getByRole("button", { name: "Convert" })).toHaveAttribute("title", "Convert");
     expect(screen.getByRole("button", { name: "Convert" })).toHaveClass(
       "border-primary",

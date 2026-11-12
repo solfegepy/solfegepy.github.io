@@ -247,7 +247,13 @@ export function CodecWorkspace({
               role="group"
               aria-label="Conversion actions"
             >
-              <ActionButton title="Convert" tone="primary" onClick={convert} disabled={!needsConversion}>
+              <ActionButton
+                data-testid={`${name}-convert`}
+                title="Convert"
+                tone="primary"
+                onClick={convert}
+                disabled={!needsConversion}
+              >
                 <PlayIcon aria-hidden="true" size={17} strokeWidth={2} />
                 Convert
               </ActionButton>
@@ -260,7 +266,7 @@ export function CodecWorkspace({
               >
                 <ArrowRightLeftIcon aria-hidden="true" size={19} strokeWidth={1.8} />
               </ActionButton>
-              <ActionButton title="Clear" onClick={clear}>
+              <ActionButton data-testid={`${name}-clear`} title="Clear" onClick={clear}>
                 <EraserIcon aria-hidden="true" size={17} strokeWidth={1.8} />
                 Clear
               </ActionButton>

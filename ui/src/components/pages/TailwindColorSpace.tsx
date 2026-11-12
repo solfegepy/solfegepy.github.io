@@ -228,7 +228,7 @@ export function TailwindColorSpace({ kind, model, families, selected, onSelect }
   }
 
   return (
-    <div className="space-y-2">
+    <div data-testid={`tailwind-${kind}-color-space`} className="space-y-2">
       <div className="relative">
         <canvas
           ref={canvasRef}

@@ -36,7 +36,7 @@ export function TextareaField({
   height = "standard",
 }: TextareaFieldProps) {
   return (
-    <div data-testid="textarea-field" className="flex min-w-0 flex-1 flex-col">
+    <div data-testid={`${testId}-field`} className="flex min-w-0 flex-1 flex-col">
       <textarea
         data-testid={testId}
         aria-label={ariaLabel}

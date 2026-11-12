@@ -2,13 +2,21 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
+  "data-testid": string;
   tone?: "primary" | "secondary" | "quiet";
 }
 
 const BASE_CLASSES =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-control border px-4 py-2 font-sans text-control font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:border-line disabled:bg-paper disabled:text-muted";
 
-export function ActionButton({ children, title, tone = "quiet", type = "button", ...props }: ActionButtonProps) {
+export function ActionButton({
+  children,
+  title,
+  tone = "quiet",
+  type = "button",
+  "data-testid": testId,
+  ...props
+}: ActionButtonProps) {
   const toneClasses =
     tone === "primary"
       ? "border-primary bg-primary text-paper hover:bg-primary-strong"
@@ -17,7 +25,7 @@ export function ActionButton({ children, title, tone = "quiet", type = "button",
         : "border-line bg-panel text-ink hover:border-primary hover:text-primary";
   return (
     <button
-      data-testid="action-button"
+      data-testid={testId}
       type={type}
       title={title ?? (typeof children === "string" ? children : undefined)}
       className={`${BASE_CLASSES} ${toneClasses}`}
