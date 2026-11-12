@@ -1,6 +1,6 @@
 {
   "extends": "astro/tsconfigs/strictest",
-  "include": [".astro/types.d.ts", "**/*"],
+  "include": [".astro/types.d.ts", "src/**/*", "e2e/**/*", "pages/**/*", "*.ts"],
   "exclude": ["../docs", "node_modules", ".pnpm-store", "dist", "test-results"],
   "compilerOptions": {
     "jsx": "react-jsx",
