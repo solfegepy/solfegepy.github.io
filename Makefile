@@ -1,5 +1,5 @@
 .PHONY: init start-dev-ui deploy clean build format lint test test-e2e test-e2e-headed test-e2e-slow test-e2e-debug \
-	test-report outdated upgrade zap lighthouse lighthouse-ci audit
+	test-report test-coverage outdated upgrade zap lighthouse lighthouse-ci audit
 
 include .devcontainer/.env
 export
@@ -60,6 +60,9 @@ lint: ui/node_modules
 
 test: ui/node_modules
 	cd ui && pnpm test -- --bail=1
+
+test-coverage: ui/node_modules
+	cd ui && pnpm test -- --bail=1 --coverage
 
 test-e2e: ui/node_modules
 	cd ui && pnpm exec playwright test --max-failures=1
