@@ -9,7 +9,7 @@ interface Props {
 const { toolId } = Astro.props;
 const tool = getTool(toolId);
 const description = tool.metaDescription;
-const canonical = `https://codec64.com${tool.route}`;
+const canonical = new URL(tool.route, Astro.site!).href;
 const title = `${tool.title} | Codec64`;
 const webApplication = {
   "@type": "WebApplication",
@@ -25,7 +25,7 @@ const structuredData =
   toolId === "base64"
     ? {
         "@context": "https://schema.org",
-        "@graph": [{ "@type": "WebSite", name: "Codec64", url: "https://codec64.com/" }, webApplication],
+        "@graph": [{ "@type": "WebSite", name: "Codec64", url: new URL("/", Astro.site!).href }, webApplication],
       }
     : { "@context": "https://schema.org", ...webApplication };
 ---

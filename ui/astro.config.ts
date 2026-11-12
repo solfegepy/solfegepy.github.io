@@ -11,6 +11,7 @@ import { requirePositiveInteger } from "./config-env";
 const env = loadEnv("development", "../.devcontainer", "");
 const port = requirePositiveInteger(env, "UI_INT_PORT");
 const repoRoot = path.join(import.meta.dirname, "..");
+const site = "https://codec64.com";
 
 // The npm provider reads one CSS file per family entry and ignores `subsets`, so each weight gets its own entry
 // sharing the family's cssVariable. Fontsource weight files include every subset the package ships.
@@ -46,9 +47,9 @@ export default defineConfig({
     ]),
     ...selfHostedFamily("JetBrains Mono", "--font-jetbrains-mono", ["SFMono-Regular", "Consolas", "monospace"]),
   ],
-  integrations: [react(), sitemap({ filter: (page) => page !== "https://codec64.com/" })],
+  integrations: [react(), sitemap({ filter: (page) => page !== new URL("/", site).href })],
   outDir: "../docs",
-  site: "https://codec64.com",
+  site,
   output: "static",
   server: { host: "0.0.0.0", port },
   vite: {

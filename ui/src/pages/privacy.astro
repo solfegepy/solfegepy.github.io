@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 
 const title = "Privacy & Cookies Policy | Codec64";
 const description = "How Codec64 uses Google Analytics cookies, what data is collected, and how to withdraw consent.";
-const canonical = "https://codec64.com/privacy/";
+const canonical = new URL("/privacy/", Astro.site!).href;
 ---
 
 <Layout {title} {description} {canonical} siteName="Codec64">
