@@ -9,6 +9,6 @@ for (const route of routes) {
     const hydration = new HydrationPage(page);
     await hydration.open(route);
 
-    await expect(hydration.pendingIslands()).toHaveCount(0);
+    await expect.poll(() => hydration.countPendingIslands()).toBe(0);
   });
 }
